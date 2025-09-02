@@ -5,12 +5,12 @@ protocol SensorEventSchema {
 	@doc(
 			"Типы событий датчиков. Определяет различные типы событий, которые могут быть связаны с датчиками."
 			)
-	enum EventType {
+	enum SensorEventType {
 		MOTION_SENSOR_EVENT,
 		TEMPERATURE_SENSOR_EVENT,
 		LIGHT_SENSOR_EVENT,
 		CLIMATE_SENSOR_EVENT,
-		SWITCH_SENSOR_EVEN
+		SWITCH_SENSOR_EVENT
 	}
 
 	@doc("Данные события, связанного с одним из датчиков.")
@@ -54,7 +54,7 @@ protocol SensorEventSchema {
 		@doc("Уровень CO2.")
 		int co2level;
 
-		EventType type;
+		SensorEventType type;
 	}
 
 	@doc("Событие датчика освещенности, включающее информацию о качестве сигнала и уровне освещения.")
@@ -69,12 +69,12 @@ protocol SensorEventSchema {
 		timestamp_ms timestamp;
 
 		@doc("Качество связи.")
-		int linkQUality;
+		int linkQuality;
 
 		@doc("Уровень освещенности.")
 		int luminosity;
 
-		EventType type;
+		SensorEventType type;
 	}
 
 	@doc("Событие датчика движения.")
@@ -89,7 +89,7 @@ protocol SensorEventSchema {
 		timestamp_ms timestamp;
 
 		@doc("Качество связи.")
-		int linkQUality;
+		int linkQuality;
 
 		@doc("Наличие/отсутствие движения.")
 		boolean motion;
@@ -97,7 +97,7 @@ protocol SensorEventSchema {
 		@doc("Напряжение.")
 		int voltage;
 
-		EventType type;
+		SensorEventType type;
 	}
 
 	@doc("Событие датчика переключателя, содержащее информацию о текущем состоянии переключателя.")
@@ -114,7 +114,7 @@ protocol SensorEventSchema {
 		@doc("Текущее состояние переключателя. true - включен, false - выключен.")
 		boolean state;
 
-		EventType type;
+		SensorEventType type;
 	}
 
 	@doc("Событие климатического датчика, содержащее информацию о температуре, влажности и уровне CO2.")
@@ -134,7 +134,7 @@ protocol SensorEventSchema {
 		@doc("Уровень температуры по шкале Фаренгейта.")
 		int temperatureF;
 
-		EventType type;
+		SensorEventType type;
 	}
 
 }

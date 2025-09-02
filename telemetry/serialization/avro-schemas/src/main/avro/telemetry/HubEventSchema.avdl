@@ -2,7 +2,7 @@
 @doc("События хабов.")
 protocol HubEventSchema {
 	@doc("Типы событий хаба.")
-	enum EventType {
+	enum HubEventType {
 		DEVICE_ADDED,
 		DEVICE_REMOVED,
 		SCENARIO_ADDED,
@@ -56,7 +56,7 @@ protocol HubEventSchema {
 
 		DeviceType deviceType;
 
-		EventType type;
+		HubEventType type;
 	}
 
 	@doc("Событие, сигнализирующее о удалении устройства из системы.")
@@ -70,7 +70,7 @@ protocol HubEventSchema {
 		@doc("Идентификатор удалённого устройства.")
 		string id;
 
-		EventType type;
+		HubEventType type;
 	}
 
 	@doc("Представляет действие, которое должно быть выполнено устройством.")
@@ -105,19 +105,16 @@ protocol HubEventSchema {
 		@doc("Временная метка события. По умолчанию устанавливается текущее время.")
 		timestamp_ms timestamp;
 
-		//todo ограничить в коде minLength = 3
 		@doc("Название добавленного сценария. Должно содержать не менее 3 символов.")
 		string name;
 
-		//todo ограничить в коде, не может быть пустым
 		@doc("Список условий, которые связаны со сценарием. Не может быть пустым.")
 		array<ScenarioCondition> conditions;
 
-		//todo ограничить в коде, не может быть пустым
 		@doc("Список действий, которые должны быть выполнены в рамках сценария. Не может быть пустым.")
 		array<DeviceAction> actions;
 
-		EventType type;
+		HubEventType type;
 	}
 
 	@doc("Событие удаления  сценария из системы. Содержит информацию о названии удалённого сценария.")
@@ -128,10 +125,9 @@ protocol HubEventSchema {
 		@doc("Временная метка события. По умолчанию устанавливается текущее время.")
 		timestamp_ms timestamp;
 
-		//todo ограничить в коде minLength = 3
 		@doc("Название удалённого сценария. Должно содержать не менее 3 символов.")
 		string name;
 
-		EventType type;
+		HubEventType type;
 	}
 }
