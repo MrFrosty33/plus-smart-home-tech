@@ -1,0 +1,137 @@
+@namespace("ru.yandex.practicum.kafka.telemetry.event")
+@doc("События хабов.")
+protocol HubEventSchema {
+	@doc("Типы событий хаба.")
+	enum EventType {
+		DEVICE_ADDED,
+		DEVICE_REMOVED,
+		SCENARIO_ADDED,
+		SCENARIO_REMOVED
+	}
+
+	@doc("Возможные типы действий при срабатывании условия активации сценария.")
+	enum ActionType {
+		ACTIVATE,
+		DEACTIVATE,
+		INVERSE,
+		SET_VALUE
+	}
+
+	@doc("Операции, которые могут быть использованы в условиях.")
+	enum OperationType {
+		EQUALS,
+		GREATER_THAN,
+		LOWER_THAN
+	}
+
+	@doc("Типы устройств, которые могут быть добавлены в систему.")
+	enum DeviceType {
+		MOTION_SENSOR,
+		TEMPERATURE_SENSOR,
+		LIGHT_SENSOR,
+		CLIMATE_SENSOR,
+		SWITCH_SENSOR
+	}
+
+	@doc("Типы условий, которые могут использоваться в сценариях.")
+	enum ConditionType {
+		MOTION,
+		LUMINOSITY,
+		SWITCH,
+		TEMPERATURE,
+		CO2LEVEL,
+		HUMIDITY
+	}
+
+	@doc("Событие, сигнализирующее о добавлении нового устройства в систему.")
+	record DeviceAddedEvent {
+		@doc("Идентификатор хаба, связанного с событием.")
+		string hubId;
+
+		@doc("Временная метка события. По умолчанию устанавливается текущее время.")
+		timestamp_ms timestamp;
+
+		@doc("Идентификатор добавленного устройства.")
+		string id;
+
+		DeviceType deviceType;
+
+		EventType type;
+	}
+
+	@doc("Событие, сигнализирующее о удалении устройства из системы.")
+	record DeviceRemovedEvent {
+		@doc("Идентификатор хаба, связанного с событием.")
+		string hubId;
+
+		@doc("Временная метка события. По умолчанию устанавливается текущее время.")
+		timestamp_ms timestamp;
+
+		@doc("Идентификатор удалённого устройства.")
+		string id;
+
+		EventType type;
+	}
+
+	@doc("Представляет действие, которое должно быть выполнено устройством.")
+	record DeviceAction {
+		@doc("Идентификатор датчика, связанного с действием.")
+		int sensorId;
+
+		ActionType type;
+
+		@doc("Необязательное значение, связанное с действием.")
+		int? value;
+	}
+
+	@doc("Условие сценария, которое содержит информацию о датчике, типе условия, операции и значении.")
+	record ScenarioCondition {
+		@doc("Идентификатор датчика, связанного с действием.")
+		int sensorId;
+
+		ConditionType type;
+
+		OperationType operation;
+
+		@doc("Значение, используемое в условии.")
+		int value;
+	}
+
+	@doc("Событие добавления сценария в систему. Содержит информацию о названии сценария, условиях и действиях.")
+	record ScenarioAddedEvent {
+		@doc("Идентификатор хаба, связанного с событием.")
+		string hubId;
+
+		@doc("Временная метка события. По умолчанию устанавливается текущее время.")
+		timestamp_ms timestamp;
+
+		//todo ограничить в коде minLength = 3
+		@doc("Название добавленного сценария. Должно содержать не менее 3 символов.")
+		string name;
+
+		//todo ограничить в коде, не может быть пустым
+		@doc("Список условий, которые связаны со сценарием. Не может быть пустым.")
+		array<ScenarioCondition> conditions;
+
+		//todo ограничить в коде, не может быть пустым
+		@doc("Список действий, которые должны быть выполнены в рамках сценария. Не может быть пустым.")
+		array<DeviceAction> actions;
+
+		EventType type;
+	}
+
+	@doc("Событие удаления  сценария из системы. Содержит информацию о названии удалённого сценария.")
+	record ScenarioRemovedEvent {
+		@doc("Идентификатор хаба, связанного с событием.")
+		string hubId;
+
+		@doc("Временная метка события. По умолчанию устанавливается текущее время.")
+		timestamp_ms timestamp;
+
+		//todo ограничить в коде minLength = 3
+		@doc("Название удалённого сценария. Должно содержать не менее 3 символов.")
+		string name;
+
+		EventType type;
+	}
+}
