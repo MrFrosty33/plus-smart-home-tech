@@ -1,5 +1,6 @@
 package ru.practicum.collector.model.sensor;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -13,6 +14,7 @@ public class MotionSensorEvent extends SensorEvent {
     private int voltage;
 
     @Override
+    @NotNull
     public SensorEventType getType() {
         return SensorEventType.MOTION_SENSOR_EVENT;
     }

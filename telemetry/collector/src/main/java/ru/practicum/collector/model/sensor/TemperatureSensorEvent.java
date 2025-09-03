@@ -1,6 +1,7 @@
 package ru.practicum.collector.model.sensor;
 
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -15,6 +16,7 @@ public class TemperatureSensorEvent extends SensorEvent {
     private int temperatureF;
 
     @Override
+    @NotNull
     public SensorEventType getType() {
         return SensorEventType.TEMPERATURE_SENSOR_EVENT;
     }

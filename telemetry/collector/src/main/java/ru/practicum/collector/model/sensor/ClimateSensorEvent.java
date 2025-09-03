@@ -1,6 +1,7 @@
 package ru.practicum.collector.model.sensor;
 
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.Builder;
 import lombok.Data;
@@ -18,6 +19,7 @@ public class ClimateSensorEvent extends SensorEvent {
     private int co2level;
 
     @Override
+    @NotNull
     public SensorEventType getType() {
         return SensorEventType.CLIMATE_SENSOR_EVENT;
     }

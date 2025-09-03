@@ -1,6 +1,7 @@
 package ru.practicum.collector.model.hub;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -13,6 +14,7 @@ public class DeviceRemovedEvent extends HubEvent {
     private String id;
 
     @Override
+    @NotNull
     public HubEventType getType() {
         return HubEventType.DEVICE_REMOVED;
     }

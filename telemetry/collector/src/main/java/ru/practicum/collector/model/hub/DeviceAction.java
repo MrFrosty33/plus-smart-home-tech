@@ -1,6 +1,7 @@
 package ru.practicum.collector.model.hub;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
 
@@ -9,6 +10,7 @@ import lombok.Data;
 public class DeviceAction {
     @NotBlank
     private String sensorId;
+    @NotNull
     private ActionType type;
     private int value;
 }

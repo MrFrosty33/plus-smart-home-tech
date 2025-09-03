@@ -1,6 +1,7 @@
 package ru.practicum.collector.model.hub;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -10,7 +11,9 @@ import lombok.EqualsAndHashCode;
 public class ScenarioCondition {
     @NotBlank
     private String sensorId;
+    @NotNull
     private ConditionType type;
+    @NotNull
     private OperationType operation;
     private int value;
 }
