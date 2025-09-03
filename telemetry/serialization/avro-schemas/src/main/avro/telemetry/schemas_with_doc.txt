@@ -1,0 +1,270 @@
+@namespace("ru.yandex.practicum.kafka.telemetry.event")
+protocol HubEventSchema {
+	@doc("Типы событий хаба.")
+	enum HubEventType {
+		DEVICE_ADDED,
+		DEVICE_REMOVED,
+		SCENARIO_ADDED,
+		SCENARIO_REMOVED
+	}
+
+	@doc("Возможные типы действий при срабатывании условия активации сценария.")
+	enum ActionType {
+		ACTIVATE,
+		DEACTIVATE,
+		INVERSE,
+		SET_VALUE
+	}
+
+	@doc("Операции, которые могут быть использованы в условиях.")
+	enum OperationType {
+		EQUALS,
+		GREATER_THAN,
+		LOWER_THAN
+	}
+
+	@doc("Типы устройств, которые могут быть добавлены в систему.")
+	enum DeviceType {
+		MOTION_SENSOR,
+		TEMPERATURE_SENSOR,
+		LIGHT_SENSOR,
+		CLIMATE_SENSOR,
+		SWITCH_SENSOR
+	}
+
+	@doc("Типы условий, которые могут использоваться в сценариях.")
+	enum ConditionType {
+		MOTION,
+		LUMINOSITY,
+		SWITCH,
+		TEMPERATURE,
+		CO2LEVEL,
+		HUMIDITY
+	}
+
+	@doc("Событие, сигнализирующее о добавлении нового устройства в систему.")
+	record DeviceAddedEvent {
+		@doc("Идентификатор хаба, связанного с событием.")
+		string hubId;
+
+		@doc("Временная метка события. По умолчанию устанавливается текущее время.")
+		timestamp_ms timestamp;
+
+		@doc("Идентификатор добавленного устройства.")
+		string id;
+
+		DeviceType deviceType;
+
+		HubEventType type;
+	}
+
+	@doc("Событие, сигнализирующее о удалении устройства из системы.")
+	record DeviceRemovedEvent {
+		@doc("Идентификатор хаба, связанного с событием.")
+		string hubId;
+
+		@doc("Временная метка события. По умолчанию устанавливается текущее время.")
+		timestamp_ms timestamp;
+
+		@doc("Идентификатор удаленного устройства.")
+		string id;
+
+		HubEventType type;
+	}
+
+	@doc("Представляет действие, которое должно быть выполнено устройством.")
+	record DeviceAction {
+		@doc("Идентификатор датчика, связанного с действием.")
+		int sensorId;
+
+		ActionType type;
+
+		@doc("Необязательное значение, связанное с действием.")
+		int? value;
+	}
+
+	@doc("Условие сценария, которое содержит информацию о датчике, типе условия, операции и значении.")
+	record ScenarioCondition {
+		@doc("Идентификатор датчика, связанного с действием.")
+		int sensorId;
+
+		ConditionType type;
+
+		OperationType operation;
+
+		@doc("Значение, используемое в условии.")
+		int value;
+	}
+
+	@doc("Событие добавления сценария в систему. Содержит информацию о названии сценария, условиях и действиях.")
+	record ScenarioAddedEvent {
+		@doc("Идентификатор хаба, связанного с событием.")
+		string hubId;
+
+		@doc("Временная метка события. По умолчанию устанавливается текущее время.")
+		timestamp_ms timestamp;
+
+		@doc("Название добавленного сценария. Должно содержать не менее 3 символов.")
+		string name;
+
+		@doc("Список условий, которые связаны со сценарием. Не может быть пустым.")
+		array<ScenarioCondition> conditions;
+
+		@doc("Список действий, которые должны быть выполнены в рамках сценария. Не может быть пустым.")
+		array<DeviceAction> actions;
+
+		HubEventType type;
+	}
+
+	@doc("Событие удаления  сценария из системы. Содержит информацию о названии удаленного сценария.")
+	record ScenarioRemovedEvent {
+		@doc("Идентификатор хаба, связанного с событием.")
+		string hubId;
+
+		@doc("Временная метка события. По умолчанию устанавливается текущее время.")
+		timestamp_ms timestamp;
+
+		@doc("Название удаленного сценария. Должно содержать не менее 3 символов.")
+		string name;
+
+		HubEventType type;
+	}
+}
+
+--------------------------------------------------------------------------
+
+@namespace("ru.yandex.practicum.kafka.telemetry.event")
+protocol SensorEventSchema {
+
+	@doc("Типы событий датчиков. Определяет различные типы событий, которые могут быть связаны с датчиками.")
+	enum SensorEventType {
+		MOTION_SENSOR_EVENT,
+		TEMPERATURE_SENSOR_EVENT,
+		LIGHT_SENSOR_EVENT,
+		CLIMATE_SENSOR_EVENT,
+		SWITCH_SENSOR_EVENT
+	}
+
+	@doc("Событие климатического датчика, содержащее информацию о температуре, влажности и уровне CO2.")
+	record ClimateSensorEvent {
+		@doc("Идентификатор события датчика.")
+		string id;
+
+		@doc("Идентификатор хаба, связанного с событием.")
+		string hubId;
+
+		@doc("Временная метка события. По умолчанию устанавливается текущее время.")
+		timestamp_ms timestamp;
+
+		@doc("Уровень температуры по шкале Цельсия.")
+		int temperatureC;
+
+		@doc("Влажность.")
+		int humidity;
+
+		@doc("Уровень CO2.")
+		int co2level;
+
+		SensorEventType type;
+	}
+
+	@doc("Событие датчика освещенности, включающее информацию о качестве сигнала и уровне освещения.")
+	record LightSensorEvent {
+		@doc("Идентификатор события датчика.")
+		string id;
+
+		@doc("Идентификатор хаба, связанного с событием.")
+		string hubId;
+
+		@doc("Временная метка события. По умолчанию устанавливается текущее время.")
+		timestamp_ms timestamp;
+
+		@doc("Качество связи.")
+		int linkQuality;
+
+		@doc("Уровень освещенности.")
+		int luminosity;
+
+		SensorEventType type;
+	}
+
+	@doc("Событие датчика движения.")
+	record MotionSensorEvent {
+		@doc("Идентификатор события датчика.")
+		string id;
+
+		@doc("Идентификатор хаба, связанного с событием.")
+		string hubId;
+
+		@doc("Временная метка события. По умолчанию устанавливается текущее время.")
+		timestamp_ms timestamp;
+
+		@doc("Качество связи.")
+		int linkQuality;
+
+		@doc("Наличие/отсутствие движения.")
+		boolean motion;
+
+		@doc("Напряжение.")
+		int voltage;
+
+		SensorEventType type;
+	}
+
+	@doc("Событие датчика переключателя, содержащее информацию о текущем состоянии переключателя.")
+	record SwitchSensorEvent {
+		@doc("Идентификатор события датчика.")
+		string id;
+
+		@doc("Идентификатор хаба, связанного с событием.")
+		string hubId;
+
+		@doc("Временная метка события. По умолчанию устанавливается текущее время.")
+		timestamp_ms timestamp;
+
+		@doc("Текущее состояние переключателя. true - включен, false - выключен.")
+		boolean state;
+
+		SensorEventType type;
+	}
+
+	@doc("Событие климатического датчика, содержащее информацию о температуре, влажности и уровне CO2.")
+	record TemperatureSensorEvent {
+		@doc("Идентификатор события датчика.")
+		string id;
+
+		@doc("Идентификатор хаба, связанного с событием.")
+		string hubId;
+
+		@doc("Временная метка события. По умолчанию устанавливается текущее время.")
+		timestamp_ms timestamp;
+
+		@doc("Уровень температуры по шкале Цельсия.")
+		int temperatureC;
+
+		@doc("Уровень температуры по шкале Фаренгейта.")
+		int temperatureF;
+
+		SensorEventType type;
+	}
+
+	@doc("Данные события, связанного с одним из датчиков.")
+	record SensorEvent {
+		@doc("Идентификатор события датчика.")
+		string id;
+
+		string hubId;
+
+		@doc("Временная метка события. По умолчанию устанавливается текущее время.")
+		timestamp_ms timestamp;
+
+		union{
+			ClimateSensorEvent,
+			LightSensorEvent,
+			MotionSensorEvent,
+			SwitchSensorEvent,
+			TemperatureSensorEvent
+		} payload;
+	}
+
+}

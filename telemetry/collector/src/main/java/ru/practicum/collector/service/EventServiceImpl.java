@@ -7,6 +7,7 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.KafkaException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import ru.practicum.collector.model.hub.HubEvent;
 import ru.practicum.collector.model.sensor.SensorEvent;
 
@@ -40,6 +41,7 @@ public class EventServiceImpl implements EventService {
         this.hubProducer = new KafkaProducer<>(hubConfig);
     }
 
+    @Override
     public void produceSensorData(SensorEvent sensorEvent) {
         ProducerRecord<Void, SensorEvent> record = new ProducerRecord<>(sensorTopic, sensorEvent);
         try(sensorProducer) {
@@ -49,6 +51,17 @@ public class EventServiceImpl implements EventService {
             log.warn("{}: failed to send SensorEvent: {} with topic: {}", className, e.getMessage(), sensorTopic);
             throw e;
         }
+    }
 
+    @Override
+    public void produceHubData(HubEvent hubEvent) {
+        ProducerRecord<Void, HubEvent> record = new ProducerRecord<>(hubTopic, hubEvent);
+        try(hubProducer) {
+            hubProducer.send(record);
+            log.trace("{}: sent HubEvent to topic {}: {}", className, hubTopic, hubEvent);
+        } catch (KafkaException e) {
+            log.warn("{}: failed to send HubEvent: {} with topic: {}", className, e.getMessage(), hubTopic);
+            throw e;
+        }
     }
 }

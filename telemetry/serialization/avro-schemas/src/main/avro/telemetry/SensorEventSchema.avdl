@@ -1,10 +1,6 @@
 @namespace("ru.yandex.practicum.kafka.telemetry.event")
-@doc("События датчиков.")
 protocol SensorEventSchema {
 
-	@doc(
-			"Типы событий датчиков. Определяет различные типы событий, которые могут быть связаны с датчиками."
-			)
 	enum SensorEventType {
 		MOTION_SENSOR_EVENT,
 		TEMPERATURE_SENSOR_EVENT,
@@ -13,14 +9,60 @@ protocol SensorEventSchema {
 		SWITCH_SENSOR_EVENT
 	}
 
-	@doc("Данные события, связанного с одним из датчиков.")
-	record SensorEvent {
-		@doc("Идентификатор события датчика.")
+	record ClimateSensorEvent {
 		string id;
-
 		string hubId;
+		timestamp_ms timestamp;
+		int temperatureC;
+		int humidity;
+		int co2level;
 
-		@doc("Временная метка события. По умолчанию устанавливается текущее время.")
+		SensorEventType type;
+	}
+
+	record LightSensorEvent {
+		string id;
+		string hubId;
+		timestamp_ms timestamp;
+		int linkQuality;
+		int luminosity;
+
+		SensorEventType type;
+	}
+
+	record MotionSensorEvent {
+		string id;
+		string hubId;
+		timestamp_ms timestamp;
+		int linkQuality;
+		boolean motion;
+		int voltage;
+
+		SensorEventType type;
+	}
+
+	record SwitchSensorEvent {
+		string id;
+		string hubId;
+		timestamp_ms timestamp;
+		boolean state;
+
+		SensorEventType type;
+	}
+
+	record TemperatureSensorEvent {
+		string id;
+		string hubId;
+		timestamp_ms timestamp;
+		int temperatureC;
+		int temperatureF;
+
+		SensorEventType type;
+	}
+
+	record SensorEvent {
+		string id;
+		string hubId;
 		timestamp_ms timestamp;
 
 		union{
@@ -29,112 +71,7 @@ protocol SensorEventSchema {
 			MotionSensorEvent,
 			SwitchSensorEvent,
 			TemperatureSensorEvent
-		}
-		@doc("Данные события одной из перечисленных записей.")
-		payload;
-	}
-
-	@doc("Событие климатического датчика, содержащее информацию о температуре, влажности и уровне CO2.")
-	record ClimateSensorEvent {
-		@doc("Идентификатор события датчика.")
-		string id;
-
-		@doc("Идентификатор хаба, связанного с событием.")
-		string hubId;
-
-		@doc("Временная метка события. По умолчанию устанавливается текущее время.")
-		timestamp_ms timestamp;
-
-		@doc("Уровень температуры по шкале Цельсия.")
-		int temperatureC;
-
-		@doc("Влажность.")
-		int humidity;
-
-		@doc("Уровень CO2.")
-		int co2level;
-
-		SensorEventType type;
-	}
-
-	@doc("Событие датчика освещенности, включающее информацию о качестве сигнала и уровне освещения.")
-	record LightSensorEvent {
-		@doc("Идентификатор события датчика.")
-		string id;
-
-		@doc("Идентификатор хаба, связанного с событием.")
-		string hubId;
-
-		@doc("Временная метка события. По умолчанию устанавливается текущее время.")
-		timestamp_ms timestamp;
-
-		@doc("Качество связи.")
-		int linkQuality;
-
-		@doc("Уровень освещенности.")
-		int luminosity;
-
-		SensorEventType type;
-	}
-
-	@doc("Событие датчика движения.")
-	record MotionSensorEvent {
-		@doc("Идентификатор события датчика.")
-		string id;
-
-		@doc("Идентификатор хаба, связанного с событием.")
-		string hubId;
-
-		@doc("Временная метка события. По умолчанию устанавливается текущее время.")
-		timestamp_ms timestamp;
-
-		@doc("Качество связи.")
-		int linkQuality;
-
-		@doc("Наличие/отсутствие движения.")
-		boolean motion;
-
-		@doc("Напряжение.")
-		int voltage;
-
-		SensorEventType type;
-	}
-
-	@doc("Событие датчика переключателя, содержащее информацию о текущем состоянии переключателя.")
-	record SwitchSensorEvent {
-		@doc("Идентификатор события датчика.")
-		string id;
-
-		@doc("Идентификатор хаба, связанного с событием.")
-		string hubId;
-
-		@doc("Временная метка события. По умолчанию устанавливается текущее время.")
-		timestamp_ms timestamp;
-
-		@doc("Текущее состояние переключателя. true - включен, false - выключен.")
-		boolean state;
-
-		SensorEventType type;
-	}
-
-	@doc("Событие климатического датчика, содержащее информацию о температуре, влажности и уровне CO2.")
-	record TemperatureSensorEvent {
-		@doc("Идентификатор события датчика.")
-		string id;
-
-		@doc("Идентификатор хаба, связанного с событием.")
-		string hubId;
-
-		@doc("Временная метка события. По умолчанию устанавливается текущее время.")
-		timestamp_ms timestamp;
-
-		@doc("Уровень температуры по шкале Цельсия.")
-		int temperatureC;
-
-		@doc("Уровень температуры по шкале Фаренгейта.")
-		int temperatureF;
-
-		SensorEventType type;
+		} payload;
 	}
 
 }
