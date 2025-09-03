@@ -1,7 +1,6 @@
 package ru.practicum.collector.exception;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Builder;
 import lombok.Data;
 import org.springframework.http.HttpStatus;

@@ -1,6 +1,7 @@
 package ru.practicum.collector.serialization;
 
 import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.errors.SerializationException;
 import org.apache.kafka.common.serialization.Serializer;
@@ -12,7 +13,8 @@ public class HubEventSerializer implements Serializer<HubEvent> {
     private final String className = this.getClass().getSimpleName();
 
     public HubEventSerializer() {
-        // пустой конструктор нужен для Kafka, иначе не запускается
+        jsonMapper.registerModule(new JavaTimeModule());
+        // конструктор нужен для Kafka, иначе не запускается
     }
 
     @Override

@@ -1,7 +1,7 @@
 package ru.practicum.collector.serialization;
 
 import com.fasterxml.jackson.databind.json.JsonMapper;
-import lombok.RequiredArgsConstructor;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.errors.SerializationException;
 import org.apache.kafka.common.serialization.Serializer;
@@ -13,7 +13,8 @@ public class SensorEventSerializer implements Serializer<SensorEvent> {
     private final String className = this.getClass().getSimpleName();
 
     public SensorEventSerializer() {
-        // пустой конструктор нужен для Kafka, иначе не запускается
+        jsonMapper.registerModule(new JavaTimeModule());
+        // конструктор нужен для Kafka, иначе не запускается
     }
 
     @Override
@@ -22,6 +23,7 @@ public class SensorEventSerializer implements Serializer<SensorEvent> {
             log.trace("{}: serializing SensorEvent: {}", className, data);
             return jsonMapper.writeValueAsBytes(data);
         } catch (Exception e) {
+            log.trace("{}: caught error serializing SensorEvent: {}", className, e.getMessage());
             throw new SerializationException("Error serializing SensorEvent", e);
         }
     }

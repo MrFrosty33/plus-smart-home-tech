@@ -1,12 +1,12 @@
 package ru.practicum.collector.model.sensor;
 
 import jakarta.validation.constraints.NotNull;
-import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 @Data
-@Builder
+@NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public class SwitchSensorEvent extends SensorEvent {
     private boolean state;
