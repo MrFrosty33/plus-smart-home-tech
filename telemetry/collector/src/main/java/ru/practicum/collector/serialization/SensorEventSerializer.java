@@ -7,11 +7,14 @@ import org.apache.kafka.common.errors.SerializationException;
 import org.apache.kafka.common.serialization.Serializer;
 import ru.practicum.collector.model.sensor.SensorEvent;
 
-@RequiredArgsConstructor
 @Slf4j
 public class SensorEventSerializer implements Serializer<SensorEvent> {
-    private final JsonMapper jsonMapper;
+    private final JsonMapper jsonMapper = new JsonMapper();
     private final String className = this.getClass().getSimpleName();
+
+    public SensorEventSerializer() {
+        // пустой конструктор нужен для Kafka, иначе не запускается
+    }
 
     @Override
     public byte[] serialize(String topic, SensorEvent data) {

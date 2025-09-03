@@ -14,7 +14,6 @@ import ru.practicum.collector.service.EventService;
 @RestController
 @RequestMapping("/events")
 @RequiredArgsConstructor
-
 @Validated
 @Slf4j
 public class EventController {
