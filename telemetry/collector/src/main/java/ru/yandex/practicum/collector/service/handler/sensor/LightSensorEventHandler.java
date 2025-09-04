@@ -18,9 +18,11 @@ public class LightSensorEventHandler extends BaseSensorEventHandler<LightSensorE
         LightSensorEvent _event = (LightSensorEvent) event;
         return LightSensorEventAvro.newBuilder()
                 .setId(_event.getId())
+                .setHubId(_event.getHubId())
                 .setTimestamp(_event.getTimestamp())
                 .setLinkQuality(_event.getLinkQuality())
                 .setLuminosity(_event.getLuminosity())
+                .setType(SensorEventType.toAvro(_event.getType()))
                 .build();
 
     }

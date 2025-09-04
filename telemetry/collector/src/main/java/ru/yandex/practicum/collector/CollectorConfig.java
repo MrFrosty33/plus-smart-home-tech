@@ -1,0 +1,17 @@
+package ru.yandex.practicum.collector;
+
+import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class CollectorConfig {
+
+    @Bean
+    public JsonMapper jsonMapper() {
+        JsonMapper result = new JsonMapper();
+        result.registerModule(new JavaTimeModule());
+        return result;
+    }
+}
