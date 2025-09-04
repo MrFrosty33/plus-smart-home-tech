@@ -19,6 +19,18 @@ import java.time.LocalDateTime;
 public class CollectorExceptionHandler {
     private final String className = this.getClass().getSimpleName();
 
+    @ExceptionHandler(JsonException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ApiError handleJsonException(JsonException e) {
+        writeLog(e);
+        return ApiError.builder()
+                .reason("Internal server error.")
+                .message(e.getMessage())
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .timestamp(LocalDateTime.now())
+                .build();
+    }
+
     @ExceptionHandler(HttpMessageNotReadableException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiError handleBadRequest(HttpMessageNotReadableException e) {
