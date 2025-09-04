@@ -55,7 +55,7 @@ protocol HubEventAvroSchema {
 	}
 
 	record DeviceActionAvro {
-		int sensorId;
+		string sensorId;
 
 		ActionTypeAvro type;
 
@@ -63,7 +63,7 @@ protocol HubEventAvroSchema {
 	}
 
 	record ScenarioConditionAvro {
-		int sensorId;
+		string sensorId;
 
 		ConditionTypeAvro type;
 

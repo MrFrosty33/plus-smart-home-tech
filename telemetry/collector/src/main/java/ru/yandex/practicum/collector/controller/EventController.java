@@ -37,13 +37,13 @@ public class EventController {
     public void receiveSensorEvent(@RequestBody @Valid SensorEvent sensorEvent) {
         log.trace("{}: received SensorEvent: {}", className, sensorEvent);
 
-        eventService.produceSensorData(sensorEvent);
+        //eventService.produceSensorData(sensorEvent);
     }
 
     @PostMapping("/hubs")
     @ResponseStatus(HttpStatus.OK)
     public void receiveHubEvent(@RequestBody @Valid HubEvent hubEvent) {
         log.trace("{}: received HubEvent: {}", className, hubEvent);
-        eventService.produceHubData(hubEvent);
+        //eventService.produceHubData(hubEvent);
     }
 }
