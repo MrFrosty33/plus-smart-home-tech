@@ -15,7 +15,7 @@ protocol SensorEventSchema {
 		timestamp_ms timestamp;
 		int temperatureC;
 		int humidity;
-		int co2level;
+		int co2Level;
 
 		SensorEventTypeAvro type;
 	}

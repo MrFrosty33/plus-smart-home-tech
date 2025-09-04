@@ -23,7 +23,7 @@ public class ClimateSensorEventHandler extends BaseSensorEventHandler<ClimateSen
                 .setTimestamp(_event.getTimestamp())
                 .setTemperatureC(_event.getTemperatureC())
                 .setHumidity(_event.getHumidity())
-                .setCo2level(_event.getCo2level())
+                .setCo2Level(_event.getCo2Level())
                 .setType(SensorEventType.toAvro(_event.getType()))
                 .build();
     }

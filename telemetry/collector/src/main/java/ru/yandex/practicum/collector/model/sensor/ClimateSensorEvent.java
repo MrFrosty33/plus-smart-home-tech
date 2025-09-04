@@ -16,7 +16,7 @@ public class ClimateSensorEvent extends SensorEvent {
     @Positive
     private int humidity;
     @Positive
-    private int co2level;
+    private int co2Level;
 
     @Override
     @NotNull
