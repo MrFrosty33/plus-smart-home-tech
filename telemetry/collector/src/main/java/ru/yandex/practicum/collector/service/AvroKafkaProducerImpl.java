@@ -25,7 +25,11 @@ public class AvroKafkaProducerImpl implements AvroKafkaProducer, AutoCloseable {
         this.jsonMapper = jsonMapper;
         Properties config = new Properties();
 
-        config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka:29092");
+        // для докера
+        //config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka:29092");
+
+        // для локального запуска
+        config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
         config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.VoidSerializer");
         config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, "ru.yandex.practicum.kafka.serializer.GeneralAvroSerializer");
 
