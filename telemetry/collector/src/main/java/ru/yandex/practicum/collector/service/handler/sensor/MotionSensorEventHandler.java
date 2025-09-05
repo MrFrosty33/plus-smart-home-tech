@@ -17,13 +17,9 @@ public class MotionSensorEventHandler extends BaseSensorEventHandler<MotionSenso
     protected MotionSensorEventAvro mapToAvro(SensorEvent event) {
         MotionSensorEvent _event = (MotionSensorEvent) event;
         return MotionSensorEventAvro.newBuilder()
-                .setId(_event.getId())
-                .setHubId(_event.getHubId())
-                .setTimestamp(_event.getTimestamp())
                 .setLinkQuality(_event.getLinkQuality())
                 .setMotion(_event.isMotion())
                 .setVoltage(_event.getVoltage())
-                .setType(SensorEventType.toAvro(_event.getType()))
                 .build();
     }
 

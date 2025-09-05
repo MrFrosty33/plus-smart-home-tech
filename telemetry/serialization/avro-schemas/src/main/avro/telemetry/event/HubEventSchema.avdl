@@ -1,12 +1,5 @@
 @namespace("ru.yandex.practicum.kafka.telemetry.event")
 protocol HubEventAvroSchema {
-	enum HubEventTypeAvro {
-		DEVICE_ADDED,
-		DEVICE_REMOVED,
-		SCENARIO_ADDED,
-		SCENARIO_REMOVED
-	}
-
 	enum ActionTypeAvro {
 		ACTIVATE,
 		DEACTIVATE,
@@ -14,7 +7,7 @@ protocol HubEventAvroSchema {
 		SET_VALUE
 	}
 
-	enum OperationTypeAvro {
+	enum ConditionOperationAvro {
 		EQUALS,
 		GREATER_THAN,
 		LOWER_THAN
@@ -38,20 +31,13 @@ protocol HubEventAvroSchema {
 	}
 
 	record DeviceAddedEventAvro {
-		string hubId;
-		timestamp_ms timestamp;
 		string id;
 
-		DeviceTypeAvro deviceType;
-		HubEventTypeAvro type;
+		DeviceTypeAvro type;
 	}
 
 	record DeviceRemovedEventAvro {
-		string hubId;
-		timestamp_ms timestamp;
 		string id;
-
-		HubEventTypeAvro type;
 	}
 
 	record DeviceActionAvro {
@@ -67,26 +53,34 @@ protocol HubEventAvroSchema {
 
 		ConditionTypeAvro type;
 
-		OperationTypeAvro operation;
+		ConditionOperationAvro operation;
 
-		int value;
+		union{
+			null,
+			int,
+			boolean
+		} value = null;
 	}
 
 	record ScenarioAddedEventAvro {
-		string hubId;
-		timestamp_ms timestamp;
 		string name;
 		array<ScenarioConditionAvro> conditions;
 		array<DeviceActionAvro> actions;
-
-		HubEventTypeAvro type;
 	}
 
 	record ScenarioRemovedEventAvro {
+		string name;
+	}
+
+	record HubEventAvro {
 		string hubId;
 		timestamp_ms timestamp;
-		string name;
 
-		HubEventTypeAvro type;
+		union{
+			DeviceAddedEventAvro,
+			DeviceRemovedEventAvro,
+			ScenarioAddedEventAvro,
+			ScenarioRemovedEventAvro
+		} payload;
 	}
 }

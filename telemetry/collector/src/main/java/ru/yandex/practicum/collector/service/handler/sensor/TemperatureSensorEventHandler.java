@@ -22,7 +22,6 @@ public class TemperatureSensorEventHandler extends BaseSensorEventHandler<Temper
                 .setTimestamp(_event.getTimestamp())
                 .setTemperatureC(_event.getTemperatureC())
                 .setTemperatureF(_event.getTemperatureF())
-                .setType(SensorEventType.toAvro(_event.getType()))
                 .build();
     }
 
