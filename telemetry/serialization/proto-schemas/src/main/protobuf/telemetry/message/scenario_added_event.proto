@@ -5,6 +5,11 @@ package telemetry.message.event;
 option java_multiple_files = true;
 option java_package = "ru.yandex.practicum.grpc.telemetry.event";
 
+import "telemetry/message/scenario_condition.proto";
+import "telemetry/message/device_action.proto";
+
 message ScenarioAddedEvent {
     string id = 1;
+    repeated ScenarioCondition condition = 2;
+    repeated DeviceAction action = 3;
 }
