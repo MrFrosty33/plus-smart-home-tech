@@ -5,22 +5,22 @@ package telemetry.message.event;
 option java_multiple_files = true;
 option java_package = "ru.yandex.practicum.grpc.telemetry.event";
 
-import "telemetry/message/motion_sensor_event.proto";
-import "telemetry/message/temperature_sensor_event.proto";
-import "telemetry/message/light_sensor_event.proto";
-import "telemetry/message/climate_sensor_event.proto";
-import "telemetry/message/switch_sensor_event.proto";
+import "telemetry/message/motion_sensor.proto";
+import "telemetry/message/temperature_sensor.proto";
+import "telemetry/message/light_sensor.proto";
+import "telemetry/message/climate_sensor.proto";
+import "telemetry/message/switch_sensor.proto";
 import "google/protobuf/timestamp.proto";
 
-message SensorEvent {
+message SensorEventProto {
     string id = 1;
     google.protobuf.Timestamp timestamp = 2;
     string hub_id = 3;
     oneof payload {
-        MotionSensorEvent motion_sensor_event = 4;
-        TemperatureSensorEvent temperature_sensor_event = 5;
-        LightSensorEvent light_sensor_event = 6;
-        ClimateSensorEvent climate_sensor_event = 7;
-        SwitchSensorEvent switch_sensor_event = 8;
+        MotionSensorProto motion_sensor_event = 4;
+        TemperatureSensorProto temperature_sensor_event = 5;
+        LightSensorProto light_sensor_event = 6;
+        ClimateSensorProto climate_sensor_event = 7;
+        SwitchSensorProto switch_sensor_event = 8;
     }
 }

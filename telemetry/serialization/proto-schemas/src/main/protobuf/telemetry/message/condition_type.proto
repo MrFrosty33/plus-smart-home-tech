@@ -5,7 +5,7 @@ package telemetry.message.event;
 option java_multiple_files = true;
 option java_package = "ru.yandex.practicum.grpc.telemetry.event";
 
-enum ConditionType {
+enum ConditionTypeProto {
     MOTION = 0;
     LUMINOSITY = 1;
     SWITCH = 2;

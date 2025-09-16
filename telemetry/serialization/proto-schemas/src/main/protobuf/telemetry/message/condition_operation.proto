@@ -5,7 +5,7 @@ package telemetry.message.event;
 option java_multiple_files = true;
 option java_package = "ru.yandex.practicum.grpc.telemetry.event";
 
-enum ConditionOperation {
+enum ConditionOperationProto {
   EQUALS = 0;
   GREATER_THAN = 1;
   LOWER_THAN = 2;

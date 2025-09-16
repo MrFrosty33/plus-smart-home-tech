@@ -7,7 +7,7 @@ option java_package = "ru.yandex.practicum.grpc.telemetry.event";
 
 import "telemetry/message/device_type.proto";
 
-message DeviceAddedEvent {
+message DeviceAddedEventProto {
     string id = 1;
-    DeviceType type = 2;
+    DeviceTypeProto type = 2;
 }

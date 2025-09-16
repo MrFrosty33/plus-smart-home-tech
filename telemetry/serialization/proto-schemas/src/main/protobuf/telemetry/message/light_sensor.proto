@@ -5,7 +5,7 @@ package telemetry.message.event;
 option java_multiple_files = true;
 option java_package = "ru.yandex.practicum.grpc.telemetry.event";
 
-message LightSensorEvent {
+message LightSensorProto {
     int32 link_quality = 1;
     int32 luminosity = 2;
 }

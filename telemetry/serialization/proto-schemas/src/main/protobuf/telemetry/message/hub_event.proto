@@ -11,13 +11,13 @@ import "telemetry/message/scenario_added_event.proto";
 import "telemetry/message/scenario_removed_event.proto";
 import "google/protobuf/timestamp.proto";
 
-message HubEvent {
+message HubEventProto {
     string hub_id = 1;
     google.protobuf.Timestamp timestamp = 2;
     oneof payload {
-        DeviceAddedEvent device_added = 3;
-        DeviceRemovedEvent device_removed = 4;
-        ScenarioAddedEvent scenario_added = 5;
-        ScenarioRemovedEvent scenario_removed = 6;
+        DeviceAddedEventProto device_added = 3;
+        DeviceRemovedEventProto device_removed = 4;
+        ScenarioAddedEventProto scenario_added = 5;
+        ScenarioRemovedEventProto scenario_removed = 6;
     }
 }

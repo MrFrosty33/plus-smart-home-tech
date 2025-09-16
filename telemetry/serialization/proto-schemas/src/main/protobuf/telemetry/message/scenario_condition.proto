@@ -8,10 +8,10 @@ option java_package = "ru.yandex.practicum.grpc.telemetry.event";
 import "telemetry/message/condition_type.proto";
 import "telemetry/message/condition_operation.proto";
 
-message ScenarioCondition {
+message ScenarioConditionProto {
   string sensor_id = 1;
-  ConditionType type = 2;
-  ConditionOperation operation = 3;
+  ConditionTypeProto type = 2;
+  ConditionOperationProto operation = 3;
   oneof value {
     bool bool_value = 4;
     int32 int_value = 5;
