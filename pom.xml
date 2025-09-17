@@ -104,10 +104,6 @@
                     <groupId>io.github.ascopes</groupId>
                     <artifactId>protobuf-maven-plugin</artifactId>
                     <version>${protobuf-plugin.version}</version>
-                </plugin>
-                <plugin>
-                    <groupId>io.github.ascopes</groupId>
-                    <artifactId>protobuf-maven-plugin</artifactId>
 
                     <configuration>
                         <protocVersion>${protoc-plugin.version}</protocVersion>
