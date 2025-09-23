@@ -1,7 +1,9 @@
 package ru.yandex.practicum.collector.service.handler.hub;
 
+import ru.yandex.practicum.grpc.telemetry.event.ConditionOperationProto;
 import ru.yandex.practicum.grpc.telemetry.event.ConditionTypeProto;
 import ru.yandex.practicum.grpc.telemetry.event.ScenarioConditionProto;
+import ru.yandex.practicum.kafka.telemetry.event.ConditionOperationAvro;
 import ru.yandex.practicum.kafka.telemetry.event.ConditionTypeAvro;
 import ru.yandex.practicum.kafka.telemetry.event.ScenarioConditionAvro;
 
@@ -10,6 +12,7 @@ public class ConditionTypeMapper {
         return ScenarioConditionAvro.newBuilder()
                 .setSensorId(condition.getSensorId())
                 .setType(mapToAvro(condition.getType()))
+                .setOperation(mapToAvro(condition.getOperation()))
                 .setValue(getValue(condition))
                 .build();
     }
@@ -19,6 +22,13 @@ public class ConditionTypeMapper {
             throw new IllegalArgumentException("Unknown ConditionTypeProto value: " + type);
         }
         return ConditionTypeAvro.valueOf(type.name());
+    }
+
+    public static ConditionOperationAvro mapToAvro(ConditionOperationProto operation) {
+        if (operation == ConditionOperationProto.UNRECOGNIZED) {
+            throw new IllegalArgumentException("Unknown ConditionOperationProto value: " + operation);
+        }
+        return ConditionOperationAvro.valueOf(operation.name());
     }
 
     private static Object getValue(ScenarioConditionProto condition) {
