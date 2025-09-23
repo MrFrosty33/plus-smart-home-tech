@@ -3,9 +3,11 @@ package ru.yandex.practicum.collector.service.handler.sensor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.specific.SpecificRecordBase;
-import ru.yandex.practicum.collector.model.sensor.SensorEvent;
 import ru.yandex.practicum.collector.service.AvroKafkaProducer;
+import ru.yandex.practicum.grpc.telemetry.event.SensorEventProto;
 import ru.yandex.practicum.kafka.telemetry.event.SensorEventAvro;
+
+import java.time.Instant;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -13,16 +15,18 @@ public abstract class BaseSensorEventHandler<T extends SpecificRecordBase> imple
     protected final AvroKafkaProducer producer;
     private final String className = this.getClass().getSimpleName();
 
-    protected abstract T mapToAvro(SensorEvent event);
+    protected abstract T mapToAvro(SensorEventProto event);
 
     @Override
-    public void handle(String topic, SensorEvent event) {
+    public void handle(String topic, SensorEventProto event) {
         T payload = mapToAvro(event);
 
         SensorEventAvro eventAvro = SensorEventAvro.newBuilder()
                 .setId(event.getId())
                 .setHubId(event.getHubId())
-                .setTimestamp(event.getTimestamp())
+                .setTimestamp(Instant.ofEpochSecond(
+                        event.getTimestamp().getSeconds(),
+                        event.getTimestamp().getNanos()))
                 .setPayload(payload)
                 .build();
 

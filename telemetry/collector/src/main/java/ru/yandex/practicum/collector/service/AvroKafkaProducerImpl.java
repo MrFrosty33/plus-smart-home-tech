@@ -9,7 +9,7 @@ import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.KafkaException;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.collector.exception.JsonException;
+import ru.yandex.practicum.collector.exception.UnknownEnumException;
 
 import java.time.Duration;
 import java.util.Properties;
@@ -46,7 +46,7 @@ public class AvroKafkaProducerImpl implements AvroKafkaProducer, AutoCloseable {
             throw e;
         } catch (JsonProcessingException e) {
             log.warn("{}: Error processing avroMessage JSON: {}", className, e.getMessage());
-            throw new JsonException("Error processing avroMessage JSON");
+            throw new UnknownEnumException("Error processing avroMessage JSON");
         }
     }
 
