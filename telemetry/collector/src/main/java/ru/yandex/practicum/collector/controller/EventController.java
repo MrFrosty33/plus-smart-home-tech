@@ -48,12 +48,12 @@ public class EventController extends CollectorControllerGrpc.CollectorController
     @Override
     public void collectSensorEvent(SensorEventProto request, StreamObserver<Empty> responseObserver) {
         try {
-            log.trace("{}: received SensorEvent: {}", className, jsonMapper.writeValueAsString(sensorEvent));
+            log.trace("{}: received SensorEvent: {}", className, jsonMapper.writeValueAsString(request));
             if (sensorEventHandlers.containsKey(request.getPayloadCase())) {
-                sensorEventHandlers.get(request.getPayloadCase()).handle(sensorTopic, xxx);
+                sensorEventHandlers.get(request.getPayloadCase()).handle(sensorTopic, request);
             } else {
-                log.warn("{}: No handler found for sensor event type: {}", className, sensorEvent.getType());
-                throw new IllegalArgumentException("No handler found for sensor event type: " + sensorEvent.getType());
+                log.warn("{}: No handler found for sensor event payloadCase: {}", className, request.getPayloadCase());
+                throw new IllegalArgumentException("No handler found for sensor event payloadCase: " + request.getPayloadCase());
             }
 
             responseObserver.onNext(Empty.getDefaultInstance());
@@ -70,8 +70,13 @@ public class EventController extends CollectorControllerGrpc.CollectorController
     @Override
     public void collectHubEvent(HubEventProto request, StreamObserver<Empty> responseObserver) {
         try {
-            // здесь реализуется бизнес-логика
-            // ...
+            log.trace("{}: received HubEvent: {}", className, jsonMapper.writeValueAsString(request));
+            if (hubEventHandlers.containsKey(request.getPayloadCase())) {
+                hubEventHandlers.get(request.getPayloadCase()).handle(hubTopic, request);
+            } else {
+                log.warn("{}: No handler found for hub event payloadCase: {}", className, request.getPayloadCase());
+                throw new IllegalArgumentException("No handler found for hub event payloadCase: " + request.getPayloadCase());
+            }
 
             responseObserver.onNext(Empty.getDefaultInstance());
             responseObserver.onCompleted();

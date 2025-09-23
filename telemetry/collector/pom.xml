@@ -12,6 +12,7 @@
     <properties>
         <lombok.version>1.18.38</lombok.version>
         <grpc-server-spring-boot-starter.version>3.1.0.RELEASE</grpc-server-spring-boot-starter.version>
+        <jackson-datatype-protobuf.version>0.9.18</jackson-datatype-protobuf.version>
     </properties>
 
     <artifactId>collector</artifactId>
@@ -59,6 +60,11 @@
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-jsr310</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.hubspot.jackson</groupId>
+            <artifactId>jackson-datatype-protobuf</artifactId>
+            <version>${jackson-datatype-protobuf.version}</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.dataformat</groupId>
