@@ -19,9 +19,9 @@ import java.time.LocalDateTime;
 public class CollectorExceptionHandler {
     private final String className = this.getClass().getSimpleName();
 
-    @ExceptionHandler(JsonException.class)
+    @ExceptionHandler(UnknownEnumException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ApiError handleJsonException(JsonException e) {
+    public ApiError handleUnknownEnumException(UnknownEnumException e) {
         writeLog(e);
         return ApiError.builder()
                 .reason("Internal server error.")
