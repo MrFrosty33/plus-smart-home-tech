@@ -37,7 +37,7 @@ public class CollectorConfig {
         return config;
     }
 
-    public static Properties getConsumerProperties() {
+    public static Properties getSensorEventConsumerProperties() {
         Properties config = new Properties();
         // для докера
         //config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka:29092");
@@ -46,12 +46,39 @@ public class CollectorConfig {
         config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
         config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.VoidDeserializer");
         config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, "ru.yandex.practicum.kafka.serializer.SensorEventDeserializer");
-        config.put(ConsumerConfig.GROUP_ID_CONFIG, "telemetry-collector-aggregator-v1");
+        config.put(ConsumerConfig.GROUP_ID_CONFIG, "telemetry-collector-aggregator-sensor-event-consumers-v1");
 
         //todo такие же настройки требуются для текущего проекта??
         config.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 100);
         config.put(ConsumerConfig.FETCH_MAX_BYTES_CONFIG, 3072000);
         config.put(ConsumerConfig.MAX_PARTITION_FETCH_BYTES_CONFIG, 307200);
+
+        // Добавить в конфигурацию потребителя
+        config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "latest");
+        config.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
+        config.put(ConsumerConfig.ISOLATION_LEVEL_CONFIG, "read_committed");
+        return config;
+    }
+
+    public static Properties getSensorSnapshotConsumerProperties() {
+        Properties config = new Properties();
+        // для докера
+        //config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka:29092");
+
+        // для локального запуска
+        config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.VoidDeserializer");
+        config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, "ru.yandex.practicum.kafka.serializer.SensorSnapshotDeserializer");
+        config.put(ConsumerConfig.GROUP_ID_CONFIG, "telemetry-collector-aggregator-sensor-snapshot-consumers-v1");
+
+        //todo такие же настройки требуются для текущего проекта??
+        config.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 100);
+        config.put(ConsumerConfig.FETCH_MAX_BYTES_CONFIG, 3072000);
+        config.put(ConsumerConfig.MAX_PARTITION_FETCH_BYTES_CONFIG, 307200);
+
+        config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "latest");
+        config.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
+        config.put(ConsumerConfig.ISOLATION_LEVEL_CONFIG, "read_committed");
         return config;
     }
 }
