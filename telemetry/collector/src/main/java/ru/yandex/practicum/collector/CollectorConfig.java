@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.dataformat.avro.AvroModule;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.hubspot.jackson.datatype.protobuf.ProtobufModule;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -33,6 +34,24 @@ public class CollectorConfig {
         config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.VoidSerializer");
         config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, "ru.yandex.practicum.kafka.serializer.GeneralAvroSerializer");
 
+        return config;
+    }
+
+    public static Properties getConsumerProperties() {
+        Properties config = new Properties();
+        // для докера
+        //config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka:29092");
+
+        // для локального запуска
+        config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.VoidDeserializer");
+        config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, "ru.yandex.practicum.kafka.serializer.SensorEventDeserializer");
+        config.put(ConsumerConfig.GROUP_ID_CONFIG, "telemetry-collector-aggregator-v1");
+
+        //todo такие же настройки требуются для текущего проекта??
+        config.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 100);
+        config.put(ConsumerConfig.FETCH_MAX_BYTES_CONFIG, 3072000);
+        config.put(ConsumerConfig.MAX_PARTITION_FETCH_BYTES_CONFIG, 307200);
         return config;
     }
 }

@@ -6,9 +6,6 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.context.ConfigurableApplicationContext;
 import ru.yandex.practicum.collector.service.AggregationStarter;
 
-/**
- * Главный класс сервиса Aggregator.
- */
 @SpringBootApplication
 @ConfigurationPropertiesScan
 public class Aggregator {
@@ -17,6 +14,9 @@ public class Aggregator {
         ConfigurableApplicationContext context = SpringApplication.run(Aggregator.class, args);
 
         AggregationStarter aggregator = context.getBean(AggregationStarter.class);
-        aggregator.start();
+        String sensorsTopic = context.getEnvironment().getProperty("SENSORS_TOPIC");
+        String snapshotsTopic = context.getEnvironment().getProperty("SNAPSHOTS_TOPIC");
+
+        aggregator.start(sensorsTopic, snapshotsTopic);
     }
 }
