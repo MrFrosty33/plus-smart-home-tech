@@ -23,7 +23,6 @@ protocol SensorEventSchema {
 	}
 
 	record TemperatureSensorAvro {
-		string id;
 		string hubId;
 		timestamp_ms timestamp;
 		int temperatureC;
