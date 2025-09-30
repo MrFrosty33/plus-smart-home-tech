@@ -23,7 +23,7 @@ import java.util.Map;
 
 @Component
 @Slf4j
-public class SnapshotConsumer implements AutoCloseable {
+public class SnapshotConsumer implements Runnable, AutoCloseable {
     private final KafkaConsumer<Void, SpecificRecordBase> snapshotConsumer;
     private final Map<TopicPartition, OffsetAndMetadata> snapshotConsumerOffsets = new HashMap<>();
 
@@ -48,7 +48,8 @@ public class SnapshotConsumer implements AutoCloseable {
         this.jsonMapper = jsonMapper;
     }
 
-    public void start() {
+    @Override
+    public void run() {
         snapshotConsumer.subscribe(Collections.singletonList(snapshotsTopic));
         log.trace("{}: subscribed to topic {}", className, snapshotsTopic);
 

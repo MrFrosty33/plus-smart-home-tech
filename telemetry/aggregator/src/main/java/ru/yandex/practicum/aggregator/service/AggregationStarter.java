@@ -7,7 +7,7 @@ import ru.yandex.practicum.aggregator.kafka.SnapshotConsumer;
 
 @Component
 @Slf4j
-public class AggregationStarter implements AutoCloseable {
+public class AggregationStarter implements Runnable, AutoCloseable {
     private final EventConsumer eventConsumer;
     private final SnapshotConsumer snapshotConsumer;
     private final String className = this.getClass().getSimpleName();
@@ -17,13 +17,14 @@ public class AggregationStarter implements AutoCloseable {
         this.snapshotConsumer = snapshotConsumer;
     }
 
-    public void start() {
+    @Override
+    public void run() {
         try {
-            Thread snapshotThread = new Thread(snapshotConsumer::start);
+            Thread snapshotThread = new Thread(snapshotConsumer);
             snapshotThread.start();
             log.info("{}: snapshotConsumer thread started", className);
 
-            Thread eventThread = new Thread(eventConsumer::start);
+            Thread eventThread = new Thread(eventConsumer);
             eventThread.start();
             log.info("{}: eventConsumer thread started", className);
 

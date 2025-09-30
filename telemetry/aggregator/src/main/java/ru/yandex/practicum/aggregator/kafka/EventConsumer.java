@@ -29,7 +29,7 @@ import java.util.Optional;
 
 @Component
 @Slf4j
-public class EventConsumer implements AutoCloseable {
+public class EventConsumer implements Runnable, AutoCloseable {
     private final KafkaConsumer<Void, SpecificRecordBase> eventConsumer;
     private final Map<TopicPartition, OffsetAndMetadata> eventConsumerOffsets = new HashMap<>();
 
@@ -61,7 +61,8 @@ public class EventConsumer implements AutoCloseable {
         this.snapshotsTopic = snapshotsTopic;
     }
 
-    public void start() {
+    @Override
+    public void run() {
         eventConsumer.subscribe(Collections.singletonList(sensorsTopic));
         log.trace("{}: subscribed to topic {}", className, sensorsTopic);
 

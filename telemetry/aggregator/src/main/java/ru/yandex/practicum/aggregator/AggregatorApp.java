@@ -17,6 +17,6 @@ public class AggregatorApp {
 //        String sensorsTopic = context.getEnvironment().getProperty("SENSORS_TOPIC");
 //        String snapshotsTopic = context.getEnvironment().getProperty("SNAPSHOTS_TOPIC");
 
-        aggregator.start();
+        aggregator.run();
     }
 }
