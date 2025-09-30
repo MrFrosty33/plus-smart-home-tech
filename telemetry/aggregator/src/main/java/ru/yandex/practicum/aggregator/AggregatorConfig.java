@@ -7,6 +7,7 @@ import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import ru.yandex.practicum.aggregator.service.cache.SharedSensorSnapshotsCache;
 
 import java.util.Properties;
 
@@ -18,6 +19,11 @@ public class AggregatorConfig {
         result.registerModule(new JavaTimeModule());
         result.registerModule(new AvroModule());
         return result;
+    }
+
+    @Bean
+    SharedSensorSnapshotsCache sharedSensorSnapshotsCache() {
+        return new SharedSensorSnapshotsCache();
     }
 
     public static Properties getProducerProperties() {
