@@ -1,4 +1,4 @@
-package ru.yandex.practicum.collector.service;
+package ru.yandex.practicum.aggregator.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.json.JsonMapper;
@@ -12,8 +12,9 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.errors.WakeupException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.collector.CollectorConfig;
+import ru.yandex.practicum.aggregator.AggregatorConfig;
 import ru.yandex.practicum.kafka.serializer.SensorEventDeserializer;
 import ru.yandex.practicum.kafka.telemetry.event.SensorEventAvro;
 import ru.yandex.practicum.kafka.telemetry.event.SensorStateAvro;
@@ -41,12 +42,19 @@ public class AggregationStarter implements AutoCloseable {
     private final JsonMapper jsonMapper;
     private final SensorEventDeserializer sensorEventDeserializer;
 
-    public AggregationStarter(JsonMapper jsonMapper) {
+    private final String sensorsTopic;
+    private final String snapshotsTopic;
+
+    public AggregationStarter(JsonMapper jsonMapper,
+                              @Value("${SENSORS_TOPIC}") String sensorsTopic,
+                              @Value("${SNAPSHOTS_TOPIC}") String snapshotsTopic) {
         this.jsonMapper = jsonMapper;
-        this.eventConsumer = new KafkaConsumer<>(CollectorConfig.getSensorEventConsumerProperties());
-        this.snapshotConsumer = new KafkaConsumer<>(CollectorConfig.getSensorSnapshotConsumerProperties());
-        this.snapshotProducer = new KafkaProducer<>(CollectorConfig.getProducerProperties());
+        this.eventConsumer = new KafkaConsumer<>(AggregatorConfig.getSensorEventConsumerProperties());
+        this.snapshotConsumer = new KafkaConsumer<>(AggregatorConfig.getSensorSnapshotConsumerProperties());
+        this.snapshotProducer = new KafkaProducer<>(AggregatorConfig.getProducerProperties());
         this.sensorEventDeserializer = new SensorEventDeserializer();
+        this.sensorsTopic = sensorsTopic;
+        this.snapshotsTopic = snapshotsTopic;
     }
 
     /**
@@ -54,8 +62,7 @@ public class AggregationStarter implements AutoCloseable {
      * Подписывается на топики для получения событий от датчиков,
      * формирует снимок их состояния и записывает в кафку.
      */
-    public void start(String sensorsTopic,
-                      String snapshotsTopic) {
+    public void start() {
         if (sensorsTopic == null || snapshotsTopic == null) {
             log.warn("{}: SENSORS_TOPIC and SNAPSHOTS_TOPIC must be set (environment variables).", className);
             throw new IllegalArgumentException("SENSORS_TOPIC and SNAPSHOTS_TOPIC must be set (environment variables).");
@@ -64,82 +71,92 @@ public class AggregationStarter implements AutoCloseable {
         eventConsumer.subscribe(List.of(sensorsTopic));
         log.trace("{}: eventConsumer subscribed to topic {}", className, sensorsTopic);
         Runtime.getRuntime().addShutdownHook(new Thread(eventConsumer::wakeup));
+        Runtime.getRuntime().addShutdownHook(new Thread(snapshotConsumer::wakeup));
 
         snapshotConsumer.subscribe(List.of(snapshotsTopic));
         log.trace("{}: snapshotConsumer subscribed to topic {}", className, snapshotsTopic);
 
         try {
-            /*
-             * Поток для обработки событий от датчиков.
-             * Получает события, обновляет состояние датчиков и
-             * отправляет обновлённые снимки состояния в соответствующий топик.
-             */
-            Thread eventConsumerThread = new Thread(() -> {
-                while (true) {
-                    try {
-                        ConsumerRecords<Void, SpecificRecordBase> records = eventConsumer.poll(Duration.ofMillis(1_000));
-                        log.trace("{}:sensorEventConsumer polled records: {}", className, jsonMapper.writeValueAsString(records));
-                        int count = 0;
-
-                        for (ConsumerRecord<Void, SpecificRecordBase> record : records) {
-                            Optional<SensorsSnapshotAvro> snapshotAvro =
-                                    updateState((SensorEventAvro) record.value());
-                            manageOffsets(count, record, eventConsumer, eventConsumerOffsets);
-
-                            if (snapshotAvro.isPresent()) {
-                                ProducerRecord<Void, SpecificRecordBase> producerRecord =
-                                        new ProducerRecord<>(snapshotsTopic, snapshotAvro.get());
-                                snapshotProducer.send(producerRecord).get();
-                                log.trace("{}: sent Avro message to topic {}: {}", className, snapshotsTopic,
-                                        jsonMapper.writeValueAsString(snapshotAvro.get()));
-                            }
-
-                            count++;
-                        }
-                        eventConsumer.commitAsync();
-                    } catch (WakeupException ignored) {
-
-                    } catch (Exception e) {
-                        log.error("{}: error acquired during processing of sensorEvents in eventConsumerThread. Exception: {}",
-                                className, e, e);
-                    }
-                }
-            });
-
-            /* Поток для обработки снимков состояния датчиков.
-             * Получает снимки и обновляет кэш полученными данными.
-             */
-            Thread snapshotConsumerThread = new Thread(() -> {
-                while (true) {
-                    try {
-                        ConsumerRecords<Void, SpecificRecordBase> records = snapshotConsumer.poll(Duration.ofMillis(1_000));
-                        log.trace("{}: snapshotConsumer polled records: {}", className, jsonMapper.writeValueAsString(records));
-                        int count = 0;
-
-                        for (ConsumerRecord<Void, SpecificRecordBase> record : records) {
-                            SensorsSnapshotAvro snapshot = (SensorsSnapshotAvro) record.value();
-                            sensorSnapshotsCache.put(snapshot.getHubId(), snapshot);
-                            log.trace("{}: snapshotConsumerThread put to cache snapshot: {}",
-                                    className, jsonMapper.writeValueAsString(snapshot));
-                            manageOffsets(count, record, snapshotConsumer, snapshotConsumerOffsets);
-                            count++;
-                        }
-
-                        snapshotConsumer.commitAsync();
-                    } catch (WakeupException ignored) {
-
-                    } catch (Exception e) {
-                        log.error("{}: error acquired during processing of sensorSnapshots in snapshotConsumerThread. Exception: {}",
-                                className, e, e);
-                    }
-                }
-            });
-
-            eventConsumerThread.start();
-            snapshotConsumerThread.start();
+            startSnapshotConsumerThread();
+            startEventConsumerThread();
         } catch (Exception e) {
             log.error("{}: error acquired in start()", className, e);
         }
+    }
+
+    /**
+     * Поток для обработки событий от датчиков.
+     * Получает события, обновляет состояние датчиков и
+     * отправляет обновлённые снимки состояния в соответствующий топик.
+     */
+    private void startEventConsumerThread() {
+        Thread eventConsumerThread = new Thread(() -> {
+            while (true) {
+                try {
+                    ConsumerRecords<Void, SpecificRecordBase> records = eventConsumer.poll(Duration.ofMillis(1_000));
+                    log.trace("{}:sensorEventConsumer polled records: {}", className, jsonMapper.writeValueAsString(records));
+                    int count = 0;
+
+                    for (ConsumerRecord<Void, SpecificRecordBase> record : records) {
+                        Optional<SensorsSnapshotAvro> snapshotAvro =
+                                updateState((SensorEventAvro) record.value());
+                        manageOffsets(count, record, eventConsumer, eventConsumerOffsets);
+
+                        if (snapshotAvro.isPresent()) {
+                            ProducerRecord<Void, SpecificRecordBase> producerRecord =
+                                    new ProducerRecord<>(snapshotsTopic, snapshotAvro.get());
+                            snapshotProducer.send(producerRecord).get();
+                            log.trace("{}: sent Avro message to topic {}: {}", className, snapshotsTopic,
+                                    jsonMapper.writeValueAsString(snapshotAvro.get()));
+                        }
+
+                        count++;
+                    }
+                    eventConsumer.commitAsync();
+                } catch (WakeupException ignored) {
+
+                } catch (Exception e) {
+                    log.error("{}: error acquired during processing of sensorEvents in eventConsumerThread. Exception: {}",
+                            className, e, e);
+                }
+            }
+        });
+
+        eventConsumerThread.start();
+    }
+
+    /**
+     * Поток для обработки снимков состояния датчиков.
+     * Получает снимки и обновляет кэш полученными данными.
+     */
+    private void startSnapshotConsumerThread() {
+        Thread snapshotConsumerThread = new Thread(() -> {
+            while (true) {
+                try {
+                    ConsumerRecords<Void, SpecificRecordBase> records = snapshotConsumer.poll(Duration.ofMillis(1_000));
+                    log.trace("{}: snapshotConsumer polled records: {}", className, jsonMapper.writeValueAsString(records));
+                    int count = 0;
+
+                    for (ConsumerRecord<Void, SpecificRecordBase> record : records) {
+                        SensorsSnapshotAvro snapshot = (SensorsSnapshotAvro) record.value();
+                        sensorSnapshotsCache.put(snapshot.getHubId(), snapshot);
+                        log.trace("{}: snapshotConsumerThread put to cache snapshot: {}",
+                                className, jsonMapper.writeValueAsString(snapshot));
+                        manageOffsets(count, record, snapshotConsumer, snapshotConsumerOffsets);
+                        count++;
+                    }
+
+                    snapshotConsumer.commitAsync();
+                } catch (WakeupException ignored) {
+
+                } catch (Exception e) {
+                    log.error("{}: error acquired during processing of sensorSnapshots in snapshotConsumerThread. Exception: {}",
+                            className, e, e);
+                }
+            }
+        });
+
+        snapshotConsumerThread.start();
     }
 
     private Optional<SensorsSnapshotAvro> updateState(SensorEventAvro event) {
