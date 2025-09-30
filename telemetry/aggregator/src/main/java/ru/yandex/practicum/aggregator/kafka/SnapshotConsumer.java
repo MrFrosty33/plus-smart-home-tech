@@ -1,4 +1,4 @@
-package ru.yandex.practicum.aggregator.service.kafka;
+package ru.yandex.practicum.aggregator.kafka;
 
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -12,8 +12,8 @@ import org.apache.kafka.common.errors.WakeupException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.aggregator.AggregatorConfig;
+import ru.yandex.practicum.aggregator.cache.SharedSensorSnapshotsCache;
 import ru.yandex.practicum.aggregator.service.OffsetsManager;
-import ru.yandex.practicum.aggregator.service.cache.SharedSensorSnapshotsCache;
 import ru.yandex.practicum.kafka.telemetry.event.SensorsSnapshotAvro;
 
 import java.time.Duration;

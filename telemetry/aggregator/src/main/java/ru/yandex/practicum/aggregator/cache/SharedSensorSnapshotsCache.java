@@ -1,4 +1,4 @@
-package ru.yandex.practicum.aggregator.service.cache;
+package ru.yandex.practicum.aggregator.cache;
 
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.kafka.telemetry.event.SensorsSnapshotAvro;

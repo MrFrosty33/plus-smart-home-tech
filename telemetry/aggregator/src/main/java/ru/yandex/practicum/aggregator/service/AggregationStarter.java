@@ -2,8 +2,8 @@ package ru.yandex.practicum.aggregator.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.aggregator.service.kafka.EventConsumer;
-import ru.yandex.practicum.aggregator.service.kafka.SnapshotConsumer;
+import ru.yandex.practicum.aggregator.kafka.EventConsumer;
+import ru.yandex.practicum.aggregator.kafka.SnapshotConsumer;
 
 @Component
 @Slf4j
