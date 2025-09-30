@@ -76,10 +76,11 @@ public class EventConsumer implements Runnable, AutoCloseable {
             while (running) {
 
                 ConsumerRecords<Void, SpecificRecordBase> records = eventConsumer.poll(Duration.ofMillis(1_000));
-                log.trace("{}:sensorEventConsumer polled records: {}", className, jsonMapper.writeValueAsString(records));
+                log.trace("{}: sensorEventConsumer successfully polled {} records", className, records.count());
                 int count = 0;
 
                 for (ConsumerRecord<Void, SpecificRecordBase> record : records) {
+                    log.trace("{}: processing record: {}", className, jsonMapper.writeValueAsString(record));
                     Optional<SensorsSnapshotAvro> snapshotAvro =
                             updateState((SensorEventAvro) record.value());
                     offsetsManager.manageOffsets(count, record, eventConsumer, eventConsumerOffsets);

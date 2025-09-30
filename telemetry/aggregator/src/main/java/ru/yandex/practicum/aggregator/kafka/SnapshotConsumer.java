@@ -63,10 +63,11 @@ public class SnapshotConsumer implements Runnable, AutoCloseable {
             while (running) {
 
                 ConsumerRecords<Void, SpecificRecordBase> records = snapshotConsumer.poll(Duration.ofMillis(1_000));
-                log.trace("{}: snapshotConsumer polled records: {}", className, jsonMapper.writeValueAsString(records));
+                log.trace("{}: snapshotConsumer successfully polled {} records", className, records.count());
                 int count = 0;
 
                 for (ConsumerRecord<Void, SpecificRecordBase> record : records) {
+                    log.trace("{}: processing record: {}", className, jsonMapper.writeValueAsString(record));
                     SensorsSnapshotAvro snapshot = (SensorsSnapshotAvro) record.value();
                     sensorSnapshotsCache.put(snapshot.getHubId(), snapshot);
                     log.trace("{}: snapshotConsumerThread put to cache snapshot: {}",
