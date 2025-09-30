@@ -4,19 +4,19 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.collector.service.AvroKafkaProducer;
 import ru.yandex.practicum.grpc.telemetry.event.ClimateSensorProto;
 import ru.yandex.practicum.grpc.telemetry.event.SensorEventProto;
-import ru.yandex.practicum.kafka.telemetry.event.ClimateSensorEventAvro;
+import ru.yandex.practicum.kafka.telemetry.event.ClimateSensorAvro;
 
 @Component
-public class ClimateSensorEventHandler extends BaseSensorEventHandler<ClimateSensorEventAvro> {
+public class ClimateSensorEventHandler extends BaseSensorEventHandler<ClimateSensorAvro> {
 
     public ClimateSensorEventHandler(AvroKafkaProducer producer) {
         super(producer);
     }
 
     @Override
-    protected ClimateSensorEventAvro mapToAvro(SensorEventProto event) {
+    protected ClimateSensorAvro mapToAvro(SensorEventProto event) {
         ClimateSensorProto _event = event.getClimateSensorEvent();
-        return ClimateSensorEventAvro.newBuilder()
+        return ClimateSensorAvro.newBuilder()
                 .setTemperatureC(_event.getTemperatureC())
                 .setHumidity(_event.getHumidity())
                 .setCo2Level(_event.getCo2Level())
