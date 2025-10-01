@@ -64,7 +64,7 @@ services:
       context: .
       dockerfile: telemetry/analyzer/Dockerfile
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://ewm-db:5432/telemetry
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/telemetry
       SPRING_DATASOURCE_USERNAME: frosty
       SPRING_DATASOURCE_PASSWORD: ytsorf
     depends_on: [ kafka, postgres-db ]
