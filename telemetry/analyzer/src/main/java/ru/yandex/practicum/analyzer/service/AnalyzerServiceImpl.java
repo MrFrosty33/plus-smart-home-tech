@@ -1,30 +1,38 @@
 package ru.yandex.practicum.analyzer.service;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.analyzer.repository.ActionRepository;
-import ru.yandex.practicum.analyzer.repository.ConditionRepository;
-import ru.yandex.practicum.analyzer.repository.ScenarioRepository;
-import ru.yandex.practicum.analyzer.repository.SensorRepository;
+import ru.yandex.practicum.analyzer.service.handler.hub.HubEventHandler;
 import ru.yandex.practicum.kafka.telemetry.event.HubEventAvro;
 import ru.yandex.practicum.kafka.telemetry.event.SensorsSnapshotAvro;
 
-@RequiredArgsConstructor
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+
 @Service
 @Slf4j
 public class AnalyzerServiceImpl implements AnalyzerService {
-    private final ActionRepository actionRepository;
-    private final ConditionRepository conditionRepository;
-    private final ScenarioRepository scenarioRepository;
-    private final SensorRepository sensorRepository;
+    private final Map<Class<?>, HubEventHandler<?>> handlers = new HashMap<>();
 
     private final String className = AnalyzerServiceImpl.class.getSimpleName();
 
+    public AnalyzerServiceImpl(Set<HubEventHandler<?>> handlers) {
+        handlers.forEach(handler -> this.handlers.put(handler.getHandledEventClass(), handler));
+    }
+
     @Override
     public void processHubEvent(HubEventAvro event) {
-        log.trace("{}: processing hub event: {}", className, event);
-        // пу-пу-пу
+        try {
+            log.trace("{}: processing hub event: {}", className, event);
+            Object payload = event.getPayload();
+            HubEventHandler<?> handler = handlers.get(payload.getClass());
+            if (handler != null) {
+                ((HubEventHandler<Object>) handler).handleEvent(payload);
+            }
+        } catch (Exception e) {
+            log.error("{}: error processing hub event: {}", className, event, e);
+        }
     }
 
     @Override
