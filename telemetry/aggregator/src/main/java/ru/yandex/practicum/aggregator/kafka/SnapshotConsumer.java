@@ -9,10 +9,10 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.errors.WakeupException;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.aggregator.AggregatorConfig;
 import ru.yandex.practicum.aggregator.cache.SharedSensorSnapshotsCache;
+import ru.yandex.practicum.config.telemetry.TopicConfig;
+import ru.yandex.practicum.config.telemetry.analyzer.KafkaSensorSnapshotConsumerConfig;
 import ru.yandex.practicum.kafka.telemetry.event.SensorsSnapshotAvro;
 import ru.yandex.practicum.util.ConsumerRecordDTO;
 import ru.yandex.practicum.util.OffsetsManager;
@@ -41,10 +41,11 @@ public class SnapshotConsumer implements Runnable, AutoCloseable {
     public SnapshotConsumer(SharedSensorSnapshotsCache sensorSnapshotsCache,
                             OffsetsManager offsetsManager,
                             JsonMapper jsonMapper,
-                            @Value("${SNAPSHOTS_TOPIC}") String snapshotsTopic) {
-        this.snapshotConsumer = new KafkaConsumer<>(AggregatorConfig.getSensorSnapshotConsumerProperties());
+                            KafkaSensorSnapshotConsumerConfig snapshotConsumerConfig,
+                            TopicConfig topics) {
+        this.snapshotConsumer = new KafkaConsumer<>(snapshotConsumerConfig.getProperties());
         this.sensorSnapshotsCache = sensorSnapshotsCache;
-        this.snapshotsTopic = snapshotsTopic;
+        this.snapshotsTopic = topics.getSnapshots();
         this.offsetsManager = offsetsManager;
         this.jsonMapper = jsonMapper;
     }

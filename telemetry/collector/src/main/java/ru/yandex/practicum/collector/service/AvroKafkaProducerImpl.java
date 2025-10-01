@@ -8,8 +8,8 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.KafkaException;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.collector.CollectorConfig;
 import ru.yandex.practicum.collector.exception.UnknownEnumException;
+import ru.yandex.practicum.config.telemetry.collector.KafkaProducerConfig;
 
 import java.time.Duration;
 
@@ -20,9 +20,10 @@ public class AvroKafkaProducerImpl implements AvroKafkaProducer, AutoCloseable {
     private final String className = this.getClass().getSimpleName();
     private final JsonMapper jsonMapper;
 
-    public AvroKafkaProducerImpl(JsonMapper jsonMapper) {
+    public AvroKafkaProducerImpl(JsonMapper jsonMapper,
+                                 KafkaProducerConfig kafkaProducerConfig) {
         this.jsonMapper = jsonMapper;
-        this.producer = new KafkaProducer<>(CollectorConfig.getProducerProperties());
+        this.producer = new KafkaProducer<>(kafkaProducerConfig.getProperties());
     }
 
     public void sendAvro(String topic, SpecificRecordBase avroMessage) {

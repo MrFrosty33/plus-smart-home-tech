@@ -12,10 +12,11 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.errors.WakeupException;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.aggregator.AggregatorConfig;
 import ru.yandex.practicum.aggregator.cache.SharedSensorSnapshotsCache;
+import ru.yandex.practicum.config.telemetry.TopicConfig;
+import ru.yandex.practicum.config.telemetry.aggregator.KafkaProducerConfig;
+import ru.yandex.practicum.config.telemetry.analyzer.KafkaHubEventConsumerConfig;
 import ru.yandex.practicum.kafka.telemetry.event.SensorEventAvro;
 import ru.yandex.practicum.kafka.telemetry.event.SensorStateAvro;
 import ru.yandex.practicum.kafka.telemetry.event.SensorsSnapshotAvro;
@@ -51,15 +52,16 @@ public class EventConsumer implements Runnable, AutoCloseable {
     public EventConsumer(OffsetsManager offsetsManager,
                          JsonMapper jsonMapper,
                          SharedSensorSnapshotsCache cache,
-                         @Value("${SENSORS_TOPIC}") String sensorsTopic,
-                         @Value("${SNAPSHOTS_TOPIC}") String snapshotsTopic) {
-        this.eventConsumer = new KafkaConsumer<>(AggregatorConfig.getSensorEventConsumerProperties());
-        this.snapshotProducer = new KafkaProducer<>(AggregatorConfig.getProducerProperties());
+                         KafkaHubEventConsumerConfig eventConsumerConfig,
+                         KafkaProducerConfig producerConfig,
+                         TopicConfig topics) {
+        this.eventConsumer = new KafkaConsumer<>(eventConsumerConfig.getProperties());
+        this.snapshotProducer = new KafkaProducer<>(producerConfig.getProperties());
         this.offsetsManager = offsetsManager;
         this.jsonMapper = jsonMapper;
         this.cache = cache;
-        this.sensorsTopic = sensorsTopic;
-        this.snapshotsTopic = snapshotsTopic;
+        this.sensorsTopic = topics.getSensors();
+        this.snapshotsTopic = topics.getSnapshots();
     }
 
     @Override

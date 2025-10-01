@@ -9,10 +9,10 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.errors.WakeupException;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.analyzer.AnalyzerConfig;
 import ru.yandex.practicum.analyzer.service.AnalyzerService;
+import ru.yandex.practicum.config.telemetry.TopicConfig;
+import ru.yandex.practicum.config.telemetry.analyzer.KafkaHubEventConsumerConfig;
 import ru.yandex.practicum.kafka.telemetry.event.HubEventAvro;
 import ru.yandex.practicum.util.ConsumerRecordDTO;
 import ru.yandex.practicum.util.OffsetsManager;
@@ -41,10 +41,11 @@ public class HubConsumer implements Runnable, AutoCloseable {
     public HubConsumer(AnalyzerService analyzerService,
                        OffsetsManager offsetsManager,
                        JsonMapper jsonMapper,
-                       @Value("${HUBS_TOPIC}") String hubsTopics) {
-        this.hubConsumer = new KafkaConsumer<>(AnalyzerConfig.getHubEventConsumerProperties());
+                       KafkaHubEventConsumerConfig hubEventConsumerConfig,
+                       TopicConfig topicConfig) {
+        this.hubConsumer = new KafkaConsumer<>(hubEventConsumerConfig.getProperties());
         this.analyzerService = analyzerService;
-        this.hubsTopics = hubsTopics;
+        this.hubsTopics = topicConfig.getHubs();
         this.offsetsManager = offsetsManager;
         this.jsonMapper = jsonMapper;
     }
