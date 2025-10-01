@@ -1,4 +1,4 @@
-package ru.yandex.practicum.aggregator.service;
+package ru.yandex.practicum.util;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.specific.SpecificRecordBase;
@@ -6,11 +6,9 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.TopicPartition;
-import org.springframework.stereotype.Component;
 
 import java.util.Map;
 
-@Component
 @Slf4j
 public class OffsetsManager {
     private final String className = OffsetsManager.class.getSimpleName();

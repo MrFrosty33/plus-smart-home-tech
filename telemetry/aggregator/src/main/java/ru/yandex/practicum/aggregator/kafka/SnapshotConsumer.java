@@ -13,8 +13,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.aggregator.AggregatorConfig;
 import ru.yandex.practicum.aggregator.cache.SharedSensorSnapshotsCache;
-import ru.yandex.practicum.aggregator.service.OffsetsManager;
 import ru.yandex.practicum.kafka.telemetry.event.SensorsSnapshotAvro;
+import ru.yandex.practicum.util.ConsumerRecordDTO;
+import ru.yandex.practicum.util.OffsetsManager;
 
 import java.time.Duration;
 import java.util.Collections;
@@ -67,7 +68,8 @@ public class SnapshotConsumer implements Runnable, AutoCloseable {
                 int count = 0;
 
                 for (ConsumerRecord<Void, SpecificRecordBase> record : records) {
-                    log.trace("{}: processing record: {}", className, jsonMapper.writeValueAsString(record));
+                    log.trace("{}: processing record: {}", className,
+                            jsonMapper.writeValueAsString(new ConsumerRecordDTO(record)));
                     SensorsSnapshotAvro snapshot = (SensorsSnapshotAvro) record.value();
                     sensorSnapshotsCache.put(snapshot.getHubId(), snapshot);
                     log.trace("{}: snapshotConsumerThread put to cache snapshot: {}",
