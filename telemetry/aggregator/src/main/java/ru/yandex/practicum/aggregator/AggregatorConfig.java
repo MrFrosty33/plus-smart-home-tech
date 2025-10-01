@@ -55,7 +55,7 @@ public class AggregatorConfig {
         config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
         config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.VoidDeserializer");
         config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, "ru.yandex.practicum.kafka.serializer.SensorEventDeserializer");
-        config.put(ConsumerConfig.GROUP_ID_CONFIG, "telemetry-collector-aggregator-sensor-event-consumers-v1");
+        config.put(ConsumerConfig.GROUP_ID_CONFIG, "telemetry-aggregator-sensor-event-consumers-v1");
 
         //todo такие же настройки требуются для текущего проекта??
         config.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 100);
@@ -78,7 +78,7 @@ public class AggregatorConfig {
         config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
         config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.VoidDeserializer");
         config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, "ru.yandex.practicum.kafka.serializer.SensorSnapshotDeserializer");
-        config.put(ConsumerConfig.GROUP_ID_CONFIG, "telemetry-collector-aggregator-sensor-snapshot-consumers-v1");
+        config.put(ConsumerConfig.GROUP_ID_CONFIG, "telemetry-aggregator-sensor-snapshot-consumers-v1");
 
         //todo такие же настройки требуются для текущего проекта??
         config.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 100);

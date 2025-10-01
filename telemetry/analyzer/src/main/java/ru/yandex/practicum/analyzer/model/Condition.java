@@ -21,7 +21,8 @@ public class Condition {
     private String type;
 
     @Column(name = "operation")
-    private String operation;
+    @Enumerated(EnumType.STRING)
+    private ConditionOperation operation;
 
     @Column(name = "value")
     private int value;

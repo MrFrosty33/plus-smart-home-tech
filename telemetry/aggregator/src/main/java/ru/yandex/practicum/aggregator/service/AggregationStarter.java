@@ -1,13 +1,14 @@
 package ru.yandex.practicum.aggregator.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.aggregator.kafka.EventConsumer;
 import ru.yandex.practicum.aggregator.kafka.SnapshotConsumer;
 
 @Component
 @Slf4j
-public class AggregationStarter implements Runnable, AutoCloseable {
+public class AggregationStarter implements CommandLineRunner, AutoCloseable {
     private final EventConsumer eventConsumer;
     private final SnapshotConsumer snapshotConsumer;
     private final String className = this.getClass().getSimpleName();
@@ -18,7 +19,7 @@ public class AggregationStarter implements Runnable, AutoCloseable {
     }
 
     @Override
-    public void run() {
+    public void run(String... args) {
         try {
             Thread snapshotThread = new Thread(snapshotConsumer);
             snapshotThread.start();
