@@ -28,7 +28,7 @@ public class AnalyzerServiceImpl implements AnalyzerService {
             Object payload = event.getPayload();
             HubEventHandler<?> handler = handlers.get(payload.getClass());
             if (handler != null) {
-                ((HubEventHandler<Object>) handler).handleEvent(payload);
+                ((HubEventHandler<Object>) handler).handleEvent(payload, event.getHubId());
             }
         } catch (Exception e) {
             log.error("{}: error processing hub event: {}", className, event, e);
