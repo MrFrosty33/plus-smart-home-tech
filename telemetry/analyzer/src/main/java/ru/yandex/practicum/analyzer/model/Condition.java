@@ -18,12 +18,13 @@ public class Condition {
     private Long id;
 
     @Column(name = "type")
-    private String type;
+    @Enumerated(EnumType.STRING)
+    private ConditionType type;
 
     @Column(name = "operation")
     @Enumerated(EnumType.STRING)
     private ConditionOperation operation;
 
     @Column(name = "value")
-    private int value;
+    private Integer value;
 }

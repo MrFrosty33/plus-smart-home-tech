@@ -23,5 +23,5 @@ public class Action {
     private ActionType type;
 
     @Column(name = "value")
-    private int value;
+    private Integer value;
 }
