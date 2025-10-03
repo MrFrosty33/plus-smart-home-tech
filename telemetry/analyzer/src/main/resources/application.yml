@@ -1,7 +1,24 @@
+spring:
+  config:
+    import: classpath:/application-general.yml
+  sql:
+    init:
+      mode: always
+    datasource:
+      url: ${SPRING_DATASOURCE_URL}
+      username: ${SPRING_DATASOURCE_USERNAME}
+      password: ${SPRING_DATASOURCE_PASSWORD}
+      driver-class-name: org.postgresql.Driver
+
+logging:
+  level:
+    root: INFO
+    ru.yandex.practicum.analyzer: TRACE
+
 grpc:
   client:
     hub-router:
-      address: 'static://localhost:59095'
+      port: 59096
       enableKeepAlive: true
       keepAliveWithoutCalls: true
       negotiationType: plaintext

@@ -1,0 +1,7 @@
+spring:
+  config:
+    import: classpath:/application-general.yml
+logging:
+  level:
+    root: INFO
+    ru.yandex.practicum.aggregator: TRACE

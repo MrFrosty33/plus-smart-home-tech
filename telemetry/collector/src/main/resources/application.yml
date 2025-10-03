@@ -1,0 +1,15 @@
+spring:
+  config:
+    import: classpath:/application-general.yml
+
+logging:
+  level:
+    root: INFO
+    ru.yandex.practicum.collector: TRACE
+
+grpc:
+  server:
+    port: 59095
+    enableKeepAlive: true
+    keepAliveWithoutCalls: true
+    negotiationType: plaintext
