@@ -3,13 +3,14 @@ package ru.yandex.practicum.aggregator;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.dataformat.avro.AvroModule;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.clients.producer.ProducerConfig;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import ru.yandex.practicum.aggregator.cache.SharedSensorSnapshotsCache;
-
-import java.util.Properties;
+import ru.yandex.practicum.config.telemetry.TopicConfig;
+import ru.yandex.practicum.config.telemetry.aggregator.KafkaProducerConfig;
+import ru.yandex.practicum.config.telemetry.aggregator.KafkaSensorEventConsumerConfig;
+import ru.yandex.practicum.config.telemetry.aggregator.KafkaSensorSnapshotConsumerConfig;
+import ru.yandex.practicum.util.OffsetsManager;
 
 @Configuration
 public class AggregatorConfig {
@@ -22,66 +23,86 @@ public class AggregatorConfig {
     }
 
     @Bean
-    SharedSensorSnapshotsCache sharedSensorSnapshotsCache() {
+    public OffsetsManager offsetsManager() {
+        return new OffsetsManager();
+    }
+
+    @Bean
+    public SharedSensorSnapshotsCache sharedSensorSnapshotsCache() {
         return new SharedSensorSnapshotsCache();
     }
 
-    public static Properties getProducerProperties() {
-        Properties config = new Properties();
-
-        // для докера
-        //config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka:29092");
-
-        // для локального запуска
-        config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
-        config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.VoidSerializer");
-        config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, "ru.yandex.practicum.kafka.serializer.GeneralAvroSerializer");
-
-        return config;
+    @Bean
+    public KafkaProducerConfig kafkaProducerConfig() {
+//        KafkaProducerConfig result = new KafkaProducerConfig();
+//        Properties props = new Properties();
+//
+//        props.put("bootstrap.servers", "localhost:29092");
+//
+//        props.put("group.id", "telemetry-aggregator-producer-v1");
+//
+//        props.put("key.serializer", "org.apache.kafka.common.serialization.VoidSerializer");
+//        props.put("value.serializer", "ru.yandex.practicum.kafka.serializer.GeneralAvroSerializer");
+//        result.setProperties(props);
+//        return result;
+        return new KafkaProducerConfig(); // для IDE / docker
     }
 
-    public static Properties getSensorEventConsumerProperties() {
-        Properties config = new Properties();
-        // для докера
-        //config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka:29092");
-
-        // для локального запуска
-        config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
-        config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.VoidDeserializer");
-        config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, "ru.yandex.practicum.kafka.serializer.SensorEventDeserializer");
-        config.put(ConsumerConfig.GROUP_ID_CONFIG, "telemetry-collector-aggregator-sensor-event-consumers-v1");
-
-        //todo такие же настройки требуются для текущего проекта??
-        config.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 100);
-        config.put(ConsumerConfig.FETCH_MAX_BYTES_CONFIG, 3072000);
-        config.put(ConsumerConfig.MAX_PARTITION_FETCH_BYTES_CONFIG, 307200);
-
-        // Добавить в конфигурацию потребителя
-        config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "latest");
-        config.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
-        config.put(ConsumerConfig.ISOLATION_LEVEL_CONFIG, "read_committed");
-        return config;
+    @Bean
+    public KafkaSensorEventConsumerConfig kafkaSensorEventConsumerConfig() {
+//        KafkaSensorEventConsumerConfig result = new KafkaSensorEventConsumerConfig();
+//        Properties props = new Properties();
+//
+//        props.put("bootstrap.servers", "localhost:29092");
+//
+//        props.put("group.id", "telemetry-aggregator-sensor-event-consumers-v1");
+//
+//        props.put("key.deserializer", "org.apache.kafka.common.serialization.VoidDeserializer");
+//        props.put("value.deserializer", "ru.yandex.practicum.kafka.serializer.SensorEventDeserializer");
+//
+//        props.put("max.poll.records", "100");
+//        props.put("fetch.max.bytes", "3072000");
+//        props.put("max.partition.fetch.bytes", "307200");
+//
+//        props.put("auto.offset.reset", "latest");
+//        props.put("isolation.level", "read_committed");
+//        props.put("enable.auto.commit", "false");
+//        result.setProperties(props);
+//        return result;
+        return new KafkaSensorEventConsumerConfig(); // для IDE / docker
     }
 
-    public static Properties getSensorSnapshotConsumerProperties() {
-        Properties config = new Properties();
-        // для докера
-        //config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka:29092");
+    @Bean
+    public KafkaSensorSnapshotConsumerConfig kafkaSensorSnapshotConsumerConfig() {
+//        KafkaSensorSnapshotConsumerConfig result = new KafkaSensorSnapshotConsumerConfig();
+//        Properties props = new Properties();
+//
+//        props.put("bootstrap.servers", "localhost:29092");
+//
+//        props.put("group.id", "telemetry-aggregator-sensor-snapshot-consumers-v1");
+//
+//        props.put("key.deserializer", "org.apache.kafka.common.serialization.VoidDeserializer");
+//        props.put("value.deserializer", "ru.yandex.practicum.kafka.serializer.SensorSnapshotDeserializer");
+//
+//        props.put("max.poll.records", "100");
+//        props.put("fetch.max.bytes", "3072000");
+//        props.put("max.partition.fetch.bytes", "307200");
+//
+//        props.put("auto.offset.reset", "latest");
+//        props.put("isolation.level", "read_committed");
+//        props.put("enable.auto.commit", "false");
+//        result.setProperties(props);
+//        return result;
+        return new KafkaSensorSnapshotConsumerConfig(); // для IDE / docker
+    }
 
-        // для локального запуска
-        config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
-        config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.VoidDeserializer");
-        config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, "ru.yandex.practicum.kafka.serializer.SensorSnapshotDeserializer");
-        config.put(ConsumerConfig.GROUP_ID_CONFIG, "telemetry-collector-aggregator-sensor-snapshot-consumers-v1");
-
-        //todo такие же настройки требуются для текущего проекта??
-        config.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 100);
-        config.put(ConsumerConfig.FETCH_MAX_BYTES_CONFIG, 3072000);
-        config.put(ConsumerConfig.MAX_PARTITION_FETCH_BYTES_CONFIG, 307200);
-
-        config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "latest");
-        config.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
-        config.put(ConsumerConfig.ISOLATION_LEVEL_CONFIG, "read_committed");
-        return config;
+    @Bean
+    public TopicConfig topicConfig() {
+//        TopicConfig result = new TopicConfig();
+//        result.setSensors("telemetry.sensors.v1");
+//        result.setSnapshots("telemetry.snapshots.v1");
+//        result.setHubs("telemetry.hubs.v1");
+//        return result;
+        return new TopicConfig(); // для IDE / docker
     }
 }

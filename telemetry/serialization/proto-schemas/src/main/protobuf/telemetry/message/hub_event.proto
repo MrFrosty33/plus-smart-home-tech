@@ -9,6 +9,7 @@ import "telemetry/message/device_added_event.proto";
 import "telemetry/message/device_removed_event.proto";
 import "telemetry/message/scenario_added_event.proto";
 import "telemetry/message/scenario_removed_event.proto";
+import "telemetry/message/device_action_request.proto";
 import "google/protobuf/timestamp.proto";
 
 message HubEventProto {
@@ -19,5 +20,6 @@ message HubEventProto {
         DeviceRemovedEventProto device_removed = 4;
         ScenarioAddedEventProto scenario_added = 5;
         ScenarioRemovedEventProto scenario_removed = 6;
+        DeviceActionRequestProto device_action_request = 7;
     }
 }

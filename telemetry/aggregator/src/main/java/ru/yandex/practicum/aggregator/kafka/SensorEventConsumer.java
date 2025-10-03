@@ -12,25 +12,24 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.errors.WakeupException;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.aggregator.AggregatorConfig;
 import ru.yandex.practicum.aggregator.cache.SharedSensorSnapshotsCache;
-import ru.yandex.practicum.aggregator.service.OffsetsManager;
+import ru.yandex.practicum.config.telemetry.TopicConfig;
+import ru.yandex.practicum.config.telemetry.aggregator.KafkaProducerConfig;
+import ru.yandex.practicum.config.telemetry.aggregator.KafkaSensorEventConsumerConfig;
 import ru.yandex.practicum.kafka.telemetry.event.SensorEventAvro;
 import ru.yandex.practicum.kafka.telemetry.event.SensorStateAvro;
 import ru.yandex.practicum.kafka.telemetry.event.SensorsSnapshotAvro;
+import ru.yandex.practicum.util.ConsumerRecordDTO;
+import ru.yandex.practicum.util.OffsetsManager;
 
 import java.time.Duration;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Component
 @Slf4j
-public class EventConsumer implements AutoCloseable {
-    private final KafkaConsumer<Void, SpecificRecordBase> eventConsumer;
+public class SensorEventConsumer implements Runnable, AutoCloseable {
+    private final KafkaConsumer<Void, SpecificRecordBase> sensorEventConsumer;
     private final Map<TopicPartition, OffsetAndMetadata> eventConsumerOffsets = new HashMap<>();
 
     private final KafkaProducer<Void, SpecificRecordBase> snapshotProducer;
@@ -43,45 +42,78 @@ public class EventConsumer implements AutoCloseable {
 
 
     private final JsonMapper jsonMapper;
-    private final String className = EventConsumer.class.getSimpleName();
+    private final String className = SensorEventConsumer.class.getSimpleName();
 
     private volatile boolean running = true;
 
-    public EventConsumer(OffsetsManager offsetsManager,
-                         JsonMapper jsonMapper,
-                         SharedSensorSnapshotsCache cache,
-                         @Value("${SENSORS_TOPIC}") String sensorsTopic,
-                         @Value("${SNAPSHOTS_TOPIC}") String snapshotsTopic) {
-        this.eventConsumer = new KafkaConsumer<>(AggregatorConfig.getSensorEventConsumerProperties());
-        this.snapshotProducer = new KafkaProducer<>(AggregatorConfig.getProducerProperties());
+    public SensorEventConsumer(OffsetsManager offsetsManager,
+                               JsonMapper jsonMapper,
+                               SharedSensorSnapshotsCache cache,
+                               KafkaSensorEventConsumerConfig eventConsumerConfig,
+                               KafkaProducerConfig producerConfig,
+                               TopicConfig topics) {
+        Properties consumerProps = new Properties();
+
+        consumerProps.put("bootstrap.servers", "localhost:29092");
+
+        consumerProps.put("group.id", "telemetry-aggregator-sensor-event-consumers-v1");
+
+        consumerProps.put("key.deserializer", "org.apache.kafka.common.serialization.VoidDeserializer");
+        consumerProps.put("value.deserializer", "ru.yandex.practicum.kafka.serializer.SensorEventDeserializer");
+
+        consumerProps.put("max.poll.records", "100");
+        consumerProps.put("fetch.max.bytes", "3072000");
+        consumerProps.put("max.partition.fetch.bytes", "307200");
+
+        consumerProps.put("auto.offset.reset", "latest");
+        consumerProps.put("isolation.level", "read_committed");
+        consumerProps.put("enable.auto.commit", "false");
+
+        Properties producerProps = new Properties();
+
+        producerProps.put("bootstrap.servers", "localhost:29092");
+
+        producerProps.put("group.id", "telemetry-aggregator-producer-v1");
+
+        producerProps.put("key.serializer", "org.apache.kafka.common.serialization.VoidSerializer");
+        producerProps.put("value.serializer", "ru.yandex.practicum.kafka.serializer.GeneralAvroSerializer");
+//        this.sensorEventConsumer = new KafkaConsumer<>(eventConsumerConfig.getProperties());
+        this.sensorEventConsumer = new KafkaConsumer<>(consumerProps);
+//        this.snapshotProducer = new KafkaProducer<>(producerConfig.getProperties());
+        this.snapshotProducer = new KafkaProducer<>(producerProps);
         this.offsetsManager = offsetsManager;
         this.jsonMapper = jsonMapper;
         this.cache = cache;
-        this.sensorsTopic = sensorsTopic;
-        this.snapshotsTopic = snapshotsTopic;
+//        this.sensorsTopic = topics.getSensors();
+        this.sensorsTopic = "telemetry.sensors.v1";
+//        this.snapshotsTopic = topics.getSnapshots();
+        this.snapshotsTopic = "telemetry.snapshots.v1";
     }
 
-    public void start() {
-        eventConsumer.subscribe(Collections.singletonList(sensorsTopic));
+    @Override
+    public void run() {
+        sensorEventConsumer.subscribe(Collections.singletonList(sensorsTopic));
         log.trace("{}: subscribed to topic {}", className, sensorsTopic);
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             log.trace("{}: shutdown hook triggered", className);
             running = false;
-            eventConsumer.wakeup();
+            sensorEventConsumer.wakeup();
         }));
 
         try {
             while (running) {
 
-                ConsumerRecords<Void, SpecificRecordBase> records = eventConsumer.poll(Duration.ofMillis(1_000));
-                log.trace("{}:sensorEventConsumer polled records: {}", className, jsonMapper.writeValueAsString(records));
+                ConsumerRecords<Void, SpecificRecordBase> records = sensorEventConsumer.poll(Duration.ofMillis(1_000));
+                log.trace("{}: successfully polled {} records", className, records.count());
                 int count = 0;
 
                 for (ConsumerRecord<Void, SpecificRecordBase> record : records) {
+                    log.trace("{}: processing record: {}", className,
+                            jsonMapper.writeValueAsString(new ConsumerRecordDTO(record)));
                     Optional<SensorsSnapshotAvro> snapshotAvro =
                             updateState((SensorEventAvro) record.value());
-                    offsetsManager.manageOffsets(count, record, eventConsumer, eventConsumerOffsets);
+                    offsetsManager.manageOffsets(count, record, sensorEventConsumer, eventConsumerOffsets);
 
                     if (snapshotAvro.isPresent()) {
                         ProducerRecord<Void, SpecificRecordBase> producerRecord =
@@ -93,7 +125,7 @@ public class EventConsumer implements AutoCloseable {
 
                     count++;
                 }
-                eventConsumer.commitAsync();
+                sensorEventConsumer.commitAsync();
             }
         } catch (WakeupException e) {
             if (running) {
@@ -102,14 +134,14 @@ public class EventConsumer implements AutoCloseable {
                 log.info("{}: woken up for shutdown", className);
             }
         } catch (Exception e) {
-            log.error("{}: error acquired during processing of sensorEvents in eventConsumerThread. Exception: {}",
+            log.error("{}: error acquired during processing of sensorEvents. Exception: {}",
                     className, e, e);
         } finally {
             log.info("{}: closing eventConsumer and snapshotProducer", className);
             snapshotProducer.flush();
             snapshotProducer.close(Duration.ofSeconds(10));
-            eventConsumer.commitSync(eventConsumerOffsets);
-            eventConsumer.close(Duration.ofSeconds(10));
+            sensorEventConsumer.commitSync(eventConsumerOffsets);
+            sensorEventConsumer.close(Duration.ofSeconds(10));
             log.info("{}: finished", className);
         }
     }
@@ -187,7 +219,7 @@ public class EventConsumer implements AutoCloseable {
     @Override
     public void close() {
         try {
-            eventConsumer.wakeup();
+            sensorEventConsumer.wakeup();
         } catch (Exception e) {
             log.error("{}: error acquired during closing of eventConsumer and snapshotProducer. Exception: {}",
                     className, e, e);

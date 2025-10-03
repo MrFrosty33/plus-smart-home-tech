@@ -4,11 +4,10 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.dataformat.avro.AvroModule;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.hubspot.jackson.datatype.protobuf.ProtobufModule;
-import org.apache.kafka.clients.producer.ProducerConfig;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.Properties;
+import ru.yandex.practicum.config.telemetry.TopicConfig;
+import ru.yandex.practicum.config.telemetry.collector.KafkaProducerConfig;
 
 @Configuration
 public class CollectorConfig {
@@ -22,17 +21,32 @@ public class CollectorConfig {
         return result;
     }
 
-    public static Properties getProducerProperties() {
-        Properties config = new Properties();
-
-        // для докера
-        //config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka:29092");
-
-        // для локального запуска
-        config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
-        config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.VoidSerializer");
-        config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, "ru.yandex.practicum.kafka.serializer.GeneralAvroSerializer");
-
-        return config;
+    @Bean
+    public KafkaProducerConfig kafkaProducerConfig() {
+//        KafkaProducerConfig result = new KafkaProducerConfig();
+//        Properties props = new Properties();
+//
+//        // для GitHub CI
+//        props.put("bootstrap.servers", "localhost:29092");
+//
+//        props.put("group.id", "telemetry-collector-producer-v1");
+//
+//        props.put("key.serializer", "org.apache.kafka.common.serialization.VoidSerializer");
+//        props.put("value.serializer", "ru.yandex.practicum.kafka.serializer.GeneralAvroSerializer");
+//        result.setProperties(props);
+//        return result;
+        return new KafkaProducerConfig(); // для IDE / docker
     }
+
+    @Bean
+    public TopicConfig topicConfig() {
+//        TopicConfig result = new TopicConfig();
+//        result.setSensors("telemetry.sensors.v1");
+//        result.setSnapshots("telemetry.snapshots.v1");
+//        result.setHubs("telemetry.hubs.v1");
+//        return result;
+        return new TopicConfig(); // для IDE / docker
+    }
+
+
 }

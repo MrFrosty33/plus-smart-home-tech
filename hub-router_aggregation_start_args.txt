@@ -1,0 +1,6 @@
+java
+-jar
+hub-router.jar
+--hub-router.execution.mode=AGGREGATION
+--hub-router.execution.collector.port=59095
+--grpc.server.port=59096

@@ -7,9 +7,9 @@ import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
 import net.devh.boot.grpc.server.service.GrpcService;
-import org.springframework.beans.factory.annotation.Value;
 import ru.yandex.practicum.collector.service.handler.hub.HubEventHandler;
 import ru.yandex.practicum.collector.service.handler.sensor.SensorEventHandler;
+import ru.yandex.practicum.config.telemetry.TopicConfig;
 import ru.yandex.practicum.grpc.telemetry.collector.CollectorControllerGrpc;
 import ru.yandex.practicum.grpc.telemetry.event.HubEventProto;
 import ru.yandex.practicum.grpc.telemetry.event.SensorEventProto;
@@ -34,11 +34,10 @@ public class EventController extends CollectorControllerGrpc.CollectorController
     public EventController(Set<SensorEventHandler> sensorEventHandlers,
                            Set<HubEventHandler> hubEventHandlers,
                            JsonMapper jsonMapper,
-                           @Value("${SENSORS_TOPIC}") String sensorTopic,
-                           @Value("${HUBS_TOPIC}") String hubTopic) {
+                           TopicConfig topics) {
         this.jsonMapper = jsonMapper;
-        this.sensorTopic = sensorTopic;
-        this.hubTopic = hubTopic;
+        this.sensorTopic = topics.getSensors();
+        this.hubTopic = topics.getHubs();
         this.sensorEventHandlers = sensorEventHandlers.stream()
                 .collect(Collectors.toMap(SensorEventHandler::getType, Function.identity()));
         this.hubEventHandlers = hubEventHandlers.stream()
