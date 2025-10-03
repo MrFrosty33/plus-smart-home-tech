@@ -12,6 +12,8 @@ import ru.yandex.practicum.config.telemetry.aggregator.KafkaSensorEventConsumerC
 import ru.yandex.practicum.config.telemetry.aggregator.KafkaSensorSnapshotConsumerConfig;
 import ru.yandex.practicum.util.OffsetsManager;
 
+import java.util.Properties;
+
 @Configuration
 public class AggregatorConfig {
     @Bean
@@ -34,21 +36,73 @@ public class AggregatorConfig {
 
     @Bean
     public KafkaProducerConfig kafkaProducerConfig() {
-        return new KafkaProducerConfig();
+        KafkaProducerConfig result = new KafkaProducerConfig();
+        Properties props = result.getProperties();
+
+        props.put("bootstrap.servers", "kafka:29092");
+
+        props.put("group.id", "telemetry-aggregator-producer-v1");
+
+        props.put("key.serializer", "org.apache.kafka.common.serialization.VoidSerializer");
+        props.put("value.serializer", "ru.yandex.practicum.kafka.serializer.GeneralAvroSerializer");
+        return result;
+        //return new KafkaProducerConfig(); // для IDE / docker
     }
 
     @Bean
     public KafkaSensorEventConsumerConfig kafkaSensorEventConsumerConfig() {
-        return new KafkaSensorEventConsumerConfig();
+        KafkaSensorEventConsumerConfig result = new KafkaSensorEventConsumerConfig();
+        Properties props = result.getProperties();
+
+        props.put("bootstrap.servers", "kafka:29092"); // для docker
+// props.put("bootstrap.servers", "localhost:9092"); // если нужно локально
+
+        props.put("group.id", "telemetry-aggregator-sensor-event-consumers-v1");
+
+        props.put("key.deserializer", "org.apache.kafka.common.serialization.VoidDeserializer");
+        props.put("value.deserializer", "ru.yandex.practicum.kafka.serializer.SensorEventDeserializer");
+
+        props.put("max.poll.records", "100");
+        props.put("fetch.max.bytes", "3072000");
+        props.put("max.partition.fetch.bytes", "307200");
+
+        props.put("auto.offset.reset", "latest");
+        props.put("isolation.level", "read_committed");
+        props.put("enable.auto.commit", "false");
+        return result;
+        //return new KafkaSensorEventConsumerConfig(); // для IDE / docker
     }
 
     @Bean
     public KafkaSensorSnapshotConsumerConfig kafkaSensorSnapshotConsumerConfig() {
-        return new KafkaSensorSnapshotConsumerConfig();
+        KafkaSensorSnapshotConsumerConfig result = new KafkaSensorSnapshotConsumerConfig();
+        Properties props = result.getProperties();
+
+        props.put("bootstrap.servers", "kafka:29092");
+
+        props.put("group.id", "telemetry-aggregator-sensor-snapshot-consumers-v1");
+
+        props.put("key.deserializer", "org.apache.kafka.common.serialization.VoidDeserializer");
+        props.put("value.deserializer", "ru.yandex.practicum.kafka.serializer.SensorSnapshotDeserializer");
+
+        props.put("max.poll.records", "100");
+        props.put("fetch.max.bytes", "3072000");
+        props.put("max.partition.fetch.bytes", "307200");
+
+        props.put("auto.offset.reset", "latest");
+        props.put("isolation.level", "read_committed");
+        props.put("enable.auto.commit", "false");
+        return result;
+        // return new KafkaSensorSnapshotConsumerConfig(); // для IDE / docker
     }
 
     @Bean
     public TopicConfig topicConfig() {
-        return new TopicConfig();
+        TopicConfig result = new TopicConfig();
+        result.setSensors("telemetry.sensors.v1");
+        result.setSnapshots("telemetry.snapshots.v1");
+        result.setHubs("telemetry.hubs.v1");
+        return result;
+        // return new TopicConfig(); // для IDE / docker
     }
 }

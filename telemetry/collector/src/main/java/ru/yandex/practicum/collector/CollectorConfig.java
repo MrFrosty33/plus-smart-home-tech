@@ -9,6 +9,8 @@ import org.springframework.context.annotation.Configuration;
 import ru.yandex.practicum.config.telemetry.TopicConfig;
 import ru.yandex.practicum.config.telemetry.collector.KafkaProducerConfig;
 
+import java.util.Properties;
+
 @Configuration
 public class CollectorConfig {
 
@@ -23,12 +25,28 @@ public class CollectorConfig {
 
     @Bean
     public KafkaProducerConfig kafkaProducerConfig() {
-        return new KafkaProducerConfig();
+        KafkaProducerConfig result = new KafkaProducerConfig();
+        Properties props = result.getProperties();
+
+        // для GitHub CI
+        props.put("bootstrap.servers", "kafka:29092");
+
+        props.put("group.id", "telemetry-collector-producer-v1");
+
+        props.put("key.serializer", "org.apache.kafka.common.serialization.VoidSerializer");
+        props.put("value.serializer", "ru.yandex.practicum.kafka.serializer.GeneralAvroSerializer");
+        return result;
+        // return new KafkaProducerConfig(); // для IDE / docker
     }
 
     @Bean
     public TopicConfig topicConfig() {
-        return new TopicConfig();
+        TopicConfig result = new TopicConfig();
+        result.setSensors("telemetry.sensors.v1");
+        result.setSnapshots("telemetry.snapshots.v1");
+        result.setHubs("telemetry.hubs.v1");
+        return result;
+        // return new TopicConfig(); // для IDE / docker
     }
 
 
