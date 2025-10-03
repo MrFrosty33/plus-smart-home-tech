@@ -18,7 +18,7 @@ logging:
 grpc:
   client:
     hub-router:
-      port: 59090
+      port: 59096
       enableKeepAlive: true
       keepAliveWithoutCalls: true
       negotiationType: plaintext
