@@ -1,5 +1,6 @@
 package ru.yandex.practicum.analyzer.service;
 
+import com.google.protobuf.Empty;
 import lombok.extern.slf4j.Slf4j;
 import net.devh.boot.grpc.client.inject.GrpcClient;
 import org.springframework.stereotype.Service;
@@ -16,7 +17,10 @@ import ru.yandex.practicum.kafka.telemetry.event.HubEventAvro;
 import ru.yandex.practicum.kafka.telemetry.event.SensorStateAvro;
 import ru.yandex.practicum.kafka.telemetry.event.SensorsSnapshotAvro;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @Service
 @Slf4j
@@ -60,45 +64,57 @@ public class AnalyzerServiceImpl implements AnalyzerService {
         log.trace("{}: processing sensor snapshot: {}", className, snapshot);
         List<Scenario> scenarios = scenarioRepository.findByHubId(snapshot.getHubId());
         log.trace("{}: found scenarios for hubId {}: {}", className, snapshot.getHubId(), scenarios);
-        List<Scenario> passedScenarios = new ArrayList<>();
+
         for (Scenario scenario : scenarios) {
-            scenario.getConditions().entrySet().forEach(entry -> {
+            boolean allConditionsPassed = scenario.getConditions().entrySet().stream().allMatch(entry -> {
                 SensorStateAvro sensorStateAvro = snapshot.getSensorsState().get(entry.getKey());
+                if (sensorStateAvro == null || sensorStateAvro.getData() == null) {
+                    log.warn("{}: sensor data not found for sensorId {}", className, entry.getKey());
+                    return false;
+                }
+
                 SensorEventHandler<?> handler = sensorEventHandlers.get(sensorStateAvro.getData().getClass());
 
-                if (handler != null) {
-                    log.trace("{}: processing sensor data: {} with condition: {}",
-                            className, sensorStateAvro.getData(), entry.getValue());
-                    boolean result = ((SensorEventHandler<Object>) handler)
+                if (handler == null) {
+                    log.error("{}: no handler found for sensor: {}",
+                            className, sensorStateAvro.getClass().getSimpleName());
+                    return false;
+                }
+
+                log.trace("{}: processing sensor data: {} with condition: {}",
+                        className, sensorStateAvro.getData(), entry.getValue());
+
+                try {
+                    return ((SensorEventHandler<Object>) handler)
                             .processSensorCondition(sensorStateAvro.getData(), ConditionMapper.toDto(entry.getValue()));
-                    if (result) {
-                        log.trace("{}: condition passed for sensorId {}: {}",
-                                className, entry.getKey(), entry.getValue());
-                        passedScenarios.add(scenario);
-                    }
-                } else {
-                    log.warn("{}: no handler found for sensor data: {}", className, sensorStateAvro.getData());
+                } catch (Exception e) {
+                    log.error("{}: error processing condition: {}", className, e.getMessage(), e);
+                    return false;
                 }
-
-                for (Scenario passedScenario : passedScenarios) {
-                    passedScenario.getActions().forEach((key, value) -> {
-                        DeviceActionProto actionProto = DeviceActionProto.newBuilder()
-                                .setSensorId(key)
-                                .setType(ActionTypeProto.valueOf(value.getType().toString()))
-                                .setValue(value.getValue())
-                                .build();
-                        log.trace("{}: built action proto: {}", className, actionProto);
-                        DeviceActionRequestProto request = DeviceActionRequestProto.newBuilder()
-                                .setHubId(snapshot.getHubId())
-                                .setAction(actionProto)
-                                .build();
-                        log.trace("{}: built action request proto: {}", className, request);
-                        hubRouterClient.handleDeviceAction(request);
-                        log.info("{}: sent action request to hub-router: {}", className, request);
-                    });
-                }
-
             });
+
+            if (allConditionsPassed) {
+                log.info("{}: all conditions passed for scenario: {}", className, scenario);
+
+                scenario.getActions().forEach((key, value) -> {
+                    DeviceActionProto actionProto = DeviceActionProto.newBuilder()
+                            .setSensorId(key)
+                            .setType(ActionTypeProto.valueOf(value.getType().toString()))
+                            .setValue(value.getValue())
+                            .build();
+
+                    log.trace("{}: built action proto: {}", className, actionProto);
+
+                    DeviceActionRequestProto request = DeviceActionRequestProto.newBuilder()
+                            .setHubId(snapshot.getHubId())
+                            .setAction(actionProto)
+                            .build();
+
+                    log.trace("{}: built action request proto: {}", className, request);
+                    Empty ignore = hubRouterClient.handleDeviceAction(request);
+                    log.info("{}: sent action request to hub-router: {}", className, request);
+                });
+            }
         }
     }
 
