@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.aggregator.cache.SharedSensorSnapshotsCache;
 import ru.yandex.practicum.config.telemetry.TopicConfig;
 import ru.yandex.practicum.config.telemetry.aggregator.KafkaProducerConfig;
-import ru.yandex.practicum.config.telemetry.analyzer.KafkaHubEventConsumerConfig;
+import ru.yandex.practicum.config.telemetry.aggregator.KafkaSensorEventConsumerConfig;
 import ru.yandex.practicum.kafka.telemetry.event.SensorEventAvro;
 import ru.yandex.practicum.kafka.telemetry.event.SensorStateAvro;
 import ru.yandex.practicum.kafka.telemetry.event.SensorsSnapshotAvro;
@@ -31,8 +31,8 @@ import java.util.Optional;
 
 @Component
 @Slf4j
-public class EventConsumer implements Runnable, AutoCloseable {
-    private final KafkaConsumer<Void, SpecificRecordBase> eventConsumer;
+public class SensorEventConsumer implements Runnable, AutoCloseable {
+    private final KafkaConsumer<Void, SpecificRecordBase> sensorEventConsumer;
     private final Map<TopicPartition, OffsetAndMetadata> eventConsumerOffsets = new HashMap<>();
 
     private final KafkaProducer<Void, SpecificRecordBase> snapshotProducer;
@@ -45,17 +45,17 @@ public class EventConsumer implements Runnable, AutoCloseable {
 
 
     private final JsonMapper jsonMapper;
-    private final String className = EventConsumer.class.getSimpleName();
+    private final String className = SensorEventConsumer.class.getSimpleName();
 
     private volatile boolean running = true;
 
-    public EventConsumer(OffsetsManager offsetsManager,
-                         JsonMapper jsonMapper,
-                         SharedSensorSnapshotsCache cache,
-                         KafkaHubEventConsumerConfig eventConsumerConfig,
-                         KafkaProducerConfig producerConfig,
-                         TopicConfig topics) {
-        this.eventConsumer = new KafkaConsumer<>(eventConsumerConfig.getProperties());
+    public SensorEventConsumer(OffsetsManager offsetsManager,
+                               JsonMapper jsonMapper,
+                               SharedSensorSnapshotsCache cache,
+                               KafkaSensorEventConsumerConfig eventConsumerConfig,
+                               KafkaProducerConfig producerConfig,
+                               TopicConfig topics) {
+        this.sensorEventConsumer = new KafkaConsumer<>(eventConsumerConfig.getProperties());
         this.snapshotProducer = new KafkaProducer<>(producerConfig.getProperties());
         this.offsetsManager = offsetsManager;
         this.jsonMapper = jsonMapper;
@@ -66,20 +66,20 @@ public class EventConsumer implements Runnable, AutoCloseable {
 
     @Override
     public void run() {
-        eventConsumer.subscribe(Collections.singletonList(sensorsTopic));
+        sensorEventConsumer.subscribe(Collections.singletonList(sensorsTopic));
         log.trace("{}: subscribed to topic {}", className, sensorsTopic);
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             log.trace("{}: shutdown hook triggered", className);
             running = false;
-            eventConsumer.wakeup();
+            sensorEventConsumer.wakeup();
         }));
 
         try {
             while (running) {
 
-                ConsumerRecords<Void, SpecificRecordBase> records = eventConsumer.poll(Duration.ofMillis(1_000));
-                log.trace("{}: sensorEventConsumer successfully polled {} records", className, records.count());
+                ConsumerRecords<Void, SpecificRecordBase> records = sensorEventConsumer.poll(Duration.ofMillis(1_000));
+                log.trace("{}: successfully polled {} records", className, records.count());
                 int count = 0;
 
                 for (ConsumerRecord<Void, SpecificRecordBase> record : records) {
@@ -87,7 +87,7 @@ public class EventConsumer implements Runnable, AutoCloseable {
                             jsonMapper.writeValueAsString(new ConsumerRecordDTO(record)));
                     Optional<SensorsSnapshotAvro> snapshotAvro =
                             updateState((SensorEventAvro) record.value());
-                    offsetsManager.manageOffsets(count, record, eventConsumer, eventConsumerOffsets);
+                    offsetsManager.manageOffsets(count, record, sensorEventConsumer, eventConsumerOffsets);
 
                     if (snapshotAvro.isPresent()) {
                         ProducerRecord<Void, SpecificRecordBase> producerRecord =
@@ -99,7 +99,7 @@ public class EventConsumer implements Runnable, AutoCloseable {
 
                     count++;
                 }
-                eventConsumer.commitAsync();
+                sensorEventConsumer.commitAsync();
             }
         } catch (WakeupException e) {
             if (running) {
@@ -108,14 +108,14 @@ public class EventConsumer implements Runnable, AutoCloseable {
                 log.info("{}: woken up for shutdown", className);
             }
         } catch (Exception e) {
-            log.error("{}: error acquired during processing of sensorEvents in eventConsumerThread. Exception: {}",
+            log.error("{}: error acquired during processing of sensorEvents. Exception: {}",
                     className, e, e);
         } finally {
             log.info("{}: closing eventConsumer and snapshotProducer", className);
             snapshotProducer.flush();
             snapshotProducer.close(Duration.ofSeconds(10));
-            eventConsumer.commitSync(eventConsumerOffsets);
-            eventConsumer.close(Duration.ofSeconds(10));
+            sensorEventConsumer.commitSync(eventConsumerOffsets);
+            sensorEventConsumer.close(Duration.ofSeconds(10));
             log.info("{}: finished", className);
         }
     }
@@ -193,7 +193,7 @@ public class EventConsumer implements Runnable, AutoCloseable {
     @Override
     public void close() {
         try {
-            eventConsumer.wakeup();
+            sensorEventConsumer.wakeup();
         } catch (Exception e) {
             log.error("{}: error acquired during closing of eventConsumer and snapshotProducer. Exception: {}",
                     className, e, e);

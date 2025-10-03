@@ -12,7 +12,7 @@ import org.apache.kafka.common.errors.WakeupException;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.aggregator.cache.SharedSensorSnapshotsCache;
 import ru.yandex.practicum.config.telemetry.TopicConfig;
-import ru.yandex.practicum.config.telemetry.analyzer.KafkaSensorSnapshotConsumerConfig;
+import ru.yandex.practicum.config.telemetry.aggregator.KafkaSensorSnapshotConsumerConfig;
 import ru.yandex.practicum.kafka.telemetry.event.SensorsSnapshotAvro;
 import ru.yandex.practicum.util.ConsumerRecordDTO;
 import ru.yandex.practicum.util.OffsetsManager;
@@ -24,8 +24,8 @@ import java.util.Map;
 
 @Component
 @Slf4j
-public class SnapshotConsumer implements Runnable, AutoCloseable {
-    private final KafkaConsumer<Void, SpecificRecordBase> snapshotConsumer;
+public class SensorSnapshotConsumer implements Runnable, AutoCloseable {
+    private final KafkaConsumer<Void, SpecificRecordBase> sensorSnapshotConsumer;
     private final Map<TopicPartition, OffsetAndMetadata> snapshotConsumerOffsets = new HashMap<>();
 
     private final SharedSensorSnapshotsCache sensorSnapshotsCache;
@@ -34,16 +34,16 @@ public class SnapshotConsumer implements Runnable, AutoCloseable {
     private final OffsetsManager offsetsManager;
 
     private final JsonMapper jsonMapper;
-    private final String className = SnapshotConsumer.class.getSimpleName();
+    private final String className = SensorSnapshotConsumer.class.getSimpleName();
 
     private volatile boolean running = true;
 
-    public SnapshotConsumer(SharedSensorSnapshotsCache sensorSnapshotsCache,
-                            OffsetsManager offsetsManager,
-                            JsonMapper jsonMapper,
-                            KafkaSensorSnapshotConsumerConfig snapshotConsumerConfig,
-                            TopicConfig topics) {
-        this.snapshotConsumer = new KafkaConsumer<>(snapshotConsumerConfig.getProperties());
+    public SensorSnapshotConsumer(SharedSensorSnapshotsCache sensorSnapshotsCache,
+                                  OffsetsManager offsetsManager,
+                                  JsonMapper jsonMapper,
+                                  KafkaSensorSnapshotConsumerConfig snapshotConsumerConfig,
+                                  TopicConfig topics) {
+        this.sensorSnapshotConsumer = new KafkaConsumer<>(snapshotConsumerConfig.getProperties());
         this.sensorSnapshotsCache = sensorSnapshotsCache;
         this.snapshotsTopic = topics.getSnapshots();
         this.offsetsManager = offsetsManager;
@@ -52,20 +52,20 @@ public class SnapshotConsumer implements Runnable, AutoCloseable {
 
     @Override
     public void run() {
-        snapshotConsumer.subscribe(Collections.singletonList(snapshotsTopic));
+        sensorSnapshotConsumer.subscribe(Collections.singletonList(snapshotsTopic));
         log.trace("{}: subscribed to topic {}", className, snapshotsTopic);
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             log.trace("{}: shutdown hook triggered", className);
             running = false;
-            snapshotConsumer.wakeup();
+            sensorSnapshotConsumer.wakeup();
         }));
 
         try {
             while (running) {
 
-                ConsumerRecords<Void, SpecificRecordBase> records = snapshotConsumer.poll(Duration.ofMillis(1_000));
-                log.trace("{}: snapshotConsumer successfully polled {} records", className, records.count());
+                ConsumerRecords<Void, SpecificRecordBase> records = sensorSnapshotConsumer.poll(Duration.ofMillis(1_000));
+                log.trace("{}: successfully polled {} records", className, records.count());
                 int count = 0;
 
                 for (ConsumerRecord<Void, SpecificRecordBase> record : records) {
@@ -73,13 +73,13 @@ public class SnapshotConsumer implements Runnable, AutoCloseable {
                             jsonMapper.writeValueAsString(new ConsumerRecordDTO(record)));
                     SensorsSnapshotAvro snapshot = (SensorsSnapshotAvro) record.value();
                     sensorSnapshotsCache.put(snapshot.getHubId(), snapshot);
-                    log.trace("{}: snapshotConsumerThread put to cache snapshot: {}",
+                    log.trace("{}: put to cache snapshot: {}",
                             className, jsonMapper.writeValueAsString(snapshot));
-                    offsetsManager.manageOffsets(count, record, snapshotConsumer, snapshotConsumerOffsets);
+                    offsetsManager.manageOffsets(count, record, sensorSnapshotConsumer, snapshotConsumerOffsets);
                     count++;
                 }
 
-                snapshotConsumer.commitAsync();
+                sensorSnapshotConsumer.commitAsync();
             }
         } catch (WakeupException e) {
             if (running) {
@@ -88,12 +88,12 @@ public class SnapshotConsumer implements Runnable, AutoCloseable {
                 log.info("{}: woken up for shutdown", className);
             }
         } catch (Exception e) {
-            log.error("{}: error acquired during processing of sensorSnapshots in snapshotConsumerThread. Exception: {}",
+            log.error("{}: error acquired during processing of sensorSnapshots. Exception: {}",
                     className, e, e);
         } finally {
-            log.info("{}: closing snapshotConsumer", className);
-            snapshotConsumer.commitSync(snapshotConsumerOffsets);
-            snapshotConsumer.close(Duration.ofSeconds(10));
+            log.info("{}: closing sensorSnapshotConsumer", className);
+            sensorSnapshotConsumer.commitSync(snapshotConsumerOffsets);
+            sensorSnapshotConsumer.close(Duration.ofSeconds(10));
             log.info("{}: finished", className);
         }
     }
@@ -102,9 +102,9 @@ public class SnapshotConsumer implements Runnable, AutoCloseable {
     @Override
     public void close() {
         try {
-            snapshotConsumer.wakeup();
+            sensorSnapshotConsumer.wakeup();
         } catch (Exception e) {
-            log.error("{}: error acquired during closing snapshotConsumer. Exception: {}",
+            log.error("{}: error acquired during closing sensorSnapshotConsumer. Exception: {}",
                     className, e, e);
         }
 

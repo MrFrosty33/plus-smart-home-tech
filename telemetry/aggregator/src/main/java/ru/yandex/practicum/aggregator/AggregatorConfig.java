@@ -8,8 +8,8 @@ import org.springframework.context.annotation.Configuration;
 import ru.yandex.practicum.aggregator.cache.SharedSensorSnapshotsCache;
 import ru.yandex.practicum.config.telemetry.TopicConfig;
 import ru.yandex.practicum.config.telemetry.aggregator.KafkaProducerConfig;
-import ru.yandex.practicum.config.telemetry.analyzer.KafkaHubEventConsumerConfig;
-import ru.yandex.practicum.config.telemetry.analyzer.KafkaSensorSnapshotConsumerConfig;
+import ru.yandex.practicum.config.telemetry.aggregator.KafkaSensorEventConsumerConfig;
+import ru.yandex.practicum.config.telemetry.aggregator.KafkaSensorSnapshotConsumerConfig;
 import ru.yandex.practicum.util.OffsetsManager;
 
 @Configuration
@@ -38,8 +38,8 @@ public class AggregatorConfig {
     }
 
     @Bean
-    public KafkaHubEventConsumerConfig kafkaSensorEventConsumerConfig() {
-        return new KafkaHubEventConsumerConfig();
+    public KafkaSensorEventConsumerConfig kafkaSensorEventConsumerConfig() {
+        return new KafkaSensorEventConsumerConfig();
     }
 
     @Bean
