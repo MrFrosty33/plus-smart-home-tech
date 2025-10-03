@@ -9,7 +9,8 @@ logging:
 
 grpc:
   server:
-    port: 59095
+    # port:8080 по заданию вроде такой
+    port: 8080
     enableKeepAlive: true
     keepAliveWithoutCalls: true
     negotiationType: plaintext

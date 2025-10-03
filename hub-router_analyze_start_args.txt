@@ -3,5 +3,4 @@ java
 hub-router.jar
 --hub-router.execution.mode=ANALYZE
 --hub-router.execution.collector.port=59095
-grpc.client.hub-router.address
 --grpc.server.port=59096

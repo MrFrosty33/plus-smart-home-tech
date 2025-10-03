@@ -18,7 +18,8 @@ logging:
 grpc:
   client:
     hub-router:
-      port: 59096
+      # address: "static://localhost:59090" по заданию
+      address: "static://hub-router:59090"
       enableKeepAlive: true
       keepAliveWithoutCalls: true
       negotiationType: plaintext
