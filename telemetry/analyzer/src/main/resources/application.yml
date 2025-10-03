@@ -1,6 +1,7 @@
 spring:
   config:
     import: classpath:/application-general.yml
+
   sql:
     init:
       mode: always

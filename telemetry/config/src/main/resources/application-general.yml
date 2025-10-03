@@ -3,6 +3,10 @@ topics:
   snapshots: "telemetry.snapshots.v1"
   hubs: "telemetry.hubs.v1"
 
+spring:
+  kafka:
+    bootstrap-servers: "kafka:29092"
+
 kafka-aggregator:
   producer:
     properties:
