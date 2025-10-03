@@ -24,10 +24,7 @@ import ru.yandex.practicum.util.ConsumerRecordDTO;
 import ru.yandex.practicum.util.OffsetsManager;
 
 import java.time.Duration;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Component
 @Slf4j
@@ -55,13 +52,42 @@ public class SensorEventConsumer implements Runnable, AutoCloseable {
                                KafkaSensorEventConsumerConfig eventConsumerConfig,
                                KafkaProducerConfig producerConfig,
                                TopicConfig topics) {
-        this.sensorEventConsumer = new KafkaConsumer<>(eventConsumerConfig.getProperties());
-        this.snapshotProducer = new KafkaProducer<>(producerConfig.getProperties());
+        Properties consumerProps = new Properties();
+
+        consumerProps.put("bootstrap.servers", "localhost:29092");
+
+        consumerProps.put("group.id", "telemetry-aggregator-sensor-event-consumers-v1");
+
+        consumerProps.put("key.deserializer", "org.apache.kafka.common.serialization.VoidDeserializer");
+        consumerProps.put("value.deserializer", "ru.yandex.practicum.kafka.serializer.SensorEventDeserializer");
+
+        consumerProps.put("max.poll.records", "100");
+        consumerProps.put("fetch.max.bytes", "3072000");
+        consumerProps.put("max.partition.fetch.bytes", "307200");
+
+        consumerProps.put("auto.offset.reset", "latest");
+        consumerProps.put("isolation.level", "read_committed");
+        consumerProps.put("enable.auto.commit", "false");
+
+        Properties producerProps = new Properties();
+
+        producerProps.put("bootstrap.servers", "localhost:29092");
+
+        producerProps.put("group.id", "telemetry-aggregator-producer-v1");
+
+        producerProps.put("key.serializer", "org.apache.kafka.common.serialization.VoidSerializer");
+        producerProps.put("value.serializer", "ru.yandex.practicum.kafka.serializer.GeneralAvroSerializer");
+//        this.sensorEventConsumer = new KafkaConsumer<>(eventConsumerConfig.getProperties());
+        this.sensorEventConsumer = new KafkaConsumer<>(consumerProps);
+//        this.snapshotProducer = new KafkaProducer<>(producerConfig.getProperties());
+        this.snapshotProducer = new KafkaProducer<>(producerProps);
         this.offsetsManager = offsetsManager;
         this.jsonMapper = jsonMapper;
         this.cache = cache;
-        this.sensorsTopic = topics.getSensors();
-        this.snapshotsTopic = topics.getSnapshots();
+//        this.sensorsTopic = topics.getSensors();
+        this.sensorsTopic = "telemetry.sensors.v1";
+//        this.snapshotsTopic = topics.getSnapshots();
+        this.snapshotsTopic = "telemetry.snapshots.v1";
     }
 
     @Override

@@ -7,12 +7,12 @@ import org.apache.avro.specific.SpecificRecordBase;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.KafkaException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.collector.exception.UnknownEnumException;
 import ru.yandex.practicum.config.telemetry.collector.KafkaProducerConfig;
 
 import java.time.Duration;
+import java.util.Properties;
 
 @Component
 @Slf4j
@@ -22,11 +22,19 @@ public class AvroKafkaProducerImpl implements AvroKafkaProducer, AutoCloseable {
     private final JsonMapper jsonMapper;
 
     public AvroKafkaProducerImpl(JsonMapper jsonMapper,
-                                 @Autowired KafkaProducerConfig kafkaProducerConfig) {
-        log.info("лог для отладки, затрахался уже искать причину:");
-        log.info("Properties: {}", kafkaProducerConfig.getProperties());
+                                 KafkaProducerConfig kafkaProducerConfig) {
         this.jsonMapper = jsonMapper;
-        this.producer = new KafkaProducer<>(kafkaProducerConfig.getProperties());
+        Properties props = new Properties();
+
+        // для GitHub CI
+        props.put("bootstrap.servers", "localhost:29092");
+
+        props.put("group.id", "telemetry-collector-producer-v1");
+
+        props.put("key.serializer", "org.apache.kafka.common.serialization.VoidSerializer");
+        props.put("value.serializer", "ru.yandex.practicum.kafka.serializer.GeneralAvroSerializer");
+        this.producer = new KafkaProducer<>(props);
+//        this.producer = new KafkaProducer<>(kafkaProducerConfig.getProperties());
     }
 
     public void sendAvro(String topic, SpecificRecordBase avroMessage) {

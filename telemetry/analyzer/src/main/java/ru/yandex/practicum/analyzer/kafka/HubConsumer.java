@@ -21,6 +21,7 @@ import java.time.Duration;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 @Component
 @Slf4j
@@ -43,9 +44,27 @@ public class HubConsumer implements Runnable, AutoCloseable {
                        JsonMapper jsonMapper,
                        KafkaHubEventConsumerConfig hubEventConsumerConfig,
                        TopicConfig topicConfig) {
-        this.hubConsumer = new KafkaConsumer<>(hubEventConsumerConfig.getProperties());
+        Properties props = new Properties();
+
+        props.put("bootstrap.servers", "localhost:29092");
+
+        props.put("group.id", "telemetry-analyzer-hub-event-consumers-v1");
+
+        props.put("key.deserializer", "org.apache.kafka.common.serialization.VoidDeserializer");
+        props.put("value.deserializer", "ru.yandex.practicum.kafka.serializer.HubEventDeserializer");
+
+        props.put("max.poll.records", "100");
+        props.put("fetch.max.bytes", "3072000");
+        props.put("max.partition.fetch.bytes", "307200");
+
+        props.put("auto.offset.reset", "latest");
+        props.put("isolation.level", "read_committed");
+        props.put("enable.auto.commit", "false");
+//        this.hubConsumer = new KafkaConsumer<>(hubEventConsumerConfig.getProperties());
+        this.hubConsumer = new KafkaConsumer<>(props);
         this.analyzerService = analyzerService;
-        this.hubsTopics = topicConfig.getHubs();
+//        this.hubsTopics = topicConfig.getHubs();
+        this.hubsTopics = "telemetry.hubs.v1";
         this.offsetsManager = offsetsManager;
         this.jsonMapper = jsonMapper;
     }
