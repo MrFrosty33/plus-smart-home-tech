@@ -1,6 +1,7 @@
 package ru.yandex.practicum.analyzer.service;
 
 import com.google.protobuf.Empty;
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import net.devh.boot.grpc.client.inject.GrpcClient;
 import org.springframework.stereotype.Service;
@@ -60,6 +61,7 @@ public class AnalyzerServiceImpl implements AnalyzerService {
     }
 
     @Override
+    @Transactional
     public void processSensorSnapshot(SensorsSnapshotAvro snapshot) {
         log.trace("{}: processing sensor snapshot: {}", className, snapshot);
         List<Scenario> scenarios = scenarioRepository.findByHubId(snapshot.getHubId());

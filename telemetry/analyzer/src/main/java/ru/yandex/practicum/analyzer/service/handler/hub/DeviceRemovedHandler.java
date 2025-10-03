@@ -1,6 +1,7 @@
 package ru.yandex.practicum.analyzer.service.handler.hub;
 
 import jakarta.persistence.PersistenceException;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
@@ -16,6 +17,7 @@ public class DeviceRemovedHandler implements HubEventHandler<DeviceRemovedEventA
     private final String className = this.getClass().getSimpleName();
 
     @Override
+    @Transactional
     public void handleEvent(DeviceRemovedEventAvro data, String hubId) {
         try {
             log.trace("{}: handling DeviceRemovedEventAvro: {}, hubId: {}", className, data, hubId);
