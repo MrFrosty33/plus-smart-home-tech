@@ -32,7 +32,7 @@ public class AnalyzerConfig {
         KafkaHubEventConsumerConfig result = new KafkaHubEventConsumerConfig();
         Properties props = new Properties();
 
-        props.put("bootstrap.servers", "kafka:29092");
+        props.put("bootstrap.servers", "localhost:29092");
 
         props.put("group.id", "telemetry-analyzer-hub-event-consumers-v1");
 
@@ -57,7 +57,7 @@ public class AnalyzerConfig {
         KafkaSensorSnapshotConsumerConfig result = new KafkaSensorSnapshotConsumerConfig();
         Properties props = new Properties();
 
-        props.put("bootstrap.servers", "kafka:29092");
+        props.put("bootstrap.servers", "localhost:29092");
 
         props.put("group.id", "telemetry-analyzer-sensor-snapshot-consumers-v1");
 

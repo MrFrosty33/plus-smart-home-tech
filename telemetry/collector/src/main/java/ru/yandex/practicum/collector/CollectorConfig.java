@@ -29,7 +29,7 @@ public class CollectorConfig {
         Properties props = new Properties();
 
         // для GitHub CI
-        props.put("bootstrap.servers", "kafka:29092");
+        props.put("bootstrap.servers", "localhost:29092");
 
         props.put("group.id", "telemetry-collector-producer-v1");
 

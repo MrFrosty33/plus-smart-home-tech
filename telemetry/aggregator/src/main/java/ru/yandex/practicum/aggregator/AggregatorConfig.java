@@ -39,7 +39,7 @@ public class AggregatorConfig {
         KafkaProducerConfig result = new KafkaProducerConfig();
         Properties props = new Properties();
 
-        props.put("bootstrap.servers", "kafka:29092");
+        props.put("bootstrap.servers", "localhost:29092");
 
         props.put("group.id", "telemetry-aggregator-producer-v1");
 
@@ -55,8 +55,7 @@ public class AggregatorConfig {
         KafkaSensorEventConsumerConfig result = new KafkaSensorEventConsumerConfig();
         Properties props = new Properties();
 
-        props.put("bootstrap.servers", "kafka:29092"); // для docker
-// props.put("bootstrap.servers", "localhost:9092"); // если нужно локально
+        props.put("bootstrap.servers", "localhost:29092");
 
         props.put("group.id", "telemetry-aggregator-sensor-event-consumers-v1");
 
@@ -80,7 +79,7 @@ public class AggregatorConfig {
         KafkaSensorSnapshotConsumerConfig result = new KafkaSensorSnapshotConsumerConfig();
         Properties props = new Properties();
 
-        props.put("bootstrap.servers", "kafka:29092");
+        props.put("bootstrap.servers", "localhost:29092");
 
         props.put("group.id", "telemetry-aggregator-sensor-snapshot-consumers-v1");
 
