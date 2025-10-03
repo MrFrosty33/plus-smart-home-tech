@@ -3,7 +3,7 @@ syntax = "proto3";
 package telemetry.service.hubrouter;
 
 import "google/protobuf/empty.proto";
-import "telemetry/message/hub_event.proto";
+//import "telemetry/message/hub_event.proto"; не используется в данный момент
 import "telemetry/message/device_action_request.proto";
 
 option java_package = "ru.yandex.practicum.grpc.telemetry.analyzer.hubrouter";

@@ -1,5 +1,6 @@
 package ru.yandex.practicum.aggregator.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
@@ -8,15 +9,11 @@ import ru.yandex.practicum.aggregator.kafka.SnapshotConsumer;
 
 @Component
 @Slf4j
+@RequiredArgsConstructor
 public class AggregationStarter implements CommandLineRunner, AutoCloseable {
     private final EventConsumer eventConsumer;
     private final SnapshotConsumer snapshotConsumer;
     private final String className = this.getClass().getSimpleName();
-
-    public AggregationStarter(EventConsumer eventConsumer, SnapshotConsumer snapshotConsumer) {
-        this.eventConsumer = eventConsumer;
-        this.snapshotConsumer = snapshotConsumer;
-    }
 
     @Override
     public void run(String... args) {
@@ -32,7 +29,7 @@ public class AggregationStarter implements CommandLineRunner, AutoCloseable {
             snapshotThread.join();
             eventThread.join();
         } catch (Exception e) {
-            log.error("{}: error acquired in start()", className, e);
+            log.error("{}: error acquired in run()", className, e);
         }
     }
 
