@@ -22,6 +22,8 @@ public class AvroKafkaProducerImpl implements AvroKafkaProducer, AutoCloseable {
 
     public AvroKafkaProducerImpl(JsonMapper jsonMapper,
                                  KafkaProducerConfig kafkaProducerConfig) {
+        log.trace("лог для отладки, затрахался уже искать причину:");
+        log.trace("Properties: {}", kafkaProducerConfig.getProperties());
         this.jsonMapper = jsonMapper;
         this.producer = new KafkaProducer<>(kafkaProducerConfig.getProperties());
     }
