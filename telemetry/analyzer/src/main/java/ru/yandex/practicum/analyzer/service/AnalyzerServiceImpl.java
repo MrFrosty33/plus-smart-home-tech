@@ -82,7 +82,6 @@ public class AnalyzerServiceImpl implements AnalyzerService {
 
                 for (Scenario passedScenario : passedScenarios) {
                     passedScenario.getActions().forEach((key, value) -> {
-                        //todo внимательно посмотреть, что назначается. разобраться, откуда брать value, из Action?
                         DeviceActionProto actionProto = DeviceActionProto.newBuilder()
                                 .setSensorId(key)
                                 .setType(ActionTypeProto.valueOf(value.getType().toString()))
@@ -102,38 +101,6 @@ public class AnalyzerServiceImpl implements AnalyzerService {
             });
         }
     }
-
-//                это я какую-то хрень придумал :[[[[
-//                Map<String, ConditionDto> conditionDtos = scenarios.stream()
-//                        // сценарии, у которых ключи условий сходятся с полученными id сенсоров
-//                        .filter(scenario -> sensorIds.containsAll(scenario.getConditions().keySet()))
-//
-//                        // сценарии, у которых типы условий совпадают с датчиком
-//                        .filter(scenario ->
-//                                scenario.getConditions().values().stream()
-//                                        .map(Condition::getType)
-//                                        .allMatch(type -> handler.getHandledSensorConditions().contains(type))
-//                        )
-//
-//                        // разворачиваем Map<sensorId, Condition> в Stream<Map.Entry<sensorId, Condition>>
-//                        .flatMap(scenario -> scenario.getConditions().entrySet().stream())
-//
-//                        // Собираем Map<sensorId, ConditionDto>
-//                        .collect(Collectors.toMap(
-//                                Map.Entry::getKey,
-//                                entry -> ConditionMapper.toDto(entry.getValue())
-//                        ));
-//
-//                Map<String, ActionDto> actionDtos = scenarios.stream()
-//                        // сценарии, у которых ключи условий сходятся с полученными id сенсоров
-//                        .filter(scenario -> sensorIds.containsAll(scenario.getActions().keySet()))
-//                        // разворачиваем Map<sensorId, Action> в Stream<Map.Entry<sensorId, Action>>
-//                        .flatMap(scenario -> scenario.getActions().entrySet().stream())
-//                        // Собираем Map<sensorId, ActionDto>
-//                        .collect(Collectors.toMap(
-//                                Map.Entry::getKey,
-//                                entry -> ActionMapper.toDto(entry.getValue())
-//                        ));
 
 
     //       Когда анализатор получает очередной снапшот от конкретного хаба,
