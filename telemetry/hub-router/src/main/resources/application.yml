@@ -1,7 +1,6 @@
 grpc:
   server:
-    # port:59090 по заданию
-    port: 59090
+    port: 59090 # по заданию вроде такой
     enableKeepAlive: true
     keepAliveWithoutCalls: true
     negotiationType: plaintext
