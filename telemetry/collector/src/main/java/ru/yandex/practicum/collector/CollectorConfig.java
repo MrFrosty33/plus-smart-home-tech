@@ -26,7 +26,7 @@ public class CollectorConfig {
     @Bean
     public KafkaProducerConfig kafkaProducerConfig() {
         KafkaProducerConfig result = new KafkaProducerConfig();
-        Properties props = result.getProperties();
+        Properties props = new Properties();
 
         // для GitHub CI
         props.put("bootstrap.servers", "kafka:29092");
@@ -35,6 +35,7 @@ public class CollectorConfig {
 
         props.put("key.serializer", "org.apache.kafka.common.serialization.VoidSerializer");
         props.put("value.serializer", "ru.yandex.practicum.kafka.serializer.GeneralAvroSerializer");
+        result.setProperties(props);
         return result;
         // return new KafkaProducerConfig(); // для IDE / docker
     }

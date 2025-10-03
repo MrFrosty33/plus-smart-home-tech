@@ -37,7 +37,7 @@ public class AggregatorConfig {
     @Bean
     public KafkaProducerConfig kafkaProducerConfig() {
         KafkaProducerConfig result = new KafkaProducerConfig();
-        Properties props = result.getProperties();
+        Properties props = new Properties();
 
         props.put("bootstrap.servers", "kafka:29092");
 
@@ -45,6 +45,7 @@ public class AggregatorConfig {
 
         props.put("key.serializer", "org.apache.kafka.common.serialization.VoidSerializer");
         props.put("value.serializer", "ru.yandex.practicum.kafka.serializer.GeneralAvroSerializer");
+        result.setProperties(props);
         return result;
         //return new KafkaProducerConfig(); // для IDE / docker
     }
@@ -52,7 +53,7 @@ public class AggregatorConfig {
     @Bean
     public KafkaSensorEventConsumerConfig kafkaSensorEventConsumerConfig() {
         KafkaSensorEventConsumerConfig result = new KafkaSensorEventConsumerConfig();
-        Properties props = result.getProperties();
+        Properties props = new Properties();
 
         props.put("bootstrap.servers", "kafka:29092"); // для docker
 // props.put("bootstrap.servers", "localhost:9092"); // если нужно локально
@@ -69,6 +70,7 @@ public class AggregatorConfig {
         props.put("auto.offset.reset", "latest");
         props.put("isolation.level", "read_committed");
         props.put("enable.auto.commit", "false");
+        result.setProperties(props);
         return result;
         //return new KafkaSensorEventConsumerConfig(); // для IDE / docker
     }
@@ -76,7 +78,7 @@ public class AggregatorConfig {
     @Bean
     public KafkaSensorSnapshotConsumerConfig kafkaSensorSnapshotConsumerConfig() {
         KafkaSensorSnapshotConsumerConfig result = new KafkaSensorSnapshotConsumerConfig();
-        Properties props = result.getProperties();
+        Properties props = new Properties();
 
         props.put("bootstrap.servers", "kafka:29092");
 
@@ -92,6 +94,7 @@ public class AggregatorConfig {
         props.put("auto.offset.reset", "latest");
         props.put("isolation.level", "read_committed");
         props.put("enable.auto.commit", "false");
+        result.setProperties(props);
         return result;
         // return new KafkaSensorSnapshotConsumerConfig(); // для IDE / docker
     }

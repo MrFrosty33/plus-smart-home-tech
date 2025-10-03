@@ -30,7 +30,7 @@ public class AnalyzerConfig {
     @Bean
     public KafkaHubEventConsumerConfig kafkaHubEventConsumerConfig() {
         KafkaHubEventConsumerConfig result = new KafkaHubEventConsumerConfig();
-        Properties props = result.getProperties();
+        Properties props = new Properties();
 
         props.put("bootstrap.servers", "kafka:29092");
 
@@ -46,6 +46,7 @@ public class AnalyzerConfig {
         props.put("auto.offset.reset", "latest");
         props.put("isolation.level", "read_committed");
         props.put("enable.auto.commit", "false");
+        result.setProperties(props);
         return result;
 
         // return new KafkaHubEventConsumerConfig(); // для IDE / docker
@@ -54,7 +55,7 @@ public class AnalyzerConfig {
     @Bean
     public KafkaSensorSnapshotConsumerConfig kafkaSensorSnapshotConsumerConfig() {
         KafkaSensorSnapshotConsumerConfig result = new KafkaSensorSnapshotConsumerConfig();
-        Properties props = result.getProperties();
+        Properties props = new Properties();
 
         props.put("bootstrap.servers", "kafka:29092");
 
@@ -70,6 +71,7 @@ public class AnalyzerConfig {
         props.put("auto.offset.reset", "latest");
         props.put("isolation.level", "read_committed");
         props.put("enable.auto.commit", "false");
+        result.setProperties(props);
         return result;
         // return new KafkaSensorSnapshotConsumerConfig(); // для IDE / docker
     }
