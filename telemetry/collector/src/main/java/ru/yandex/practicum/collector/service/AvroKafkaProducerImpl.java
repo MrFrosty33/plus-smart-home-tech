@@ -7,6 +7,7 @@ import org.apache.avro.specific.SpecificRecordBase;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.KafkaException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.collector.exception.UnknownEnumException;
 import ru.yandex.practicum.config.telemetry.collector.KafkaProducerConfig;
@@ -21,9 +22,9 @@ public class AvroKafkaProducerImpl implements AvroKafkaProducer, AutoCloseable {
     private final JsonMapper jsonMapper;
 
     public AvroKafkaProducerImpl(JsonMapper jsonMapper,
-                                 KafkaProducerConfig kafkaProducerConfig) {
-        log.trace("лог для отладки, затрахался уже искать причину:");
-        log.trace("Properties: {}", kafkaProducerConfig.getProperties());
+                                 @Autowired KafkaProducerConfig kafkaProducerConfig) {
+        log.info("лог для отладки, затрахался уже искать причину:");
+        log.info("Properties: {}", kafkaProducerConfig.getProperties());
         this.jsonMapper = jsonMapper;
         this.producer = new KafkaProducer<>(kafkaProducerConfig.getProperties());
     }
