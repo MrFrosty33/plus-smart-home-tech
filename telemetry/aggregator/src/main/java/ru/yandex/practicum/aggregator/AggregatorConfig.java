@@ -72,7 +72,6 @@ public class AggregatorConfig {
         result.setProperties(props);
         return result;
 //        return new KafkaSensorEventConsumerConfig(); // для IDE / docker
-
     }
 
     @Bean
