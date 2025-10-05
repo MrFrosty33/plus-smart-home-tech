@@ -2,5 +2,4 @@ java
 -jar
 hub-router.jar
 --hub-router.execution.mode=ANALYZE
---hub-router.execution.collector.port=59095
---grpc.server.port=59096
+--hub-router.execution.output.file=true

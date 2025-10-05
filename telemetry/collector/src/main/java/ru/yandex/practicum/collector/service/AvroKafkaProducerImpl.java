@@ -12,7 +12,6 @@ import ru.yandex.practicum.collector.exception.UnknownEnumException;
 import ru.yandex.practicum.config.telemetry.collector.KafkaProducerConfig;
 
 import java.time.Duration;
-import java.util.Properties;
 
 @Component
 @Slf4j
@@ -24,17 +23,7 @@ public class AvroKafkaProducerImpl implements AvroKafkaProducer, AutoCloseable {
     public AvroKafkaProducerImpl(JsonMapper jsonMapper,
                                  KafkaProducerConfig kafkaProducerConfig) {
         this.jsonMapper = jsonMapper;
-        Properties props = new Properties();
-
-        // для GitHub CI
-        props.put("bootstrap.servers", "localhost:29092");
-
-        props.put("group.id", "telemetry-collector-producer-v1");
-
-        props.put("key.serializer", "org.apache.kafka.common.serialization.VoidSerializer");
-        props.put("value.serializer", "ru.yandex.practicum.kafka.serializer.GeneralAvroSerializer");
-        this.producer = new KafkaProducer<>(props);
-//        this.producer = new KafkaProducer<>(kafkaProducerConfig.getProperties());
+        this.producer = new KafkaProducer<>(kafkaProducerConfig.getProperties());
     }
 
     public void sendAvro(String topic, SpecificRecordBase avroMessage) {

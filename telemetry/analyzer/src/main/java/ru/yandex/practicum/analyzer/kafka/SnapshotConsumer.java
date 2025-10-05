@@ -21,7 +21,6 @@ import java.time.Duration;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 
 @Component
 @Slf4j
@@ -44,27 +43,9 @@ public class SnapshotConsumer implements Runnable, AutoCloseable {
                             JsonMapper jsonMapper,
                             KafkaSensorSnapshotConsumerConfig sensorSnapshotConsumerConfig,
                             TopicConfig topics) {
-        Properties props = new Properties();
-
-        props.put("bootstrap.servers", "localhost:29092");
-
-        props.put("group.id", "telemetry-analyzer-sensor-snapshot-consumers-v1");
-
-        props.put("key.deserializer", "org.apache.kafka.common.serialization.VoidDeserializer");
-        props.put("value.deserializer", "ru.yandex.practicum.kafka.serializer.SensorSnapshotDeserializer");
-
-        props.put("max.poll.records", "100");
-        props.put("fetch.max.bytes", "3072000");
-        props.put("max.partition.fetch.bytes", "307200");
-
-        props.put("auto.offset.reset", "latest");
-        props.put("isolation.level", "read_committed");
-        props.put("enable.auto.commit", "false");
-//        this.snapshotConsumer = new KafkaConsumer<>(sensorSnapshotConsumerConfig.getProperties());
-        this.snapshotConsumer = new KafkaConsumer<>(props);
+        this.snapshotConsumer = new KafkaConsumer<>(sensorSnapshotConsumerConfig.getProperties());
         this.analyzerService = analyzerService;
-//        this.snapshotsTopic = topics.getSnapshots();
-        this.snapshotsTopic = "telemetry.snapshots.v1";
+        this.snapshotsTopic = topics.getSnapshots();
         this.offsetsManager = offsetsManager;
         this.jsonMapper = jsonMapper;
     }
