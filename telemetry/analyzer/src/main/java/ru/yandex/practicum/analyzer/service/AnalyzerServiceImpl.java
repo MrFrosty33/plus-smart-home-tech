@@ -1,6 +1,7 @@
 package ru.yandex.practicum.analyzer.service;
 
 import com.google.protobuf.Empty;
+import com.google.protobuf.Timestamp;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import net.devh.boot.grpc.client.inject.GrpcClient;
@@ -18,6 +19,7 @@ import ru.yandex.practicum.kafka.telemetry.event.HubEventAvro;
 import ru.yandex.practicum.kafka.telemetry.event.SensorStateAvro;
 import ru.yandex.practicum.kafka.telemetry.event.SensorsSnapshotAvro;
 
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -107,9 +109,19 @@ public class AnalyzerServiceImpl implements AnalyzerService {
 
                     log.trace("{}: built action proto: {}", className, actionProto);
 
+                    Instant now = Instant.now();
+                    Timestamp timestamp = Timestamp.newBuilder()
+                            .setSeconds(now.getEpochSecond())
+                            .setNanos(now.getNano())
+                            .build();
+
+                    log.trace("{}: built timestamp: {}", className, timestamp);
+
                     DeviceActionRequestProto request = DeviceActionRequestProto.newBuilder()
                             .setHubId(snapshot.getHubId())
+                            .setScenarioName(scenario.getName())
                             .setAction(actionProto)
+                            .setTimestamp(timestamp)
                             .build();
 
                     log.trace("{}: built action request proto: {}", className, request);
