@@ -1,0 +1,5 @@
+java
+-jar
+hub-router.jar
+--hub-router.execution.mode=ANALYZE
+--hub-router.execution.output.file=true

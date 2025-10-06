@@ -5,14 +5,13 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.specific.SpecificRecordBase;
 import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.KafkaException;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.collector.exception.JsonException;
+import ru.yandex.practicum.collector.exception.UnknownEnumException;
+import ru.yandex.practicum.config.telemetry.collector.KafkaProducerConfig;
 
 import java.time.Duration;
-import java.util.Properties;
 
 @Component
 @Slf4j
@@ -21,19 +20,10 @@ public class AvroKafkaProducerImpl implements AvroKafkaProducer, AutoCloseable {
     private final String className = this.getClass().getSimpleName();
     private final JsonMapper jsonMapper;
 
-    public AvroKafkaProducerImpl(JsonMapper jsonMapper) {
+    public AvroKafkaProducerImpl(JsonMapper jsonMapper,
+                                 KafkaProducerConfig kafkaProducerConfig) {
         this.jsonMapper = jsonMapper;
-        Properties config = new Properties();
-
-        // для докера
-        //config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka:29092");
-
-        // для локального запуска
-        config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
-        config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.VoidSerializer");
-        config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, "ru.yandex.practicum.kafka.serializer.GeneralAvroSerializer");
-
-        this.producer = new KafkaProducer<>(config);
+        this.producer = new KafkaProducer<>(kafkaProducerConfig.getProperties());
     }
 
     public void sendAvro(String topic, SpecificRecordBase avroMessage) {
@@ -46,7 +36,7 @@ public class AvroKafkaProducerImpl implements AvroKafkaProducer, AutoCloseable {
             throw e;
         } catch (JsonProcessingException e) {
             log.warn("{}: Error processing avroMessage JSON: {}", className, e.getMessage());
-            throw new JsonException("Error processing avroMessage JSON");
+            throw new UnknownEnumException("Error processing avroMessage JSON");
         }
     }
 

@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package telemetry.message.event;
+
+option java_multiple_files = true;
+option java_package = "ru.yandex.practicum.grpc.telemetry.event";
+
+enum DeviceTypeProto {
+ // Варианты значений enum DeviceTypeProto
+ MOTION_SENSOR = 0;      // датчик движения
+ TEMPERATURE_SENSOR = 1; // датчик температуры
+ LIGHT_SENSOR = 2;       // датчик освещённости
+ CLIMATE_SENSOR = 3;     // датчик контроля климата
+ SWITCH_SENSOR = 4;      // переключатель
+}

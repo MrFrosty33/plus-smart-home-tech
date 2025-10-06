@@ -1,14 +1,13 @@
 package ru.yandex.practicum.collector.service.handler.hub;
 
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.collector.model.hub.DeviceAddedEvent;
-import ru.yandex.practicum.collector.model.hub.DeviceType;
-import ru.yandex.practicum.collector.model.hub.HubEvent;
-import ru.yandex.practicum.collector.model.hub.HubEventType;
+import ru.yandex.practicum.collector.exception.UnknownEnumException;
 import ru.yandex.practicum.collector.service.AvroKafkaProducer;
+import ru.yandex.practicum.grpc.telemetry.event.DeviceAddedEventProto;
+import ru.yandex.practicum.grpc.telemetry.event.DeviceTypeProto;
+import ru.yandex.practicum.grpc.telemetry.event.HubEventProto;
 import ru.yandex.practicum.kafka.telemetry.event.DeviceAddedEventAvro;
-
-import static ru.yandex.practicum.collector.model.hub.HubEventType.DEVICE_ADDED;
+import ru.yandex.practicum.kafka.telemetry.event.DeviceTypeAvro;
 
 @Component
 public class DeviceAddedEventHandler extends BaseHubEventHandler<DeviceAddedEventAvro> {
@@ -17,24 +16,24 @@ public class DeviceAddedEventHandler extends BaseHubEventHandler<DeviceAddedEven
     }
 
     @Override
-    protected DeviceAddedEventAvro mapToAvro(HubEvent event) {
-        DeviceAddedEvent _event = (DeviceAddedEvent) event;
-//        return DeviceAddedEventAvro.newBuilder()
-//                .setHubId(_event.getHubId())
-//                .setTimestamp(_event.getTimestamp())
-//                .setId(_event.getId())
-//                .setDeviceType(DeviceType.toAvro(_event.getDeviceType()))
-//                .setType(HubEventTypeAvro.DEVICE_ADDED)
-//                .build();
+    protected DeviceAddedEventAvro mapToAvro(HubEventProto event) {
+        DeviceAddedEventProto _event = event.getDeviceAdded();
 
         return DeviceAddedEventAvro.newBuilder()
                 .setId(_event.getId())
-                .setType(DeviceType.toAvro(_event.getDeviceType()))
+                .setType(mapToAvro(_event.getType()))
                 .build();
     }
 
+    public static DeviceTypeAvro mapToAvro(DeviceTypeProto type) {
+        if (type == DeviceTypeProto.UNRECOGNIZED) {
+            throw new UnknownEnumException("Unknown DeviceTypeProto value: " + type);
+        }
+        return DeviceTypeAvro.valueOf(type.name());
+    }
+
     @Override
-    public HubEventType getType() {
-        return DEVICE_ADDED;
+    public HubEventProto.PayloadCase getType() {
+        return HubEventProto.PayloadCase.DEVICE_ADDED;
     }
 }
