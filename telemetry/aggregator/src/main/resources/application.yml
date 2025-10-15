@@ -1,7 +1,11 @@
 spring:
+  application:
+    name: aggregator
   config:
-    import: classpath:/application-general.yml
-logging:
-  level:
-    root: INFO
-    ru.yandex.practicum.aggregator: TRACE
+    import: configserver:http://localhost:8888
+  cloud:
+    config:
+      fail-fast: true
+      retry:
+        useRandomPolicy: true
+        max-interval: 6000

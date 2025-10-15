@@ -8,8 +8,8 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.KafkaException;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.collector.config.KafkaProducerConfig;
 import ru.yandex.practicum.collector.exception.UnknownEnumException;
-import ru.yandex.practicum.config.telemetry.collector.KafkaProducerConfig;
 
 import java.time.Duration;
 

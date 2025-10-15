@@ -1,4 +1,4 @@
-package ru.yandex.practicum.config.telemetry.aggregator;
+package ru.yandex.practicum.aggregator.config;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;

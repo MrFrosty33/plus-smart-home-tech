@@ -14,9 +14,9 @@ import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.errors.WakeupException;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.aggregator.cache.SharedSensorSnapshotsCache;
-import ru.yandex.practicum.config.telemetry.TopicConfig;
-import ru.yandex.practicum.config.telemetry.aggregator.KafkaProducerConfig;
-import ru.yandex.practicum.config.telemetry.aggregator.KafkaSensorEventConsumerConfig;
+import ru.yandex.practicum.aggregator.config.KafkaProducerConfig;
+import ru.yandex.practicum.aggregator.config.KafkaSensorEventConsumerConfig;
+import ru.yandex.practicum.aggregator.config.TopicConfig;
 import ru.yandex.practicum.kafka.telemetry.event.SensorEventAvro;
 import ru.yandex.practicum.kafka.telemetry.event.SensorStateAvro;
 import ru.yandex.practicum.kafka.telemetry.event.SensorsSnapshotAvro;
@@ -55,6 +55,7 @@ public class SensorEventConsumer implements Runnable, AutoCloseable {
                                KafkaSensorEventConsumerConfig eventConsumerConfig,
                                KafkaProducerConfig producerConfig,
                                TopicConfig topics) {
+        log.warn("{}, {}, {}", eventConsumerConfig, producerConfig, topics);
         this.sensorEventConsumer = new KafkaConsumer<>(eventConsumerConfig.getProperties());
         this.snapshotProducer = new KafkaProducer<>(producerConfig.getProperties());
         this.offsetsManager = offsetsManager;

@@ -1,15 +1,11 @@
 spring:
+  application:
+    name: collector
   config:
-    import: classpath:/application-general.yml
-
-logging:
-  level:
-    root: INFO
-    ru.yandex.practicum.collector: TRACE
-
-grpc:
-  server:
-    port: 59091  # по заданию вроде такой
-    enableKeepAlive: true
-    keepAliveWithoutCalls: true
-    negotiationType: plaintext
+    import: configserver:http://localhost:8888
+  cloud:
+    config:
+      fail-fast: true
+      retry:
+        useRandomPolicy: true
+        max-interval: 6000
