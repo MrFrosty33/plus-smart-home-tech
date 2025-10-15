@@ -1,4 +1,4 @@
-package ru.yandex.practicum.config.telemetry.aggregator;
+package ru.yandex.practicum.collector.config;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -8,7 +8,7 @@ import java.util.Properties;
 
 @Data
 @Component
-@ConfigurationProperties(prefix = "kafka-aggregator.sensor-event-consumer")
-public class KafkaSensorEventConsumerConfig {
+@ConfigurationProperties(prefix = "kafka-collector.producer")
+public class KafkaProducerConfig {
     private Properties properties;
 }

@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: config-server
+  profiles:
+    # чтобы брал конфиги из File System Backend, а не Git Backend
+    active: native
+  cloud:
+    config:
+      server:
+        native:
+          searchLocations:
+            - classpath:config/telemetry/{application}/
+
+server:
+  port: 8888

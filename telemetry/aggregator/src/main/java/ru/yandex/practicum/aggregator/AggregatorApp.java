@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 
 @SpringBootApplication
-@ConfigurationPropertiesScan
+@ConfigurationPropertiesScan("ru.yandex.practicum.aggregator.config")
 public class AggregatorApp {
     public static void main(String[] args) {
         SpringApplication.run(AggregatorApp.class, args);
