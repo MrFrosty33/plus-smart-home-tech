@@ -2,11 +2,11 @@ spring:
   sql:
     init:
       mode: always
-    datasource:
-      url: ${SPRING_DATASOURCE_URL}
-      username: ${SPRING_DATASOURCE_USERNAME}
-      password: ${SPRING_DATASOURCE_PASSWORD}
-      driver-class-name: org.postgresql.Driver
+  datasource:
+    url: jdbc:postgresql://localhost:6543/telemetry
+    username: frosty
+    password: ytsorf
+    driver-class-name: org.postgresql.Driver
 
 logging:
   level:
