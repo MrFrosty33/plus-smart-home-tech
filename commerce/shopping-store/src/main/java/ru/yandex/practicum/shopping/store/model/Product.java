@@ -1,0 +1,49 @@
+package ru.yandex.practicum.shopping.store.model;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import ru.yandex.practicum.dto.ProductCategory;
+import ru.yandex.practicum.dto.ProductState;
+import ru.yandex.practicum.dto.QuantityState;
+
+@Entity
+@Table(name = "products")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class Product {
+    @Id
+    @Column(name = "product_id")
+    private String productId;
+
+    @Column(name = "product_name")
+    private String productName;
+
+    @Column(name = "description")
+    private String description;
+
+    @Column(name = "image_src")
+    private String imageSrc;
+
+    @Column(name = "quantity_state")
+    @Enumerated(EnumType.STRING)
+    private QuantityState quantityState;
+    @Column(name = "product_state")
+    @Enumerated(EnumType.STRING)
+    private ProductState productState;
+    @Column(name = "product_category")
+    @Enumerated(EnumType.STRING)
+    private ProductCategory productCategory;
+
+    @Column(name = "price")
+    private double price;
+}
