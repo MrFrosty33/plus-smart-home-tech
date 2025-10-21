@@ -1,9 +1,10 @@
 spring:
   application:
     name: config-server
-  profiles:
+    #profiles:
     # чтобы брал конфиги из File System Backend, а не Git Backend
-    active: native
+    # здесь закомментировано, берёт эту настройку из compose
+    #active: native
   cloud:
     config:
       server:
@@ -13,9 +14,10 @@ spring:
             - classpath:config/infra/{application}/
 
 server:
-  port: 0
+  # порт нужен статичный, иначе не могу сделать healthcheck
+  port: 8888
 
 eureka:
   client:
     serviceUrl:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: http://discovery-server:8761/eureka/
