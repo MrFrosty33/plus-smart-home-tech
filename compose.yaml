@@ -39,11 +39,13 @@ services:
   postgres-db:
     image: postgres:18.0
     environment:
-      POSTGRES_DB: telemetry
+      POSTGRES_DB: plus-smart-home-tech
       POSTGRES_USER: frosty
       POSTGRES_PASSWORD: ytsorf
     ports:
       - "6543:5432"
+    volumes:
+      - ./db-scripts:/docker-entrypoint-initdb.d
 
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
