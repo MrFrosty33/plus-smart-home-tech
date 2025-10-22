@@ -1,9 +1,3 @@
--- создаём схему в рамках общей БД
-CREATE SCHEMA IF NOT EXISTS analyzer;
-
--- переключаемся на созданную схему для удобства
-SET search_path TO analyzer;
-
 -- создаём таблицу scenarios
 CREATE TABLE IF NOT EXISTS scenarios (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,

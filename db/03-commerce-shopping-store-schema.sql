@@ -1,7 +1,3 @@
-CREATE SCHEMA IF NOT EXISTS shopping-store;
-
-SET search_path TO shopping-store;
-
 CREATE TABLE IF NOT EXISTS products (
     product_id VARCHAR(36) PRIMARY KEY,
     product_name VARCHAR(100) NOT NULL,
