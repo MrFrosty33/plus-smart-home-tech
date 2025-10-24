@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.interaction.api.dto.ProductCategory;
 import ru.yandex.practicum.interaction.api.dto.ProductDto;
 import ru.yandex.practicum.shopping.store.model.SetProductQuantityStateRequest;
+import ru.yandex.practicum.shopping.store.service.ProductService;
 
 import java.util.List;
 
@@ -22,35 +23,35 @@ import java.util.List;
 @RequiredArgsConstructor
 @Validated
 public class ShoppingStoreController {
+    private final ProductService productService;
 
     @GetMapping
     public List<ProductDto> getWithPagination(@RequestParam ProductCategory category, Pageable pageable) {
-        return null;
+        return productService.getWithPagination(category, pageable);
     }
 
     @GetMapping("/{productId}")
-    public ProductDto getById(@PathVariable
-                              String productId) {
-        return null;
+    public ProductDto getById(@PathVariable String productId) {
+        return productService.getById(productId);
     }
 
     @PutMapping
     public ProductDto create(@RequestBody ProductDto productDto) {
-        return null;
+        return productService.create(productDto);
     }
 
     @PostMapping
     public ProductDto update(@RequestBody ProductDto productDto) {
-        return null;
+        return productService.update(productDto);
     }
 
     @PostMapping("/quantityState")
     public boolean updateQuantityState(@RequestBody SetProductQuantityStateRequest request) {
-        return false;
+        return productService.updateQuantityState(request);
     }
 
     @PostMapping("/removeProductFromStore")
     public boolean remove(@RequestBody String productId) {
-        return false;
+        return productService.remove(productId);
     }
 }
