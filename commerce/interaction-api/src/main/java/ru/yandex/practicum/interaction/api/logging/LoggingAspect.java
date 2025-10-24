@@ -1,4 +1,4 @@
-package ru.yandex.practicum.logging;
+package ru.yandex.practicum.interaction.api.logging;
 
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;

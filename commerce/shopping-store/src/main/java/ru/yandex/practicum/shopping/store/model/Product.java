@@ -10,9 +10,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import ru.yandex.practicum.dto.ProductCategory;
-import ru.yandex.practicum.dto.ProductState;
-import ru.yandex.practicum.dto.QuantityState;
+import ru.yandex.practicum.interaction.api.dto.ProductCategory;
+import ru.yandex.practicum.interaction.api.dto.ProductState;
+import ru.yandex.practicum.interaction.api.dto.QuantityState;
 
 @Entity
 @Table(name = "products")

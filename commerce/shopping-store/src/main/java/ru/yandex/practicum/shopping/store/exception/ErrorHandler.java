@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
-import ru.yandex.practicum.exception.NotFoundException;
+import ru.yandex.practicum.interaction.api.exception.NotFoundException;
 
 @RestControllerAdvice
 public class ErrorHandler {

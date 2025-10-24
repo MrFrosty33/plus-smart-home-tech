@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import ru.yandex.practicum.dto.ProductCategory;
-import ru.yandex.practicum.dto.ProductDto;
+import ru.yandex.practicum.interaction.api.dto.ProductCategory;
+import ru.yandex.practicum.interaction.api.dto.ProductDto;
 import ru.yandex.practicum.shopping.store.model.SetProductQuantityStateRequest;
 
 import java.util.List;
