@@ -28,9 +28,6 @@ public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
 
-    //todo подключить cache: @Cacheable (для добавления), @CachePut (для обновления), @CacheEvict (для удаления)
-    // использовать можно Caffeine, настроить его и ограничить хранение в кэше по времени
-    // @Loggable
     @Override
     @Loggable
     public List<ProductDto> getWithPagination(ProductCategory category, Pageable pageable) {
