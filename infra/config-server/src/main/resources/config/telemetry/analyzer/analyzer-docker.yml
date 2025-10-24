@@ -1,7 +1,4 @@
 spring:
-  #sql:
-  #init:
-  #mode: always
   datasource:
     url: jdbc:postgresql://postgres-db:5432/telemetry_analyzer
     username: frosty

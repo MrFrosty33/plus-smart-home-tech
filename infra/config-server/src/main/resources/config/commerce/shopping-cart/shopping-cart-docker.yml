@@ -1,0 +1,21 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://postgres-db:5432/commerce_shopping_cart
+    username: frosty
+    password: ytsorf
+    driver-class-name: org.postgresql.Driver
+  cache:
+    type: caffeine
+    caffeine:
+      spec: maximumSize=1000,expireAfterWrite=60m
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, mappings, httptrace, caches, threaddump
+
+logging:
+  level:
+    root: INFO
+    ru.yandex.practicum.shopping.cart: TRACE
