@@ -17,8 +17,9 @@ public class LoggingAspect {
 
     private static final Logger logger = LoggerFactory.getLogger(LoggingAspect.class);
 
+    @SuppressWarnings("unused")
     @Around("@annotation(ru.yandex.practicum.logging.Loggable)")
-    public Object logExecutionTime(ProceedingJoinPoint joinPoint) throws Throwable {
+    public Object logWithExecutionTimeMeasure(ProceedingJoinPoint joinPoint) throws Throwable {
         String className = joinPoint.getClass().getSimpleName();
         logger.info("{}: Entering method: {}", className, joinPoint.getSignature());
 

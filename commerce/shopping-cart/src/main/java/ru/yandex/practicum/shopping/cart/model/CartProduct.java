@@ -31,9 +31,6 @@ public class CartProduct {
     @JoinColumn(name = "cart_id")
     private Cart cart;
 
-    @Column(name = "product_id", nullable = false, length = 36)
-    private String productId;
-
     @Column(nullable = false)
     @Positive
     private Integer quantity;

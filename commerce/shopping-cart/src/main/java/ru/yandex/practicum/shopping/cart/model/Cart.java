@@ -40,7 +40,7 @@ public class Cart {
         if (products == null) products = new HashSet<>();
 
         CartProduct existstingCartProduct = products.stream()
-                .filter(p -> p.getProductId().equals(productId))
+                .filter(p -> p.getEmbeddedId().getProductId().equals(productId))
                 .findFirst()
                 .orElse(null);
 
@@ -56,7 +56,6 @@ public class Cart {
             CartProduct cartProduct = CartProduct.builder()
                     .embeddedId(embeddedId)
                     .cart(this)
-                    .productId(productId)
                     .quantity(quantity)
                     .build();
 

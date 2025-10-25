@@ -19,8 +19,8 @@ public interface CartMapper {
         if (products == null) return null;
         return products.stream()
                 .collect(Collectors.toMap(
-                                CartProduct::getProductId,
-                                CartProduct::getQuantity
+                        cartProduct -> cartProduct.getEmbeddedId().getProductId(),
+                        cartProduct -> cartProduct.getQuantity()
                         )
                 );
     }

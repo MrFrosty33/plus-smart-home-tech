@@ -10,9 +10,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.interaction.api.dto.ShoppingCartDto;
 import ru.yandex.practicum.interaction.api.logging.Loggable;
+import ru.yandex.practicum.shopping.cart.exception.NoProductsInShoppingCartException;
 import ru.yandex.practicum.shopping.cart.exception.NotAuthorizedUserException;
 import ru.yandex.practicum.shopping.cart.mapper.CartMapper;
 import ru.yandex.practicum.shopping.cart.model.Cart;
+import ru.yandex.practicum.shopping.cart.model.CartProduct;
+import ru.yandex.practicum.shopping.cart.model.CartProductEmbeddedId;
 import ru.yandex.practicum.shopping.cart.model.ChangeProductQuantityRequest;
 import ru.yandex.practicum.shopping.cart.repository.CartProductRepository;
 import ru.yandex.practicum.shopping.cart.repository.CartRepository;
@@ -72,7 +75,17 @@ public class CartServiceImpl implements CartService {
     @Transactional
     @CacheEvict(value = "carts", key = "#username")
     public void deactivateCart(String username) {
+        // как это вообще использоваться будет?
+        // нужно ли будет проверять, является ли корзина активна, прежде чем производить какие-либо действия с ней?
+        Cart cart = cartRepository.findByUsername(username).orElseThrow(() -> {
+            log.warn("{}: no Cart found for username: {}", className, username);
+            String message = "Cart for username: " + username + " cannot be found";
+            String userMessage = "Cart not found";
+            HttpStatus status = HttpStatus.UNAUTHORIZED;
+            return new NotAuthorizedUserException(message, userMessage, status);
+        });
 
+        cart.setActive(false);
     }
 
     @Override
@@ -80,7 +93,32 @@ public class CartServiceImpl implements CartService {
     @Transactional
     @CachePut(value = "carts", key = "#username")
     public ShoppingCartDto removeProducts(String username, Set<String> productsId) {
-        return null;
+        Cart cart = cartRepository.findByUsername(username).orElseThrow(() -> {
+            log.warn("{}: no Cart found for username: {}", className, username);
+            String message = "Cart for username: " + username + " cannot be found";
+            String userMessage = "Cart not found";
+            HttpStatus status = HttpStatus.UNAUTHORIZED;
+            return new NotAuthorizedUserException(message, userMessage, status);
+        });
+
+        productsId.forEach((id) -> {
+            CartProductEmbeddedId embeddedId = CartProductEmbeddedId.builder()
+                    .cartId(cart.getCartId())
+                    .productId(id)
+                    .build();
+            CartProduct cartProduct = cartProductRepository.findById(embeddedId).orElseThrow(() -> {
+                log.warn("{}: no CartProduct found for embeddedId: {}", className, embeddedId);
+                String message = "CartProduct for cartId: " + embeddedId.getCartId()
+                        + " and productId:" + embeddedId.getProductId() + " cannot be found";
+                String userMessage = "There is no Product in Cart";
+                HttpStatus status = HttpStatus.UNAUTHORIZED;
+                return new NoProductsInShoppingCartException(message, userMessage, status);
+            });
+
+            cart.getProducts().remove(cartProduct);
+        });
+
+        return cartMapper.toDto(cart);
     }
 
     @Override
@@ -88,6 +126,30 @@ public class CartServiceImpl implements CartService {
     @Transactional
     @CachePut(value = "carts", key = "#username")
     public ShoppingCartDto changeQuantity(String username, ChangeProductQuantityRequest request) {
-        return null;
+        Cart cart = cartRepository.findByUsername(username).orElseThrow(() -> {
+            log.warn("{}: no Cart found for username: {}", className, username);
+            String message = "Cart for username: " + username + " cannot be found";
+            String userMessage = "Cart not found";
+            HttpStatus status = HttpStatus.UNAUTHORIZED;
+            return new NotAuthorizedUserException(message, userMessage, status);
+        });
+
+        CartProductEmbeddedId embeddedId = CartProductEmbeddedId.builder()
+                .cartId(cart.getCartId())
+                .productId(request.getProductId())
+                .build();
+
+        CartProduct cartProduct = cartProductRepository.findById(embeddedId).orElseThrow(() -> {
+            log.warn("{}: no CartProduct found for embeddedId: {}", className, embeddedId);
+            String message = "CartProduct for cartId: " + embeddedId.getCartId()
+                    + " and productId:" + embeddedId.getProductId() + " cannot be found";
+            String userMessage = "There is no Product in Cart";
+            HttpStatus status = HttpStatus.UNAUTHORIZED;
+            return new NoProductsInShoppingCartException(message, userMessage, status);
+        });
+
+        cartProduct.setQuantity(request.getNewQuantity());
+
+        return cartMapper.toDto(cart);
     }
 }
