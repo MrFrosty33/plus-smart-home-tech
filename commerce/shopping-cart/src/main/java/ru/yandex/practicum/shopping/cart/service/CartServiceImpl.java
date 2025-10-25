@@ -13,8 +13,6 @@ import ru.yandex.practicum.interaction.api.logging.Loggable;
 import ru.yandex.practicum.shopping.cart.exception.NotAuthorizedUserException;
 import ru.yandex.practicum.shopping.cart.mapper.CartMapper;
 import ru.yandex.practicum.shopping.cart.model.Cart;
-import ru.yandex.practicum.shopping.cart.model.CartProduct;
-import ru.yandex.practicum.shopping.cart.model.CartProductEmbeddedId;
 import ru.yandex.practicum.shopping.cart.model.ChangeProductQuantityRequest;
 import ru.yandex.practicum.shopping.cart.repository.CartProductRepository;
 import ru.yandex.practicum.shopping.cart.repository.CartRepository;
@@ -64,21 +62,7 @@ public class CartServiceImpl implements CartService {
             cart.setProducts(new HashSet<>());
         }
 
-        products.forEach((key, value) -> {
-            CartProductEmbeddedId embeddedId = CartProductEmbeddedId.builder()
-                    .productId(key)
-                    .cartId(cart.getCartId())
-                    .build();
-
-            CartProduct cartProduct = CartProduct.builder()
-                    .embeddedId(embeddedId)
-                    .cart(cart)
-                    .productId(key)
-                    .quantity(value)
-                    .build();
-
-            cart.getProducts().add(cartProduct);
-        });
+        products.forEach(cart::addProduct);
 
         return cartMapper.toDto(cart);
     }

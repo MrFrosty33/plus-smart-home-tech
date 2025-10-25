@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -34,4 +35,32 @@ public class Cart {
 
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<CartProduct> products;
+
+    public void addProduct(String productId, Integer quantity) {
+        if (products == null) products = new HashSet<>();
+
+        CartProduct existstingCartProduct = products.stream()
+                .filter(p -> p.getProductId().equals(productId))
+                .findFirst()
+                .orElse(null);
+
+        // если уже существует в корзине продукт, будет добавлено желаемое количество
+        if (existstingCartProduct != null) {
+            existstingCartProduct.setQuantity(existstingCartProduct.getQuantity() + quantity);
+        } else {
+            CartProductEmbeddedId embeddedId = CartProductEmbeddedId.builder()
+                    .productId(productId)
+                    .cartId(cartId)
+                    .build();
+
+            CartProduct cartProduct = CartProduct.builder()
+                    .embeddedId(embeddedId)
+                    .cart(this)
+                    .productId(productId)
+                    .quantity(quantity)
+                    .build();
+
+            products.add(cartProduct);
+        }
+    }
 }
