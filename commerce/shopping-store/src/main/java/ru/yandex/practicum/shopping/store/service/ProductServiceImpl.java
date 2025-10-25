@@ -44,7 +44,8 @@ public class ProductServiceImpl implements ProductService {
             log.warn("{}: cannot find Product with id: {}", className, productId);
             String message = "Product with id: " + productId + " cannot be found";
             String userMessage = "Product not found";
-            return new ProductNotFoundException(message, userMessage, HttpStatus.NOT_FOUND);
+            HttpStatus status = HttpStatus.NOT_FOUND;
+            return new ProductNotFoundException(message, userMessage, status);
         }));
     }
 
@@ -67,7 +68,8 @@ public class ProductServiceImpl implements ProductService {
             log.warn("{}: update failure - cannot find Product with id: {}", className, productDto.getProductId());
             String message = "Product with id: " + productDto.getProductId() + " cannot be found";
             String userMessage = "Product not found";
-            return new ProductNotFoundException(message, userMessage, HttpStatus.NOT_FOUND);
+            HttpStatus status = HttpStatus.NOT_FOUND;
+            return new ProductNotFoundException(message, userMessage, status);
         });
 
         Product fresh = productMapper.toEntity(productDto);
@@ -88,7 +90,8 @@ public class ProductServiceImpl implements ProductService {
             log.warn("{}: quantity state update failure - cannot find Product with id: {}", className, request.getProductId());
             String message = "Product with id: " + request.getProductId() + " cannot be found";
             String userMessage = "Product not found";
-            return new ProductNotFoundException(message, userMessage, HttpStatus.NOT_FOUND);
+            HttpStatus status = HttpStatus.NOT_FOUND;
+            return new ProductNotFoundException(message, userMessage, status);
         });
 
         old.setQuantityState(request.getQuantityState());

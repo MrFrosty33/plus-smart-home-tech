@@ -22,16 +22,16 @@ import ru.yandex.practicum.interaction.api.dto.QuantityState;
 @AllArgsConstructor
 public class Product {
     @Id
-    @Column(name = "product_id")
+    @Column(name = "product_id", length = 36)
     private String productId;
 
-    @Column(name = "product_name")
+    @Column(name = "product_name", nullable = false, length = 1000)
     private String productName;
 
-    @Column(name = "description")
+    @Column(name = "description", nullable = false, length = 1000)
     private String description;
 
-    @Column(name = "image_src")
+    @Column(name = "image_src", length = 1000)
     private String imageSrc;
 
     //todo стоит ли все енумы вынести в таблицы?
