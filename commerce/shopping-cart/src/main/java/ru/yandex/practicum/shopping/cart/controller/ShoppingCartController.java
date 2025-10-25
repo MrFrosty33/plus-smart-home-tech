@@ -27,6 +27,14 @@ import java.util.Set;
 public class ShoppingCartController {
     private final CartService cartService;
 
+    //todo хмм, а как корзина вообще добавляться будет?
+    // по swagger нет API для создания корзины с UUID
+    // может потом при создании пользователя будет создаваться корзина?
+    // но сейчас то как быть? При добавлении товара должна существовать корзина, чтобы было куда добавлять
+    // а получается, что в БД записей то нет))
+    // ----
+    // так же как назначается UUID у корзины? Автогенерация или вручную
+
     @GetMapping
     public ShoppingCartDto get(@RequestParam String username) {
         checkUsername(username);
@@ -67,7 +75,7 @@ public class ShoppingCartController {
     private void checkUsername(String username) {
         if (username == null || username.isBlank()) {
             String message = "Received null / blank username";
-            String userMessage = "Username cannot be blank";
+            String userMessage = "Username must be provided and cannot be blank";
             HttpStatus status = HttpStatus.UNAUTHORIZED;
             throw new NotAuthorizedUserException(message, userMessage, status);
         }
