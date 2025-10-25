@@ -6,18 +6,17 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
-import ru.yandex.practicum.interaction.api.exception.NotFoundException;
 
 @RestControllerAdvice
 public class ErrorHandler {
 
-    @ExceptionHandler(NotFoundException.class)
+    @ExceptionHandler(ProductNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ProductNotFoundException handleNotFound(NotFoundException e) {
+    public ProductNotFoundException handleNotFound(ProductNotFoundException e) {
         // как-то странно.
-        // В теле ответа ожидается столько всего, словно это действительно нужно возвращать целиком исключение
+        // В теле ответа ожидается столько всего, словно действительно нужно возвращать целиком исключение
         // со всеми унаследованными полями
-        return new ProductNotFoundException(e.getMessage(), e.getMessage(), HttpStatus.NOT_FOUND);
+        return e;
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)

@@ -34,6 +34,7 @@ public class Product {
     @Column(name = "image_src")
     private String imageSrc;
 
+    //todo стоит ли все енумы вынести в таблицы?
     @Column(name = "quantity_state")
     @Enumerated(EnumType.STRING)
     private QuantityState quantityState;

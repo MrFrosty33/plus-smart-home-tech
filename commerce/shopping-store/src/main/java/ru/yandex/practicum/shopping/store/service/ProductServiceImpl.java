@@ -7,12 +7,13 @@ import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.interaction.api.dto.ProductCategory;
 import ru.yandex.practicum.interaction.api.dto.ProductDto;
-import ru.yandex.practicum.interaction.api.exception.NotFoundException;
 import ru.yandex.practicum.interaction.api.logging.Loggable;
+import ru.yandex.practicum.shopping.store.exception.ProductNotFoundException;
 import ru.yandex.practicum.shopping.store.mapper.ProductMapper;
 import ru.yandex.practicum.shopping.store.model.Product;
 import ru.yandex.practicum.shopping.store.model.SetProductQuantityStateRequest;
@@ -41,7 +42,9 @@ public class ProductServiceImpl implements ProductService {
     public ProductDto getById(String productId) {
         return productMapper.toDto(productRepository.findById(productId).orElseThrow(() -> {
             log.warn("{}: cannot find Product with id: {}", className, productId);
-            return new NotFoundException("Product with id: " + productId + " cannot be found");
+            String message = "Product with id: " + productId + " cannot be found";
+            String userMessage = "Product not found";
+            return new ProductNotFoundException(message, userMessage, HttpStatus.NOT_FOUND);
         }));
     }
 
@@ -62,7 +65,9 @@ public class ProductServiceImpl implements ProductService {
     public ProductDto update(ProductDto productDto) {
         Product old = productRepository.findById(productDto.getProductId()).orElseThrow(() -> {
             log.warn("{}: update failure - cannot find Product with id: {}", className, productDto.getProductId());
-            return new NotFoundException("Product with id: " + productDto.getProductId() + " cannot be found");
+            String message = "Product with id: " + productDto.getProductId() + " cannot be found";
+            String userMessage = "Product not found";
+            return new ProductNotFoundException(message, userMessage, HttpStatus.NOT_FOUND);
         });
 
         Product fresh = productMapper.toEntity(productDto);
@@ -81,7 +86,9 @@ public class ProductServiceImpl implements ProductService {
     public boolean updateQuantityState(SetProductQuantityStateRequest request) {
         Product old = productRepository.findById(request.getProductId()).orElseThrow(() -> {
             log.warn("{}: quantity state update failure - cannot find Product with id: {}", className, request.getProductId());
-            return new NotFoundException("Product with id: " + request.getProductId() + " cannot be found");
+            String message = "Product with id: " + request.getProductId() + " cannot be found";
+            String userMessage = "Product not found";
+            return new ProductNotFoundException(message, userMessage, HttpStatus.NOT_FOUND);
         });
 
         old.setQuantityState(request.getQuantityState());
