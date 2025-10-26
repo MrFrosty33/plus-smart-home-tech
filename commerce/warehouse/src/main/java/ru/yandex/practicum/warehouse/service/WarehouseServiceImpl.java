@@ -2,7 +2,6 @@ package ru.yandex.practicum.warehouse.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -26,7 +25,6 @@ public class WarehouseServiceImpl implements WarehouseService {
     private final ProductMapper productMapper;
     private final String className = this.getClass().getSimpleName();
 
-    @Autowired
     private CacheManager cacheManager;
 
     @Override

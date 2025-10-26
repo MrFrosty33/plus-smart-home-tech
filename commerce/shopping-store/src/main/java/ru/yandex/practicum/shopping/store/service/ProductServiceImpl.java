@@ -2,6 +2,7 @@ package ru.yandex.practicum.shopping.store.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
@@ -28,6 +29,8 @@ public class ProductServiceImpl implements ProductService {
     private final String className = this.getClass().getSimpleName();
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
+
+    private CacheManager cacheManager;
 
     @Override
     @Loggable
@@ -84,10 +87,9 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Loggable
-    @CachePut(value = "products", key = "#request.productId")
     @Transactional
     public boolean updateQuantityState(SetProductQuantityStateRequest request) {
-        Product old = productRepository.findById(request.getProductId()).orElseThrow(() -> {
+        Product product = productRepository.findById(request.getProductId()).orElseThrow(() -> {
             log.warn("{}: quantity state update failure - cannot find Product with id: {}", className, request.getProductId());
             String message = "Product with id: " + request.getProductId() + " cannot be found";
             String userMessage = "Product not found";
@@ -95,7 +97,10 @@ public class ProductServiceImpl implements ProductService {
             return new ProductNotFoundException(message, userMessage, status);
         });
 
-        old.setQuantityState(request.getQuantityState());
+        product.setQuantityState(request.getQuantityState());
+
+        // метод не возвращает дто, не забываем обновить данные в кэше
+        cacheManager.getCache("products").put(product.getProductId(), product);
         return true;
     }
 
