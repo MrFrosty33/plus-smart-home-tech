@@ -18,3 +18,6 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "commerce_shopping_
 
 echo "Initializing schema for commerce_shopping_cart..."
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "commerce_shopping_cart" -f /docker-entrypoint-initdb.d/04-commerce-shopping-cart-schema.sql
+
+echo "Initializing schema for commerce_warehouse..."
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "commerce_warehouse" -f /docker-entrypoint-initdb.d/05-commerce-warehouse-schema.sql

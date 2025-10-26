@@ -8,7 +8,7 @@ import ru.yandex.practicum.interaction.api.dto.SetProductQuantityStateRequest;
 
 @FeignClient(name = "shopping-store")
 @RequestMapping("/api/v1/shopping-store")
-public interface ProductFeignClient {
+public interface ShoppingStoreFeignClient {
     //todo пока только один маппинг будет использоваться?
     @PostMapping("/quantityState")
     boolean updateQuantityState(@RequestBody SetProductQuantityStateRequest request);

@@ -1,0 +1,47 @@
+package ru.yandex.practicum.warehouse.model;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.PositiveOrZero;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Entity
+@Table(name = "products")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class Product {
+    @Id
+    @Column(name = "product_id", length = 36)
+    private String productId;
+
+    @Column
+    private boolean fragile;
+
+    @Column
+    @Min(1)
+    private double width;
+
+    @Column
+    @Min(1)
+    private double height;
+
+    @Column
+    @Min(1)
+    private double depth;
+
+    @Column
+    @Min(1)
+    private double weight;
+
+    @Column
+    @PositiveOrZero
+    private int quantity;
+}
