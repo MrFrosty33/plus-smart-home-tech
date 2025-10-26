@@ -13,6 +13,7 @@ import ru.yandex.practicum.interaction.api.dto.BookedProductsDto;
 import ru.yandex.practicum.interaction.api.dto.NewProductWarehouseRequest;
 import ru.yandex.practicum.interaction.api.dto.ShoppingCartDto;
 import ru.yandex.practicum.interaction.api.logging.Loggable;
+import ru.yandex.practicum.warehouse.exception.NoSpecifiedProductInWarehouseException;
 import ru.yandex.practicum.warehouse.exception.ProductInShoppingCartLowQuantityInWarehouseException;
 import ru.yandex.practicum.warehouse.exception.SpecifiedProductAlreadyInWarehouseException;
 import ru.yandex.practicum.warehouse.mapper.ProductMapper;
@@ -23,7 +24,9 @@ import ru.yandex.practicum.warehouse.repository.ProductRepository;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.security.SecureRandom;
 import java.util.HashSet;
+import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.DoubleAdder;
@@ -36,6 +39,8 @@ public class WarehouseServiceImpl implements WarehouseService {
     private final ProductMapper productMapper;
     private final String className = this.getClass().getSimpleName();
 
+    // тут с кэшем везде вручную, ибо кэш вставляется из возвращаемого значения
+    // а возвращаемых значения у методов либо отсутствуют, либо разные
     private CacheManager cacheManager;
 
     @Override
@@ -84,11 +89,11 @@ public class WarehouseServiceImpl implements WarehouseService {
                         //todo что если товар не существует?
                         // пока сделаю проброс исключения, но может и не требуется
                         Product product = productRepository.findById(entry.getKey()).orElseThrow(() -> {
-                            log.warn("{}: quantity of Product with id: {} is less, than required", className, entry.getKey());
-                            String message = "quantity of Product with id: " + entry.getKey() + " is less, than required";
-                            String userMessage = "Not enough products on warehouse";
+                            log.warn("{}: cannot find Product with id: {}", className, entry.getKey());
+                            String message = "Product with id: " + entry.getValue() + " cannot be found";
+                            String userMessage = "Product not found";
                             HttpStatus status = HttpStatus.NOT_FOUND;
-                            throw new ProductInShoppingCartLowQuantityInWarehouseException(message, userMessage, status);
+                            return new NoSpecifiedProductInWarehouseException(message, userMessage, status);
                         });
 
                         checkQuantityAndCalculateDeliveryParams(product, entry.getValue(),
@@ -115,15 +120,48 @@ public class WarehouseServiceImpl implements WarehouseService {
     }
 
     @Override
+    @Loggable
+    @Transactional
     public void addSpecifiedProduct(AddProductToWarehouseRequest request) {
+        Cache.ValueWrapper valueWrapper = cacheManager.getCache("products").get(request.getProductId());
+        Product product;
 
+        if (valueWrapper != null) {
+            CachedProduct cachedProduct = ((CachedProduct) valueWrapper.get());
+            product = productMapper.toEntity(cachedProduct);
+        } else {
+            product = productRepository.findById(request.getProductId())
+                    .orElseThrow(() -> {
+                        log.warn("{}: cannot find Product with id: {}", className, request.getProductId());
+                        String message = "Product with id: " + request.getProductId() + " cannot be found";
+                        String userMessage = "No product information found";
+                        HttpStatus status = HttpStatus.BAD_REQUEST;
+                        return new NoSpecifiedProductInWarehouseException(message, userMessage, status);
+                    });
+        }
+
+        product.setQuantity(product.getQuantity() + request.getQuantity());
+        productRepository.save(product);
     }
 
     @Override
+    @Loggable
     public AddressDto getAddress() {
-        return null;
+        //todo в дальнейшем будет реализован
+        // на данный момент базовый алгоритм выглядит так
+        String[] ADDRESSES = new String[]{"ADDRESS_1", "ADDRESS_2"};
+        String CURRENT_ADDRESS = ADDRESSES[Random.from(new SecureRandom()).nextInt(0, ADDRESSES.length)];
+
+        return AddressDto.builder()
+                .country(CURRENT_ADDRESS)
+                .city(CURRENT_ADDRESS)
+                .street(CURRENT_ADDRESS)
+                .house(CURRENT_ADDRESS)
+                .flat(CURRENT_ADDRESS)
+                .build();
     }
 
+    @Loggable
     private void checkQuantityAndCalculateDeliveryParams(ProductInfo product, Integer requiredQuantity,
                                                          AtomicBoolean notEnoughFlag, Set<String> notEnoughProducts,
                                                          DoubleAdder deliveryVolume, DoubleAdder deliveryWeight,
