@@ -113,6 +113,9 @@
           "required": true
         },
         "responses": {
+          "200": {
+            "description": "OK"
+          },
           "400": {
             "description": "Нет информации о товаре на складе",
             "content": {
