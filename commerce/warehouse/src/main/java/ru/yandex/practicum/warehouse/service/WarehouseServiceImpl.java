@@ -2,6 +2,7 @@ package ru.yandex.practicum.warehouse.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -14,6 +15,7 @@ import ru.yandex.practicum.interaction.api.dto.ShoppingCartDto;
 import ru.yandex.practicum.interaction.api.logging.Loggable;
 import ru.yandex.practicum.warehouse.exception.SpecifiedProductAlreadyInWarehouseException;
 import ru.yandex.practicum.warehouse.mapper.ProductMapper;
+import ru.yandex.practicum.warehouse.model.CachedProduct;
 import ru.yandex.practicum.warehouse.model.Product;
 import ru.yandex.practicum.warehouse.repository.ProductRepository;
 
@@ -31,9 +33,6 @@ public class WarehouseServiceImpl implements WarehouseService {
     @Loggable
     @Transactional
     public void addNewProduct(NewProductWarehouseRequest request) {
-        //todo разобраться с кэшем тут и в других сервисах глянуть
-        // если не возвращает ничего - то и не помещает в кэш
-        // помещать вручную?
         productRepository.findById(request.getProductId())
                 .ifPresent(product -> {
                     String message = "Product with id: " + request.getProductId() + " already exists in warehouse";
@@ -45,8 +44,8 @@ public class WarehouseServiceImpl implements WarehouseService {
         Product product = productMapper.toEntity(request);
         productRepository.save(product);
 
-        // лучше хранить дто
-        cacheManager.getCache("products").put(product.getProductId(), product);
+        CachedProduct cachedProduct = productMapper.toCachedProduct(product);
+        cacheManager.getCache("products").put(cachedProduct.getProductId(), cachedProduct);
     }
 
     @Override
@@ -54,7 +53,15 @@ public class WarehouseServiceImpl implements WarehouseService {
     public BookedProductsDto checkProductsQuantity(ShoppingCartDto shoppingCartDto) {
         shoppingCartDto.getProducts().entrySet().stream()
                 .forEach((entry) -> {
-                    productRepository
+                    Cache.ValueWrapper valueWrapper = cacheManager.getCache("products").get(entry.getKey());
+                    Product product;
+                    if (valueWrapper != null) {
+                        product = productMapper.toEntity((CachedProduct) valueWrapper.get());
+
+                    } else {
+                        //todo что если товар не существует?
+                        product = productRepository.findById(entry.getKey()).get();
+                    }
                 });
         return null;
     }
