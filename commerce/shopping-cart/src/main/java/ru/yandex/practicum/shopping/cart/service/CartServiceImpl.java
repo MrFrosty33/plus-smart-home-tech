@@ -8,7 +8,9 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.yandex.practicum.interaction.api.dto.BookedProductsDto;
 import ru.yandex.practicum.interaction.api.dto.ShoppingCartDto;
+import ru.yandex.practicum.interaction.api.feign.WarehouseFeignClient;
 import ru.yandex.practicum.interaction.api.logging.Loggable;
 import ru.yandex.practicum.shopping.cart.exception.NoProductsInShoppingCartException;
 import ru.yandex.practicum.shopping.cart.exception.NotAuthorizedUserException;
@@ -31,6 +33,7 @@ public class CartServiceImpl implements CartService {
     private final CartProductRepository cartProductRepository;
     private final CartRepository cartRepository;
     private final CartMapper cartMapper;
+    private final WarehouseFeignClient warehouseFeignClient;
 
     private final String className = this.getClass().getSimpleName();
 
@@ -52,7 +55,6 @@ public class CartServiceImpl implements CartService {
     @Transactional
     @CachePut(value = "carts", key = "#username")
     public ShoppingCartDto addProduct(String username, Map<String, Integer> products) {
-        //todo проверка, есть ли товар на складе
         Cart cart = cartRepository.findByUsername(username).orElseThrow(() -> {
             log.warn("{}: no Cart found for username: {}", className, username);
             String message = "Cart for username: " + username + " cannot be found";
@@ -66,8 +68,11 @@ public class CartServiceImpl implements CartService {
         }
 
         products.forEach(cart::addProduct);
+        ShoppingCartDto cartDto = cartMapper.toDto(cart);
 
-        return cartMapper.toDto(cart);
+        BookedProductsDto bookedProductsDto = warehouseFeignClient.checkProductsQuantity(cartDto);
+        //todo дальше уже наверно будет оформление заказа?
+        return cartDto;
     }
 
     @Override

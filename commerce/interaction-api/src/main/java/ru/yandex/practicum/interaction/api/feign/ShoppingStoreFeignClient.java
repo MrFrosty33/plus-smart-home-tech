@@ -1,4 +1,4 @@
-package ru.yandex.practicum.warehouse.feign;
+package ru.yandex.practicum.interaction.api.feign;
 
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -9,7 +9,7 @@ import ru.yandex.practicum.interaction.api.dto.SetProductQuantityStateRequest;
 @FeignClient(name = "shopping-store")
 @RequestMapping("/api/v1/shopping-store")
 public interface ShoppingStoreFeignClient {
-    //todo пока только один маппинг будет использоваться?
+    // пока только один маппинг используется, остальные буду добавлять по мере надобности
     @PostMapping("/quantityState")
     boolean updateQuantityState(@RequestBody SetProductQuantityStateRequest request);
 }

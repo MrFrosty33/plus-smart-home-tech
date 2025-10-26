@@ -13,13 +13,14 @@ import ru.yandex.practicum.interaction.api.dto.AddressDto;
 import ru.yandex.practicum.interaction.api.dto.BookedProductsDto;
 import ru.yandex.practicum.interaction.api.dto.NewProductWarehouseRequest;
 import ru.yandex.practicum.interaction.api.dto.ShoppingCartDto;
+import ru.yandex.practicum.interaction.api.feign.WarehouseFeignClient;
 import ru.yandex.practicum.warehouse.service.WarehouseService;
 
 @RestController
 @RequestMapping("/api/v1/warehouse")
 @RequiredArgsConstructor
 @Validated
-public class WarehouseController {
+public class WarehouseController implements WarehouseFeignClient {
     private final WarehouseService warehouseService;
 
     @PutMapping
