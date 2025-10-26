@@ -11,13 +11,15 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
+
 @Entity
 @Table(name = "products")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Product {
+public class Product implements ProductInfo {
     @Id
     @Column(name = "product_id", length = 36)
     private String productId;
@@ -27,7 +29,7 @@ public class Product {
 
     @Column
     @Min(1)
-    private double width;
+    private BigDecimal width;
 
     @Column
     @Min(1)

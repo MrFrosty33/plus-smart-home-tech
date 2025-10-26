@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @Builder
 @Getter
-public class CachedProduct {
+public class CachedProduct implements ProductInfo {
     private String productId;
     private boolean fragile;
     private double width;

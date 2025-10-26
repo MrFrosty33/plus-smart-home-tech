@@ -18,6 +18,7 @@ import ru.yandex.practicum.warehouse.exception.SpecifiedProductAlreadyInWarehous
 import ru.yandex.practicum.warehouse.mapper.ProductMapper;
 import ru.yandex.practicum.warehouse.model.CachedProduct;
 import ru.yandex.practicum.warehouse.model.Product;
+import ru.yandex.practicum.warehouse.model.ProductInfo;
 import ru.yandex.practicum.warehouse.repository.ProductRepository;
 
 import java.util.HashSet;
@@ -72,16 +73,8 @@ public class WarehouseServiceImpl implements WarehouseService {
                     // проверка, хранится ли в кэше
                     if (valueWrapper != null) {
                         CachedProduct product = ((CachedProduct) valueWrapper.get());
-
-                        if (product.getQuantity() < entry.getValue()) {
-                            notEnoughFlag.set(true);
-                            notEnoughProducts.add(entry.getKey());
-                        }
-
-                        deliveryVolume.add(
-                                product.getDepth() * product.getWidth() * product.getHeight() * entry.getValue());
-                        deliveryWeight.add(product.getWeight() * entry.getValue());
-                        if (product.isFragile()) fragile.set(true);
+                        checkQuantityAndCalculateDeliveryParams(product, entry.getValue(),
+                                notEnoughFlag, notEnoughProducts, deliveryVolume, deliveryWeight, fragile);
                     } else {
                         //todo что если товар не существует?
                         // пока сделаю проброс исключения, но может и не требуется
@@ -93,15 +86,8 @@ public class WarehouseServiceImpl implements WarehouseService {
                             throw new ProductInShoppingCartLowQuantityInWarehouseException(message, userMessage, status);
                         });
 
-                        if (product.getQuantity() < entry.getValue()) {
-                            notEnoughFlag.set(true);
-                            notEnoughProducts.add(entry.getKey());
-                        }
-
-                        deliveryVolume.add(
-                                product.getDepth() * product.getWidth() * product.getHeight() * entry.getValue());
-                        deliveryWeight.add(product.getWeight() * entry.getValue());
-                        if (product.isFragile()) fragile.set(true);
+                        checkQuantityAndCalculateDeliveryParams(product, entry.getValue(),
+                                notEnoughFlag, notEnoughProducts, deliveryVolume, deliveryWeight, fragile);
                     }
                 });
 
@@ -128,5 +114,19 @@ public class WarehouseServiceImpl implements WarehouseService {
     @Override
     public AddressDto getAddress() {
         return null;
+    }
+
+    private void checkQuantityAndCalculateDeliveryParams(ProductInfo product, Integer requiredQuantity,
+                                                         AtomicBoolean notEnoughFlag, Set<String> notEnoughProducts,
+                                                         DoubleAdder deliveryVolume, DoubleAdder deliveryWeight,
+                                                         AtomicBoolean fragile) {
+        if (product.getQuantity() < requiredQuantity) {
+            notEnoughFlag.set(true);
+            notEnoughProducts.add(product.getProductId());
+        }
+
+        deliveryVolume.add(product.getDepth() * product.getWidth() * product.getHeight() * requiredQuantity);
+        deliveryWeight.add(product.getWeight() * requiredQuantity);
+        if (product.isFragile()) fragile.set(true);
     }
 }
