@@ -1,9 +1,8 @@
-package ru.yandex.practicum.shopping.store.model;
+package ru.yandex.practicum.interaction.api.dto;
 
 import jakarta.validation.constraints.Max;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import ru.yandex.practicum.interaction.api.dto.QuantityState;
 
 @Data
 @AllArgsConstructor

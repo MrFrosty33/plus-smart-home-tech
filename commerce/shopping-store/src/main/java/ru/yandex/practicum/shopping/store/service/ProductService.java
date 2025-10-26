@@ -3,7 +3,7 @@ package ru.yandex.practicum.shopping.store.service;
 import org.springframework.data.domain.Pageable;
 import ru.yandex.practicum.interaction.api.dto.ProductCategory;
 import ru.yandex.practicum.interaction.api.dto.ProductDto;
-import ru.yandex.practicum.shopping.store.model.SetProductQuantityStateRequest;
+import ru.yandex.practicum.interaction.api.dto.SetProductQuantityStateRequest;
 
 import java.util.List;
 

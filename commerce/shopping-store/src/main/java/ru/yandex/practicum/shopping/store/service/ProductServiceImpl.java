@@ -12,11 +12,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.interaction.api.dto.ProductCategory;
 import ru.yandex.practicum.interaction.api.dto.ProductDto;
+import ru.yandex.practicum.interaction.api.dto.SetProductQuantityStateRequest;
 import ru.yandex.practicum.interaction.api.logging.Loggable;
 import ru.yandex.practicum.shopping.store.exception.ProductNotFoundException;
 import ru.yandex.practicum.shopping.store.mapper.ProductMapper;
 import ru.yandex.practicum.shopping.store.model.Product;
-import ru.yandex.practicum.shopping.store.model.SetProductQuantityStateRequest;
 import ru.yandex.practicum.shopping.store.repository.ProductRepository;
 
 import java.util.List;
