@@ -54,6 +54,7 @@ public class ProductServiceImpl implements ProductService {
     @CachePut(value = "products", key = "#productDto.productId")
     @Transactional
     public ProductDto create(ProductDto productDto) {
+        //todo а что, если уже существует продукт? Такого быть не может
         Product entity = productMapper.toEntity(productDto);
         entity = productRepository.save(entity);
         return productMapper.toDto(entity);

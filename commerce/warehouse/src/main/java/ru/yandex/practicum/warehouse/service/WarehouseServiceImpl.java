@@ -2,7 +2,8 @@ package ru.yandex.practicum.warehouse.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.Cacheable;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.CacheManager;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,11 +26,16 @@ public class WarehouseServiceImpl implements WarehouseService {
     private final ProductMapper productMapper;
     private final String className = this.getClass().getSimpleName();
 
+    @Autowired
+    private CacheManager cacheManager;
+
     @Override
     @Loggable
-    @Cacheable(value = "products", key = "#request.productId")
     @Transactional
     public void addNewProduct(NewProductWarehouseRequest request) {
+        //todo разобраться с кэшем тут и в других сервисах глянуть
+        // если не возвращает ничего - то и не помещает в кэш
+        // помещать вручную?
         productRepository.findById(request.getProductId())
                 .ifPresent(product -> {
                     String message = "Product with id: " + request.getProductId() + " already exists in warehouse";
@@ -40,10 +46,18 @@ public class WarehouseServiceImpl implements WarehouseService {
 
         Product product = productMapper.toEntity(request);
         productRepository.save(product);
+
+        // лучше хранить дто
+        cacheManager.getCache("products").put(product.getProductId(), product);
     }
 
     @Override
+    @Loggable
     public BookedProductsDto checkProductsQuantity(ShoppingCartDto shoppingCartDto) {
+        shoppingCartDto.getProducts().entrySet().stream()
+                .forEach((entry) -> {
+                    productRepository
+                });
         return null;
     }
 
