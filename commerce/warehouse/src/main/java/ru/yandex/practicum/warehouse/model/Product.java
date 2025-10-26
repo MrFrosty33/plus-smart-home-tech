@@ -27,21 +27,21 @@ public class Product implements ProductInfo {
     @Column
     private boolean fragile;
 
-    @Column
+    @Column(precision = 15, scale = 2)
     @Min(1)
     private BigDecimal width;
 
-    @Column
+    @Column(precision = 15, scale = 2)
     @Min(1)
-    private double height;
+    private BigDecimal height;
 
-    @Column
+    @Column(precision = 15, scale = 2)
     @Min(1)
-    private double depth;
+    private BigDecimal depth;
 
-    @Column
+    @Column(precision = 15, scale = 2)
     @Min(1)
-    private double weight;
+    private BigDecimal weight;
 
     @Column
     @PositiveOrZero

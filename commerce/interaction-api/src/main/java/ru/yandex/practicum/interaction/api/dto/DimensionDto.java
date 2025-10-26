@@ -5,14 +5,16 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 
+import java.math.BigDecimal;
+
 @Data
 @AllArgsConstructor
 @Builder
 public class DimensionDto {
     @Min(1)
-    private final double width;
+    private final BigDecimal width;
     @Min(1)
-    private final double height;
+    private final BigDecimal height;
     @Min(1)
-    private final double depth;
+    private final BigDecimal depth;
 }

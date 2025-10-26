@@ -21,6 +21,8 @@ import ru.yandex.practicum.warehouse.model.Product;
 import ru.yandex.practicum.warehouse.model.ProductInfo;
 import ru.yandex.practicum.warehouse.repository.ProductRepository;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -59,6 +61,9 @@ public class WarehouseServiceImpl implements WarehouseService {
     @Override
     @Loggable
     public BookedProductsDto checkProductsQuantity(ShoppingCartDto shoppingCartDto) {
+        // у меня есть ощущение, что я перемудрил
+        // если калькуляцию ещё и стоило вынести во избежания дублирования, хотя и не слишком это критично было
+        // то BigDecimal будто вообще необязателен, можно и на double было остаться?
         AtomicBoolean notEnoughFlag = new AtomicBoolean(false);
         Set<String> notEnoughProducts = new HashSet<>();
 
@@ -99,9 +104,12 @@ public class WarehouseServiceImpl implements WarehouseService {
             throw new ProductInShoppingCartLowQuantityInWarehouseException(message, userMessage, status);
         }
 
+        BigDecimal resultVolume = BigDecimal.valueOf(deliveryVolume.doubleValue()).setScale(2, RoundingMode.UP);
+        BigDecimal resultWeight = BigDecimal.valueOf(deliveryWeight.doubleValue()).setScale(2, RoundingMode.UP);
+
         return BookedProductsDto.builder()
-                .deliveryVolume(deliveryVolume.doubleValue())
-                .deliveryWeight(deliveryWeight.doubleValue())
+                .deliveryVolume(resultVolume)
+                .deliveryWeight(resultWeight)
                 .fragile(fragile.get())
                 .build();
     }

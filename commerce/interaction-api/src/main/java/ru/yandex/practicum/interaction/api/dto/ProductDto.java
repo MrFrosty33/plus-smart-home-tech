@@ -7,6 +7,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 
+import java.math.BigDecimal;
+
 @Data
 @AllArgsConstructor
 @Builder
@@ -30,6 +32,6 @@ public class ProductDto {
     private final ProductCategory productCategory;
 
     @Min(1)
-    private final double price;
+    private final BigDecimal price;
 
 }

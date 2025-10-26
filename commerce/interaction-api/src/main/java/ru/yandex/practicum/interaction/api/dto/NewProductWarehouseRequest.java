@@ -6,6 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 
+import java.math.BigDecimal;
+
 @Data
 @AllArgsConstructor
 @Builder
@@ -18,5 +20,5 @@ public class NewProductWarehouseRequest {
     private final DimensionDto dimension;
 
     @Min(1)
-    private final double weight;
+    private final BigDecimal weight;
 }
