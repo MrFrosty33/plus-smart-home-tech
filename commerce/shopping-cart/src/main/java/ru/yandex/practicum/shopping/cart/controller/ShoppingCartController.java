@@ -1,0 +1,81 @@
+package ru.yandex.practicum.shopping.cart.controller;
+
+import jakarta.validation.constraints.NotEmpty;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import ru.yandex.practicum.interaction.api.dto.ShoppingCartDto;
+import ru.yandex.practicum.shopping.cart.exception.NotAuthorizedUserException;
+import ru.yandex.practicum.shopping.cart.model.ChangeProductQuantityRequest;
+import ru.yandex.practicum.shopping.cart.service.CartService;
+
+import java.util.Map;
+import java.util.Set;
+
+@RestController
+@RequestMapping("/api/v1/shopping-cart")
+@RequiredArgsConstructor
+@Validated
+public class ShoppingCartController {
+    private final CartService cartService;
+
+    //todo хмм, а как корзина вообще добавляться будет?
+    // по swagger нет API для создания корзины с UUID
+    // может потом при создании пользователя будет создаваться корзина?
+    // но сейчас то как быть? При добавлении товара должна существовать корзина, чтобы было куда добавлять
+    // а получается, что в БД записей то нет))
+
+    @GetMapping
+    public ShoppingCartDto get(@RequestParam String username) {
+        checkUsername(username);
+        return cartService.get(username);
+    }
+
+    @PutMapping
+    public ShoppingCartDto addProduct(@RequestParam
+                                      String username,
+                                      @RequestBody
+                                      @NotEmpty
+                                      Map<String, Integer> products) {
+        checkUsername(username);
+        return cartService.addProduct(username, products);
+    }
+
+    @DeleteMapping
+    public void deactivateCart(@RequestParam String username) {
+        checkUsername(username);
+        cartService.deactivateCart(username);
+    }
+
+    @PostMapping("/remove")
+    public ShoppingCartDto removeProducts(@RequestParam String username,
+                                          @RequestBody Set<String> productsId) {
+        checkUsername(username);
+        return cartService.removeProducts(username, productsId);
+    }
+
+    @PostMapping("/change-quantity")
+    public ShoppingCartDto changeQuantity(@RequestParam String username,
+                                          @RequestBody ChangeProductQuantityRequest request) {
+        checkUsername(username);
+        return cartService.changeQuantity(username, request);
+    }
+
+    //todo пока имя пользователя всегда валидно, только если не пусто, потом будет авторизация
+    private void checkUsername(String username) {
+        if (username == null || username.isBlank()) {
+            String message = "Received null / blank username";
+            String userMessage = "Username must be provided and cannot be blank";
+            HttpStatus status = HttpStatus.UNAUTHORIZED;
+            throw new NotAuthorizedUserException(message, userMessage, status);
+        }
+    }
+}

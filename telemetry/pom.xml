@@ -18,7 +18,6 @@
         <module>aggregator</module>
         <module>analyzer</module>
         <module>util</module>
-        <module>config</module>
         <module>hub-router</module>
     </modules>
 

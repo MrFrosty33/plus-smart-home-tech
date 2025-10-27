@@ -14,11 +14,6 @@ public class TemperatureSensorHandler implements SensorEventHandler<TemperatureS
     public boolean processSensorCondition(TemperatureSensorAvro data, ConditionDto condition) {
         switch (condition.getType()) {
             case TEMPERATURE -> {
-                //todo прояснить
-                // тут вопрос, какое значение брать? Цельсий или Фаренгейт
-                // есть тип кондиции только на температуру, без уточнения...
-                // и также неизвестно, какая из систем исчисления используется в значениях условия :/
-                // возьму пока всё в Цельсиях
                 int sensorValue = data.getTemperatureC();
                 return processOperation(sensorValue, condition);
             }

@@ -1,9 +1,6 @@
 spring:
-  sql:
-    init:
-      mode: always
   datasource:
-    url: jdbc:postgresql://localhost:6543/telemetry
+    url: jdbc:postgresql://localhost:6543/telemetry_analyzer
     username: frosty
     password: ytsorf
     driver-class-name: org.postgresql.Driver

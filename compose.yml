@@ -1,0 +1,163 @@
+services:
+  kafka:
+    image: confluentinc/confluent-local:7.4.3
+    hostname: kafka
+    container_name: kafka
+    ports:
+      - "9092:9092" # for client connections
+      - "9101:9101" # JMX
+    restart: unless-stopped
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092'
+      KAFKA_JMX_PORT: 9101
+      KAFKA_JMX_HOSTNAME: localhost
+      KAFKA_PROCESS_ROLES: 'broker,controller'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka:29093'
+      KAFKA_LISTENERS: 'PLAINTEXT://kafka:29092,CONTROLLER://kafka:29093,PLAINTEXT_HOST://0.0.0.0:9092'
+      CLUSTER_ID: 'K0EA9p0yEe6MkAAAAkKsEg'
+
+  kafka-init-topics:
+    image: confluentinc/confluent-local:7.4.3
+    container_name: kafka-init-topics
+    depends_on:
+      - kafka
+
+    # вручную назначаются топики, не забывать про это
+    command: "bash -c \
+                'kafka-topics --create --topic telemetry.sensors.v1 \
+                             --partitions 1 --replication-factor 1 --if-not-exists \
+                             --bootstrap-server kafka:29092 && \
+                kafka-topics --create --topic telemetry.snapshots.v1 \
+                             --partitions 1 --replication-factor 1 --if-not-exists \
+                             --bootstrap-server kafka:29092 && \
+                kafka-topics --create --topic telemetry.hubs.v1 \
+                             --partitions 1 --replication-factor 1 --if-not-exists \
+                             --bootstrap-server kafka:29092'"
+    init: true
+
+  postgres-db:
+    image: postgres:18.0
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: frosty
+      POSTGRES_PASSWORD: ytsorf
+    ports:
+      - "6543:5432"
+    volumes:
+      - ./db:/docker-entrypoint-initdb.d
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    ports:
+      - "8083:8082"
+    environment:
+      - KAFKA_CLUSTERS_0_NAME=local
+      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:29092
+    depends_on:
+      - kafka
+
+  discovery-server:
+    build:
+      context: .
+      dockerfile: infra/discovery-server/Dockerfile
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    ports:
+      - "8761:8761"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8761/actuator/health" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  config-server:
+    build:
+      context: .
+      dockerfile: infra/config-server/Dockerfile
+    environment:
+      SPRING_PROFILES_ACTIVE: native,docker
+    depends_on:
+      discovery-server:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8888/actuator/health" ]
+      # 15 секунд, иначе не факт, что config-server кэшируется в eureka
+      # зависит от eureka.client.registryFetchIntervalSeconds: X
+      # в config-server/resources/config/infra/discovery-server/discovery-server-default.yml
+      interval: 15s
+      timeout: 3s
+      retries: 5
+
+  collector:
+    build:
+      context: .
+      dockerfile: telemetry/collector/Dockerfile
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
+    ports:
+      - "8080:8080"
+    depends_on:
+      config-server:
+        condition: service_healthy
+
+
+  aggregator:
+    build:
+      context: .
+      dockerfile: telemetry/aggregator/Dockerfile
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
+    depends_on:
+      config-server:
+        condition: service_healthy
+
+
+  analyzer:
+    build:
+      context: .
+      dockerfile: telemetry/analyzer/Dockerfile
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
+      #SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/telemetry_analyzer
+      #SPRING_DATASOURCE_USERNAME: frosty
+      #SPRING_DATASOURCE_PASSWORD: ytsorf
+    depends_on:
+      config-server:
+        condition: service_healthy
+
+  shopping-store:
+    build:
+      context: .
+      dockerfile: commerce/shopping-store/Dockerfile
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
+    depends_on:
+      config-server:
+        condition: service_healthy
+
+  shopping-cart:
+    build:
+      context: .
+      dockerfile: commerce/shopping-cart/Dockerfile
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
+    depends_on:
+      config-server:
+        condition: service_healthy
+
+  warehouse:
+    build:
+      context: .
+      dockerfile: commerce/warehouse/Dockerfile
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
+    depends_on:
+      config-server:
+        condition: service_healthy

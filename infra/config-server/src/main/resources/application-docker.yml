@@ -1,0 +1,24 @@
+spring:
+  application:
+    name: config-server
+    #profiles:
+    # чтобы брал конфиги из File System Backend, а не Git Backend
+    # здесь закомментировано, берёт эту настройку из compose
+    #active: native
+  cloud:
+    config:
+      server:
+        native:
+          searchLocations:
+            - classpath:config/telemetry/{application}/
+            - classpath:config/infra/{application}/
+            - classpath:config/commerce/{application}
+
+server:
+  # порт нужен статичный, иначе не могу сделать healthcheck
+  port: 8888
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://discovery-server:8761/eureka/
