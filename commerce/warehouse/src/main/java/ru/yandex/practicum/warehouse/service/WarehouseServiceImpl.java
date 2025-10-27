@@ -16,6 +16,7 @@ import ru.yandex.practicum.interaction.api.dto.SetProductQuantityStateRequest;
 import ru.yandex.practicum.interaction.api.dto.ShoppingCartDto;
 import ru.yandex.practicum.interaction.api.feign.ShoppingStoreFeignClient;
 import ru.yandex.practicum.interaction.api.logging.Loggable;
+import ru.yandex.practicum.warehouse.exception.InternalServerException;
 import ru.yandex.practicum.warehouse.exception.NoSpecifiedProductInWarehouseException;
 import ru.yandex.practicum.warehouse.exception.ProductInShoppingCartLowQuantityInWarehouseException;
 import ru.yandex.practicum.warehouse.exception.SpecifiedProductAlreadyInWarehouseException;
@@ -147,7 +148,13 @@ public class WarehouseServiceImpl implements WarehouseService {
         product.setQuantity(product.getQuantity() + request.getQuantity());
         productRepository.save(product);
 
-        sendUpdateQuantityRequestToShoppingStore(product.getProductId(), product.getQuantity());
+        // false присылает ShoppingStoreFeignFallback
+        boolean feignUpdateRequestSuccess = sendUpdateQuantityRequestToShoppingStore(product.getProductId(), product.getQuantity());
+        if (!feignUpdateRequestSuccess) {
+            log.warn("{}: shoppingStoreFeignClient is unavailable — update quantity request did not reach its destination.", className);
+            String message = "Shopping-store feignClient not available";
+            throw new InternalServerException(message);
+        }
     }
 
     @Override
@@ -183,22 +190,24 @@ public class WarehouseServiceImpl implements WarehouseService {
     }
 
     @Loggable
-    private void sendUpdateQuantityRequestToShoppingStore(String productId, int quantity) {
+    private boolean sendUpdateQuantityRequestToShoppingStore(String productId, int quantity) {
         if (quantity == 0) {
-            shoppingStoreFeignClient
+            return shoppingStoreFeignClient
                     .updateQuantityState(new SetProductQuantityStateRequest(productId, QuantityState.ENDED));
         }
         if (quantity > 0 && quantity < 10) {
-            shoppingStoreFeignClient
+            return shoppingStoreFeignClient
                     .updateQuantityState(new SetProductQuantityStateRequest(productId, QuantityState.FEW));
         }
         if (quantity > 10 && quantity < 100) {
-            shoppingStoreFeignClient
+            return shoppingStoreFeignClient
                     .updateQuantityState(new SetProductQuantityStateRequest(productId, QuantityState.ENOUGH));
         }
         if (quantity > 100) {
-            shoppingStoreFeignClient
+            return shoppingStoreFeignClient
                     .updateQuantityState(new SetProductQuantityStateRequest(productId, QuantityState.MANY));
         }
+
+        return false;
     }
 }

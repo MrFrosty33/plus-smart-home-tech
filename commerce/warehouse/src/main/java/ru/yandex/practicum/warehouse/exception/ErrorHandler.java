@@ -12,22 +12,26 @@ public class ErrorHandler {
 
     @ExceptionHandler(NoSpecifiedProductInWarehouseException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public NoSpecifiedProductInWarehouseException handleNotFound(NoSpecifiedProductInWarehouseException e) {
+    public NoSpecifiedProductInWarehouseException
+    handleNoSpecifiedProductInWarehouse(NoSpecifiedProductInWarehouseException e) {
         // как-то странно.
         // В теле ответа ожидается столько всего, словно действительно нужно возвращать целиком исключение
         // со всеми унаследованными полями
         return e;
     }
 
+
     @ExceptionHandler(ProductInShoppingCartLowQuantityInWarehouseException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ProductInShoppingCartLowQuantityInWarehouseException handleNotFound(ProductInShoppingCartLowQuantityInWarehouseException e) {
+    public ProductInShoppingCartLowQuantityInWarehouseException
+    handleProductInShoppingCartLowQuantityInWarehouse(ProductInShoppingCartLowQuantityInWarehouseException e) {
         return e;
     }
 
     @ExceptionHandler(SpecifiedProductAlreadyInWarehouseException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public SpecifiedProductAlreadyInWarehouseException handleNotFound(SpecifiedProductAlreadyInWarehouseException e) {
+    public SpecifiedProductAlreadyInWarehouseException
+    handleSpecifiedProductAlreadyInWarehouse(SpecifiedProductAlreadyInWarehouseException e) {
         return e;
     }
 
@@ -40,6 +44,18 @@ public class ErrorHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public String handleMethodArgumentNotValid(MethodArgumentNotValidException e) {
+        return e.getMessage();
+    }
+
+    @ExceptionHandler(InternalServerException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public String handleInternalServer(InternalServerException e) {
+        return e.getMessage();
+    }
+
+    @ExceptionHandler(Exception.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public String handleOthers(Exception e) {
         return e.getMessage();
     }
 }

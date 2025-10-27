@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import ru.yandex.practicum.interaction.api.dto.SetProductQuantityStateRequest;
 
-@FeignClient(name = "shopping-store")
+@FeignClient(name = "shopping-store", fallback = ShoppingStoreFeignFallback.class)
 @RequestMapping("/api/v1/shopping-store")
 public interface ShoppingStoreFeignClient {
     // пока только один маппинг используется, остальные буду добавлять по мере надобности

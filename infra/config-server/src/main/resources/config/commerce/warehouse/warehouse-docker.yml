@@ -17,6 +17,16 @@ management:
       exposure:
         include: health, mappings, httptrace, caches, threaddump
 
+resilience4j.circuitbreaker:
+  configs:
+    default:
+      slidingWindowSize: 50
+      slidingWindowType: COUNT_BASED
+      failureRateThreshold: 50
+      waitDurationInOpenState: 10s
+      permittedNumberOfCallsInHalfOpenState: 5
+      automaticTransitionFromOpenToHalfOpenEnabled: true
+
 logging:
   level:
     root: INFO

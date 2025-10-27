@@ -12,6 +12,7 @@ import ru.yandex.practicum.interaction.api.dto.BookedProductsDto;
 import ru.yandex.practicum.interaction.api.dto.ShoppingCartDto;
 import ru.yandex.practicum.interaction.api.feign.WarehouseFeignClient;
 import ru.yandex.practicum.interaction.api.logging.Loggable;
+import ru.yandex.practicum.shopping.cart.exception.InternalServerException;
 import ru.yandex.practicum.shopping.cart.exception.NoProductsInShoppingCartException;
 import ru.yandex.practicum.shopping.cart.exception.NotAuthorizedUserException;
 import ru.yandex.practicum.shopping.cart.mapper.CartMapper;
@@ -71,6 +72,12 @@ public class CartServiceImpl implements CartService {
         ShoppingCartDto cartDto = cartMapper.toDto(cart);
 
         BookedProductsDto bookedProductsDto = warehouseFeignClient.checkProductsQuantity(cartDto);
+        // null присылает WarehouseFeignFallback
+        if (bookedProductsDto == null) {
+            log.warn("{}: warehouseFeignClient is unavailable — check products quantity request did not reach its destination.", className);
+            String message = "warehouse feignClient not available";
+            throw new InternalServerException(message);
+        }
         //todo дальше уже наверно будет оформление заказа?
         return cartDto;
     }
