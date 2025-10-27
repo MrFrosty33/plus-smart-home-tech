@@ -31,4 +31,4 @@ logging:
   level:
     root: INFO
     ru.yandex.practicum.warehouse: TRACE
-    ru.yandex.practicum.interaction.api: INFO
+    ru.yandex.practicum.interaction.api.logging: TRACE
