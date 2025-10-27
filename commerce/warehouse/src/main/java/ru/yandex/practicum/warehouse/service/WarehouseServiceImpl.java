@@ -184,8 +184,9 @@ public class WarehouseServiceImpl implements WarehouseService {
             notEnoughProducts.add(product.getProductId());
         }
 
-        deliveryVolume.add(product.getDepth() * product.getWidth() * product.getHeight() * requiredQuantity);
-        deliveryWeight.add(product.getWeight() * requiredQuantity);
+        deliveryVolume.add(product.getDepth().doubleValue() * product.getWidth().doubleValue()
+                * product.getHeight().doubleValue() * requiredQuantity);
+        deliveryWeight.add(product.getWeight().doubleValue() * requiredQuantity);
         if (product.isFragile()) fragile.set(true);
     }
 

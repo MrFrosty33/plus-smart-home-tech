@@ -1,17 +1,19 @@
 package ru.yandex.practicum.warehouse.model;
 
+import java.math.BigDecimal;
+
 public interface ProductInfo {
     String getProductId();
 
     boolean isFragile();
 
-    double getDepth();
+    BigDecimal getDepth();
 
-    double getWidth();
+    BigDecimal getWidth();
 
-    double getHeight();
+    BigDecimal getHeight();
 
-    double getWeight();
+    BigDecimal getWeight();
 
     int getQuantity();
 }
