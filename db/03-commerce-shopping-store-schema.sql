@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS products (
     CONSTRAINT check_quantity_state
         CHECK (quantity_state IN ('ENDED', 'FEW', 'ENOUGH', 'MANY')),
     CONSTRAINT check_product_state
-        CHECK (product_state IN ('ACTIVATE', 'DEACTIVATE')),
+        CHECK (product_state IN ('ACTIVE', 'DEACTIVATE')),
     CONSTRAINT check_product_category
         CHECK (product_category IN ('LIGHTING', 'CONTROL', 'SENSORS'))
 );

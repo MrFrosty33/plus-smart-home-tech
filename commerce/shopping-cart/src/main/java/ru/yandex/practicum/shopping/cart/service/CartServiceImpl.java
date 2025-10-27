@@ -40,7 +40,7 @@ public class CartServiceImpl implements CartService {
 
     @Override
     @Loggable
-    @Cacheable(value = "carts", key = "#username")
+    @Cacheable(value = "shopping-cart.carts", key = "#username")
     public ShoppingCartDto get(String username) {
         return cartMapper.toDto(cartRepository.findByUsername(username).orElseThrow(() -> {
             log.warn("{}: no Cart found for username: {}", className, username);
@@ -54,7 +54,7 @@ public class CartServiceImpl implements CartService {
     @Override
     @Loggable
     @Transactional
-    @CachePut(value = "carts", key = "#username")
+    @CachePut(value = "shopping-cart.carts", key = "#username")
     public ShoppingCartDto addProduct(String username, Map<String, Integer> products) {
         Cart cart = cartRepository.findByUsername(username).orElseThrow(() -> {
             log.warn("{}: no Cart found for username: {}", className, username);
@@ -85,7 +85,7 @@ public class CartServiceImpl implements CartService {
     @Override
     @Loggable
     @Transactional
-    @CacheEvict(value = "carts", key = "#username")
+    @CacheEvict(value = "shopping-cart.carts", key = "#username")
     public void deactivateCart(String username) {
         // как это вообще использоваться будет?
         // нужно ли будет проверять, является ли корзина активна, прежде чем производить какие-либо действия с ней?
@@ -103,7 +103,7 @@ public class CartServiceImpl implements CartService {
     @Override
     @Loggable
     @Transactional
-    @CachePut(value = "carts", key = "#username")
+    @CachePut(value = "shopping-cart.carts", key = "#username")
     public ShoppingCartDto removeProducts(String username, Set<String> productsId) {
         Cart cart = cartRepository.findByUsername(username).orElseThrow(() -> {
             log.warn("{}: no Cart found for username: {}", className, username);
@@ -136,7 +136,7 @@ public class CartServiceImpl implements CartService {
     @Override
     @Loggable
     @Transactional
-    @CachePut(value = "carts", key = "#username")
+    @CachePut(value = "shopping-cart.carts", key = "#username")
     public ShoppingCartDto changeQuantity(String username, ChangeProductQuantityRequest request) {
         Cart cart = cartRepository.findByUsername(username).orElseThrow(() -> {
             log.warn("{}: no Cart found for username: {}", className, username);

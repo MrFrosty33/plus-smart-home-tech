@@ -11,8 +11,8 @@ import ru.yandex.practicum.interaction.api.dto.AddProductToWarehouseRequest;
 import ru.yandex.practicum.interaction.api.dto.AddressDto;
 import ru.yandex.practicum.interaction.api.dto.BookedProductsDto;
 import ru.yandex.practicum.interaction.api.dto.NewProductWarehouseRequest;
+import ru.yandex.practicum.interaction.api.dto.ProductDto;
 import ru.yandex.practicum.interaction.api.dto.QuantityState;
-import ru.yandex.practicum.interaction.api.dto.SetProductQuantityStateRequest;
 import ru.yandex.practicum.interaction.api.dto.ShoppingCartDto;
 import ru.yandex.practicum.interaction.api.feign.ShoppingStoreFeignClient;
 import ru.yandex.practicum.interaction.api.logging.Loggable;
@@ -46,7 +46,7 @@ public class WarehouseServiceImpl implements WarehouseService {
 
     // тут с кэшем везде вручную, ибо кэш вставляется из возвращаемого значения
     // а возвращаемых значения у методов либо отсутствуют, либо разные
-    private CacheManager cacheManager;
+    private final CacheManager cacheManager;
 
     @Override
     @Loggable
@@ -65,7 +65,7 @@ public class WarehouseServiceImpl implements WarehouseService {
         productRepository.save(product);
 
         CachedProduct cachedProduct = productMapper.toCachedProduct(product);
-        cacheManager.getCache("products").put(cachedProduct.getProductId(), cachedProduct);
+        cacheManager.getCache("warehouse.products").put(cachedProduct.getProductId(), cachedProduct);
     }
 
     @Override
@@ -83,7 +83,7 @@ public class WarehouseServiceImpl implements WarehouseService {
 
         shoppingCartDto.getProducts().entrySet()
                 .forEach((entry) -> {
-                    Cache.ValueWrapper valueWrapper = cacheManager.getCache("products").get(entry.getKey());
+                    Cache.ValueWrapper valueWrapper = cacheManager.getCache("warehouse.products").get(entry.getKey());
 
                     // проверка, хранится ли в кэше
                     if (valueWrapper != null) {
@@ -128,7 +128,7 @@ public class WarehouseServiceImpl implements WarehouseService {
     @Loggable
     @Transactional
     public void addSpecifiedProduct(AddProductToWarehouseRequest request) {
-        Cache.ValueWrapper valueWrapper = cacheManager.getCache("products").get(request.getProductId());
+        Cache.ValueWrapper valueWrapper = cacheManager.getCache("warehouse.products").get(request.getProductId());
         Product product;
 
         if (valueWrapper != null) {
@@ -149,8 +149,8 @@ public class WarehouseServiceImpl implements WarehouseService {
         productRepository.save(product);
 
         // false присылает ShoppingStoreFeignFallback
-        boolean feignUpdateRequestSuccess = sendUpdateQuantityRequestToShoppingStore(product.getProductId(), product.getQuantity());
-        if (!feignUpdateRequestSuccess) {
+        ProductDto feignUpdateRequestResult = sendUpdateQuantityRequestToShoppingStore(product.getProductId(), product.getQuantity());
+        if (feignUpdateRequestResult == null) {
             log.warn("{}: shoppingStoreFeignClient is unavailable — update quantity request did not reach its destination.", className);
             String message = "Shopping-store feignClient not available";
             throw new InternalServerException(message);
@@ -191,24 +191,24 @@ public class WarehouseServiceImpl implements WarehouseService {
     }
 
     @Loggable
-    private boolean sendUpdateQuantityRequestToShoppingStore(String productId, int quantity) {
+    private ProductDto sendUpdateQuantityRequestToShoppingStore(String productId, int quantity) {
         if (quantity == 0) {
             return shoppingStoreFeignClient
-                    .updateQuantityState(new SetProductQuantityStateRequest(productId, QuantityState.ENDED));
+                    .updateQuantityState(productId, QuantityState.ENDED);
         }
         if (quantity > 0 && quantity < 10) {
             return shoppingStoreFeignClient
-                    .updateQuantityState(new SetProductQuantityStateRequest(productId, QuantityState.FEW));
+                    .updateQuantityState(productId, QuantityState.FEW);
         }
         if (quantity > 10 && quantity < 100) {
             return shoppingStoreFeignClient
-                    .updateQuantityState(new SetProductQuantityStateRequest(productId, QuantityState.ENOUGH));
+                    .updateQuantityState(productId, QuantityState.ENOUGH);
         }
         if (quantity > 100) {
             return shoppingStoreFeignClient
-                    .updateQuantityState(new SetProductQuantityStateRequest(productId, QuantityState.MANY));
+                    .updateQuantityState(productId, QuantityState.MANY);
         }
 
-        return false;
+        return null;
     }
 }

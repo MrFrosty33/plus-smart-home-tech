@@ -4,6 +4,8 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -25,6 +27,7 @@ import java.math.BigDecimal;
 public class Product {
     @Id
     @Column(name = "product_id", length = 36)
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String productId;
 
     @Column(name = "product_name", nullable = false, length = 1000)
