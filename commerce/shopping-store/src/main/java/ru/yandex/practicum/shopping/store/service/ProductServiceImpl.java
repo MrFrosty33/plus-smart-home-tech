@@ -89,6 +89,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Loggable
     @Transactional
+    @CachePut(value = "shopping-store.products", key = "#request.productId")
     public ProductDto updateQuantityState(SetProductQuantityStateRequest request) {
         //todo тут похоже корявый openApi/ тест, одно из двух)))
         // ибо он требует openApi требует
@@ -104,10 +105,19 @@ public class ProductServiceImpl implements ProductService {
           }
         }
          */
-        //todo а в тесте
+        // а в тесте
         // {{baseUrl}}{{shopping-store-port}}/api/v1/shopping-store/quantityState?productId={{product_id}}&quantityState={{quantity_state}}
 
-        // короче всё ещё проблема с возвращаемым объектом.
+        // даже изменив возвращаемый объект, тест не проходит полностью
+        // Проверка полей объекта product |
+        // JSONError: Unexpected token 'c' at 1:1 class ru.yandex.practicum.shopping.store.model.Product cannot be cast to class ^
+
+        // в тесте проверяется json непосредственно, а не как в других тестах, сперва его парсят в Product и уже потом поля проверяют
+        // поэтому он и отваливается. В моём методе проблем тут нет
+        // можно, конечно, ResponseEntity<ProductDto> возвращать, но будто это уже совсем странно
+
+        // и как понимаю, что из-за проблем с прохождением этого теста, отваливаются и другие, где ипользуется этот метод
+
         Product product = productRepository.findById(request.getProductId()).orElseThrow(() -> {
             log.warn("{}: quantity state update failure - cannot find Product with id: {}", className, request.getProductId());
             String message = "Product with id: " + request.getProductId() + " cannot be found";
@@ -119,7 +129,7 @@ public class ProductServiceImpl implements ProductService {
         product.setQuantityState(request.getQuantityState());
 
         // метод не возвращает дто, не забываем обновить данные в кэше
-        cacheManager.getCache("shopping-store.products").put(product.getProductId(), product);
+        //cacheManager.getCache("shopping-store.products").put(product.getProductId(), product);
         return productMapper.toDto(product);
     }
 
@@ -127,8 +137,17 @@ public class ProductServiceImpl implements ProductService {
     @Loggable
     @Transactional
     @CacheEvict(value = "shopping-store.products", key = "#productId")
-    public boolean remove(String productId) {
+    public ProductDto remove(String productId) {
         //todo почему-то не находит он запись в БД по тому id, что приходит
+        // и здесь, кстати, тоже openApi/ тест подводит, ибо ожидается, что вернётся таки дтошка
+        /*
+        pm.sendRequest(post_request_remove_product, (error, response) => {
+            pm.test("Товар должен перейти в статус DEACTIVATE", function(){
+                pm.expect(response.json()).to.have.property('productState').that.equals("DEACTIVATE");
+            });
+        });
+         */
+
         Product product = productRepository.findById(productId).orElseThrow(() -> {
             log.warn("{}: remove product failure - cannot find Product with id: {}", className, productId);
             String message = "Product with id: " + productId + " cannot be found";
@@ -138,7 +157,7 @@ public class ProductServiceImpl implements ProductService {
         });
 
         product.setProductState(ProductState.DEACTIVATE);
-        return true;
+        return productMapper.toDto(product);
     }
 
 }

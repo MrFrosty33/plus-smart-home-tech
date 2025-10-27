@@ -55,7 +55,7 @@ public class ShoppingStoreController implements ShoppingStoreFeignClient {
     }
 
     @PostMapping("/removeProductFromStore")
-    public boolean remove(@RequestBody String productId) {
+    public ProductDto remove(@RequestBody String productId) {
         return productService.remove(productId);
     }
 }
