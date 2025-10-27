@@ -122,9 +122,42 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: docker
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/plus-smart-home-tech?currentSchema=analyzer
-      SPRING_DATASOURCE_USERNAME: frosty
-      SPRING_DATASOURCE_PASSWORD: ytsorf
+      #SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/telemetry_analyzer
+      #SPRING_DATASOURCE_USERNAME: frosty
+      #SPRING_DATASOURCE_PASSWORD: ytsorf
+    depends_on:
+      config-server:
+        condition: service_healthy
+
+  shopping-store:
+    build:
+      context: .
+      dockerfile: commerce/shopping-store/Dockerfile
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
+    depends_on:
+      config-server:
+        condition: service_healthy
+
+  shopping-cart:
+    build:
+      context: .
+      dockerfile: commerce/shopping-cart/Dockerfile
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
+    depends_on:
+      config-server:
+        condition: service_healthy
+
+  warehouse:
+    build:
+      context: .
+      dockerfile: commerce/warehouse/Dockerfile
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
     depends_on:
       config-server:
         condition: service_healthy

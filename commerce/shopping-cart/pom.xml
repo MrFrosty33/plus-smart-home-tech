@@ -110,7 +110,6 @@
                             <groupId>org.mapstruct</groupId>
                             <artifactId>mapstruct-processor</artifactId>
                             <version>${mapstruct.version}</version>
-                            <scope>provided</scope>
                         </path>
                     </annotationProcessorPaths>
                 </configuration>
