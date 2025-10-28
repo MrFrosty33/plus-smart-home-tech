@@ -6,7 +6,7 @@ import ru.yandex.practicum.interaction.api.dto.ProductCategory;
 import ru.yandex.practicum.interaction.api.dto.ProductDto;
 import ru.yandex.practicum.interaction.api.dto.SetProductQuantityStateRequest;
 
-public interface ProductService {
+public interface StoreService {
     Page<ProductDto> getWithPagination(ProductCategory category, Pageable pageable);
 
     ProductDto getById(String productId);

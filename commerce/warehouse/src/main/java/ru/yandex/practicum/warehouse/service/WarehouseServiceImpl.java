@@ -52,6 +52,8 @@ public class WarehouseServiceImpl implements WarehouseService {
     @Loggable
     @Transactional
     public void addNewProduct(NewProductWarehouseRequest request) {
+        // этот метод должен тоже возвращать дтошку, иначе валится тест add Product to Warehouse
+        // т.к. ожидает получения id, а получает null
         productRepository.findById(request.getProductId())
                 .ifPresent(product -> {
                     log.warn("{}: product with id: {} already exists in warehouse", className, request.getProductId());
@@ -130,10 +132,12 @@ public class WarehouseServiceImpl implements WarehouseService {
     public void addSpecifiedProduct(AddProductToWarehouseRequest request) {
         Cache.ValueWrapper valueWrapper = cacheManager.getCache("warehouse.products").get(request.getProductId());
         Product product;
+        boolean cachedProductFlag = false;
 
         if (valueWrapper != null) {
             CachedProduct cachedProduct = ((CachedProduct) valueWrapper.get());
             product = productMapper.toEntity(cachedProduct);
+            cachedProductFlag = true;
         } else {
             product = productRepository.findById(request.getProductId())
                     .orElseThrow(() -> {
@@ -146,10 +150,21 @@ public class WarehouseServiceImpl implements WarehouseService {
         }
 
         product.setQuantity(product.getQuantity() + request.getQuantity());
-        productRepository.save(product);
+        if (cachedProductFlag) productRepository.save(product);
 
-        // false присылает ShoppingStoreFeignFallback
+        // null присылает ShoppingStoreFeignFallback
         ProductDto feignUpdateRequestResult = sendUpdateQuantityRequestToShoppingStore(product.getProductId(), product.getQuantity());
+
+        // при прохождении теста add Product to Warehouse тут будет облом:
+        // [404] during [POST] to
+        // [http://shopping-store/api/v1/shopping-store/quantityState?productId=c7335f1a-8ccf-4353-b7b7-95519fab2fcf&quantityState=MANY]
+        // и лог пишет
+        // StoreServiceImpl: quantity state update failure - cannot find Product with id: c7335f1a-8ccf-4353-b7b7-95519fab2fcf или другой рандомный id
+        // не понятно, как здесь быть. Возможно, при добавлении товара на склад нужно добавить его и в магазин?
+        // но на складе productId назначается тестом, а не программой
+        // в то время, как у магазина id назначается случайно. Случайно, ибо иначе отваливается тест по добавлению товара))
+        // Да и к тому же не все поля смогу составить из складского товара в магазинный образец
+
         if (feignUpdateRequestResult == null) {
             log.warn("{}: shoppingStoreFeignClient is unavailable — update quantity request did not reach its destination.", className);
             String message = "Shopping-store feignClient not available";
@@ -209,6 +224,8 @@ public class WarehouseServiceImpl implements WarehouseService {
                     .updateQuantityState(productId, QuantityState.MANY);
         }
 
+        log.warn("{}: in sendUpdateQuantityRequestToShoppingStore() " +
+                "quantity is not covered by if-else cases, quantity: {} ", className, quantity);
         return null;
     }
 }

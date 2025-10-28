@@ -7,8 +7,7 @@ import ru.yandex.practicum.interaction.api.dto.QuantityState;
 @Component
 public class ShoppingStoreFeignFallback implements ShoppingStoreFeignClient {
     @Override
-    public ProductDto updateQuantityState(String productId,
-                                          QuantityState quantityState) {
+    public ProductDto updateQuantityState(String productId, QuantityState quantityState) {
         return null;
     }
 }

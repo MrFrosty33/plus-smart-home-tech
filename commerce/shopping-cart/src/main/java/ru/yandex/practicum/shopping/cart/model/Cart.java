@@ -3,8 +3,6 @@ package ru.yandex.practicum.shopping.cart.model;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
@@ -27,7 +25,7 @@ import java.util.Set;
 public class Cart {
     @Id
     @Column(name = "cart_id", length = 36)
-    @GeneratedValue(strategy = GenerationType.UUID)
+    //@GeneratedValue(strategy = GenerationType.UUID)
     private String cartId;
 
     @Column(nullable = false, length = 100)
