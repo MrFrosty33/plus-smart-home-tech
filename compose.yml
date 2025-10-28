@@ -85,7 +85,7 @@ services:
       # 15 секунд, иначе не факт, что config-server кэшируется в eureka
       # зависит от eureka.client.registryFetchIntervalSeconds: X
       # в config-server/resources/config/infra/discovery-server/discovery-server-default.yml
-      interval: 15s
+      interval: 10s
       timeout: 3s
       retries: 5
 
