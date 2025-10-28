@@ -89,6 +89,58 @@ services:
       timeout: 3s
       retries: 5
 
+  # модули telemetry запускаются вне discovery-server, config-server, для подключения смотреть resources каждого модуля и профили
+  collector:
+    build:
+      context: .
+      dockerfile: telemetry/collector/Dockerfile
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
+    ports:
+      - "8080:8080"
+    depends_on:
+      config-server:
+        condition: service_healthy
+
+
+  aggregator:
+    build:
+      context: .
+      dockerfile: telemetry/aggregator/Dockerfile
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
+    depends_on:
+      config-server:
+        condition: service_healthy
+
+
+  analyzer:
+    build:
+      context: .
+      dockerfile: telemetry/analyzer/Dockerfile
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
+      #SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/telemetry_analyzer
+      #SPRING_DATASOURCE_USERNAME: frosty
+      #SPRING_DATASOURCE_PASSWORD: ytsorf
+    depends_on:
+      config-server:
+        condition: service_healthy
+
+  hub-router:
+    build:
+      context: .
+      dockerfile: telemetry/aggregator/Dockerfile
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
+    depends_on:
+      config-server:
+        condition: service_healthy
+
   shopping-store:
     build:
       context: .
