@@ -13,6 +13,7 @@ import ru.yandex.practicum.interaction.api.dto.BookedProductsDto;
 import ru.yandex.practicum.interaction.api.dto.NewProductWarehouseRequest;
 import ru.yandex.practicum.interaction.api.dto.ProductDto;
 import ru.yandex.practicum.interaction.api.dto.QuantityState;
+import ru.yandex.practicum.interaction.api.dto.SetProductQuantityStateRequest;
 import ru.yandex.practicum.interaction.api.dto.ShoppingCartDto;
 import ru.yandex.practicum.interaction.api.feign.ShoppingStoreFeignClient;
 import ru.yandex.practicum.interaction.api.logging.Loggable;
@@ -194,19 +195,19 @@ public class WarehouseServiceImpl implements WarehouseService {
     private ProductDto sendUpdateQuantityRequestToShoppingStore(String productId, int quantity) {
         if (quantity == 0) {
             return shoppingStoreFeignClient
-                    .updateQuantityState(productId, QuantityState.ENDED);
+                    .updateQuantityState(new SetProductQuantityStateRequest(productId, QuantityState.ENDED));
         }
         if (quantity > 0 && quantity < 10) {
             return shoppingStoreFeignClient
-                    .updateQuantityState(productId, QuantityState.FEW);
+                    .updateQuantityState(new SetProductQuantityStateRequest(productId, QuantityState.FEW));
         }
         if (quantity > 10 && quantity < 100) {
             return shoppingStoreFeignClient
-                    .updateQuantityState(productId, QuantityState.ENOUGH);
+                    .updateQuantityState(new SetProductQuantityStateRequest(productId, QuantityState.ENOUGH));
         }
         if (quantity > 100) {
             return shoppingStoreFeignClient
-                    .updateQuantityState(productId, QuantityState.MANY);
+                    .updateQuantityState(new SetProductQuantityStateRequest(productId, QuantityState.MANY));
         }
 
         return null;

@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = {"ru.yandex.practicum.shopping.cart", "ru.yandex.practicum.interaction.api"})
 @EnableFeignClients(basePackages = "ru.yandex.practicum.interaction.api.feign")
 @EnableCaching
 public class ShoppingCartApp {
