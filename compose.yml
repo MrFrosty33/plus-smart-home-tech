@@ -129,16 +129,21 @@ services:
       config-server:
         condition: service_healthy
 
-  shopping-store:
+  hub-router:
     build:
       context: .
-      dockerfile: commerce/shopping-store/Dockerfile
+      dockerfile: telemetry/aggregator/Dockerfile
     environment:
       SPRING_PROFILES_ACTIVE: docker
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
     depends_on:
       config-server:
         condition: service_healthy
+
+  shopping-store:
+    build:
+      context: .
+      dockerfile: commerce/shopping-store/Dockerfile
 
   shopping-cart:
     build:
