@@ -49,6 +49,8 @@ public class ShoppingStoreController implements ShoppingStoreFeignClient {
     @PostMapping("/quantityState")
     public ProductDto updateQuantityState(@RequestParam("productId") String productId,
                                           @RequestParam("quantityState") QuantityState quantityState) {
+        // тесты shopping-cart падают потому, что здесь ожидается, что будет получаться @RequestBody
+        // но если сделать @RequestBody, то будет падать тест set Product Quantity State в папке shopping-store
         return storeService.updateQuantityState(new SetProductQuantityStateRequest(productId, quantityState));
     }
 
