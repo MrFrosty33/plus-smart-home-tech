@@ -16,6 +16,7 @@ logging:
 grpc:
   client:
     hub-router:
+      #странно
       address: "static://localhost:59090"
       enableKeepAlive: true
       keepAliveWithoutCalls: true
