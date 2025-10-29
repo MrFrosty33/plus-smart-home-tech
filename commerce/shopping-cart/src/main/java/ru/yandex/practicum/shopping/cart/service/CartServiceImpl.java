@@ -76,16 +76,7 @@ public class CartServiceImpl implements CartService {
     @Transactional
     //@CacheEvict(value = "shopping-cart.carts", key = "#username")
     public void deactivateCart(String username) {
-        // как это вообще использоваться будет?
-        // нужно ли будет проверять, является ли корзина активна, прежде чем производить какие-либо действия с ней?
-        Cart cart = cartRepository.findByUsername(username).orElseThrow(() -> {
-            log.warn("{}: no Cart found for username: {}", className, username);
-            String message = "Cart for username: " + username + " cannot be found";
-            String userMessage = "Cart not found";
-            HttpStatus status = HttpStatus.UNAUTHORIZED;
-            return new NotAuthorizedUserException(message, userMessage, status);
-        });
-
+        Cart cart = getShoppingCartFromDB(username);
         cart.setActive(false);
     }
 
