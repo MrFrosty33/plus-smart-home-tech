@@ -2,9 +2,6 @@ package ru.yandex.practicum.shopping.cart.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,7 +38,7 @@ public class CartServiceImpl implements CartService {
 
     @Override
     @Loggable
-    @Cacheable(value = "shopping-cart.carts", key = "#username")
+    //@Cacheable(value = "shopping-cart.carts", key = "#username")
     public ShoppingCartDto get(String username) {
         return cartMapper.toDto(cartRepository.findByUsername(username).orElseThrow(() -> {
             log.warn("{}: no Cart found for username: {}", className, username);
@@ -55,7 +52,7 @@ public class CartServiceImpl implements CartService {
     @Override
     @Loggable
     @Transactional
-    @CachePut(value = "shopping-cart.carts", key = "#username")
+    //@CachePut(value = "shopping-cart.carts", key = "#username")
     public ShoppingCartDto addProduct(String username, Map<String, Integer> products) {
         //todo обратить внимание на входные параметры
         Cart cart = getShoppingCartFromDB(username);
@@ -77,7 +74,7 @@ public class CartServiceImpl implements CartService {
     @Override
     @Loggable
     @Transactional
-    @CacheEvict(value = "shopping-cart.carts", key = "#username")
+    //@CacheEvict(value = "shopping-cart.carts", key = "#username")
     public void deactivateCart(String username) {
         // как это вообще использоваться будет?
         // нужно ли будет проверять, является ли корзина активна, прежде чем производить какие-либо действия с ней?
@@ -95,7 +92,7 @@ public class CartServiceImpl implements CartService {
     @Override
     @Loggable
     @Transactional
-    @CachePut(value = "shopping-cart.carts", key = "#username")
+    //@CachePut(value = "shopping-cart.carts", key = "#username")
     public ShoppingCartDto removeProducts(String username, Set<String> productsId) {
         Cart cart = cartRepository.findByUsername(username).orElseThrow(() -> {
             log.warn("{}: no Cart found for username: {}", className, username);
@@ -128,7 +125,7 @@ public class CartServiceImpl implements CartService {
     @Override
     @Loggable
     @Transactional
-    @CachePut(value = "shopping-cart.carts", key = "#username")
+    //@CachePut(value = "shopping-cart.carts", key = "#username")
     public ShoppingCartDto changeQuantity(String username, ChangeProductQuantityRequest request) {
         Cart cart = cartRepository.findByUsername(username).orElseThrow(() -> {
             log.warn("{}: no Cart found for username: {}", className, username);

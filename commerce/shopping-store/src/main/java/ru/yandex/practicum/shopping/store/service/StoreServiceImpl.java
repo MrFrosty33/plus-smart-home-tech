@@ -2,11 +2,6 @@ package ru.yandex.practicum.shopping.store.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.Cache;
-import org.springframework.cache.CacheManager;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -30,7 +25,7 @@ public class StoreServiceImpl implements StoreService {
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
 
-    private final CacheManager cacheManager;
+    //private final CacheManager cacheManager;
 
     @Override
     @Loggable
@@ -43,7 +38,7 @@ public class StoreServiceImpl implements StoreService {
 
     @Override
     @Loggable
-    @Cacheable(value = "shopping-store.products", key = "#productId")
+    //Cacheable(value = "shopping-store.products", key = "#productId")
     public ProductDto getById(String productId) {
         return productMapper.toDto(productRepository.findById(productId).orElseThrow(() -> {
             log.warn("{}: cannot find Product with id: {}", className, productId);
@@ -56,7 +51,7 @@ public class StoreServiceImpl implements StoreService {
 
     @Override
     @Loggable
-    @CachePut(value = "shopping-store.products", key = "#result.productId")
+    //@CachePut(value = "shopping-store.products", key = "#result.productId")
     @Transactional
     public ProductDto create(ProductDto productDto) {
         //todo а что, если уже существует продукт? Такого быть не может?
@@ -67,7 +62,7 @@ public class StoreServiceImpl implements StoreService {
 
     @Override
     @Loggable
-    @CachePut(value = "shopping-store.products", key = "#result.productId")
+    //@CachePut(value = "shopping-store.products", key = "#result.productId")
     @Transactional
     public ProductDto update(ProductDto productDto) {
         Product old = productRepository.findById(productDto.getProductId()).orElseThrow(() -> {
@@ -90,7 +85,7 @@ public class StoreServiceImpl implements StoreService {
     @Override
     @Loggable
     @Transactional
-    @CachePut(value = "shopping-store.products", key = "#request.productId")
+    //@CachePut(value = "shopping-store.products", key = "#request.productId")
     public ProductDto updateQuantityState(SetProductQuantityStateRequest request) {
         //todo тут похоже корявый openApi/ тест, одно из двух)))
         // ибо он требует openApi требует
@@ -137,33 +132,37 @@ public class StoreServiceImpl implements StoreService {
     @Override
     @Loggable
     @Transactional
-    @CacheEvict(value = "shopping-store.products", key = "#result.productId")
+    //@CacheEvict(value = "shopping-store.products", key = "#result.productId")
     public ProductDto remove(String productId) {
         // судя по всему, в тесте сохраняется id с кавычками. Если обрезать, то всё получается
         // ох и намучался я из-за этого. Сперва не находило, потом, из-за этого из кэша не стирало
         String correctProductId = productId.replace("\"", "");
 
-        Cache.ValueWrapper valueWrapper = cacheManager.getCache("shopping-store.products").get(correctProductId);
+        //Cache.ValueWrapper valueWrapper = cacheManager.getCache("shopping-store.products").get(correctProductId);
         Product product;
-        boolean cachedProduct = false;
 
-        if (valueWrapper != null) {
-            ProductDto productDto = ((ProductDto) valueWrapper.get());
-            product = productMapper.toEntity(productDto);
-            cachedProduct = true;
-        } else {
-            product = productRepository.findById(productId).orElseThrow(() -> {
-                log.warn("{}: remove product failure - cannot find Product with id: {}", className, correctProductId);
-                String message = "Product with id: " + correctProductId + " cannot be found";
-                String userMessage = "Product not found";
-                HttpStatus status = HttpStatus.NOT_FOUND;
-                return new ProductNotFoundException(message, userMessage, status);
-            });
-        }
+//        boolean cachedProduct = false;
+//        if (valueWrapper != null) {
+//            ProductDto productDto = ((ProductDto) valueWrapper.get());
+//            product = productMapper.toEntity(productDto);
+//            cachedProduct = true;
+//        } else {
+//            // верни меня сюда
+//        }
+
+        // ^^^^^^^^^^
+        product = productRepository.findById(productId).orElseThrow(() -> {
+            log.warn("{}: remove product failure - cannot find Product with id: {}", className, correctProductId);
+            String message = "Product with id: " + correctProductId + " cannot be found";
+            String userMessage = "Product not found";
+            HttpStatus status = HttpStatus.NOT_FOUND;
+            return new ProductNotFoundException(message, userMessage, status);
+        });
 
 
         product.setProductState(ProductState.DEACTIVATE);
-        if (cachedProduct) productRepository.save(product);
+
+        //if (cachedProduct) productRepository.save(product);
 
         return productMapper.toDto(product);
     }

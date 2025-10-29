@@ -2,8 +2,6 @@ package ru.yandex.practicum.warehouse.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.Cache;
-import org.springframework.cache.CacheManager;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,7 +19,6 @@ import ru.yandex.practicum.warehouse.exception.NoSpecifiedProductInWarehouseExce
 import ru.yandex.practicum.warehouse.exception.ProductInShoppingCartLowQuantityInWarehouseException;
 import ru.yandex.practicum.warehouse.exception.SpecifiedProductAlreadyInWarehouseException;
 import ru.yandex.practicum.warehouse.mapper.ProductMapper;
-import ru.yandex.practicum.warehouse.model.CachedProduct;
 import ru.yandex.practicum.warehouse.model.Product;
 import ru.yandex.practicum.warehouse.model.ProductInfo;
 import ru.yandex.practicum.warehouse.repository.ProductRepository;
@@ -46,7 +43,7 @@ public class WarehouseServiceImpl implements WarehouseService {
 
     // тут с кэшем везде вручную, ибо кэш вставляется из возвращаемого значения
     // а возвращаемых значения у методов либо отсутствуют, либо разные
-    private final CacheManager cacheManager;
+    //private final CacheManager cacheManager;
 
     @Override
     @Loggable
@@ -66,8 +63,8 @@ public class WarehouseServiceImpl implements WarehouseService {
         Product product = productMapper.toEntity(request);
         productRepository.save(product);
 
-        CachedProduct cachedProduct = productMapper.toCachedProduct(product);
-        cacheManager.getCache("warehouse.products").put(cachedProduct.getProductId(), cachedProduct);
+//        CachedProduct cachedProduct = productMapper.toCachedProduct(product);
+//        cacheManager.getCache("warehouse.products").put(cachedProduct.getProductId(), cachedProduct);
     }
 
     @Override
@@ -85,27 +82,30 @@ public class WarehouseServiceImpl implements WarehouseService {
 
         shoppingCartDto.getProducts().entrySet()
                 .forEach((entry) -> {
-                    Cache.ValueWrapper valueWrapper = cacheManager.getCache("warehouse.products").get(entry.getKey());
+//                    Cache.ValueWrapper valueWrapper = cacheManager.getCache("warehouse.products").get(entry.getKey());
+//
+//                    // проверка, хранится ли в кэше
+//                    if (valueWrapper != null) {
+//                        CachedProduct product = ((CachedProduct) valueWrapper.get());
+//                        checkQuantityAndCalculateDeliveryParams(product, entry.getValue(),
+//                                notEnoughFlag, notEnoughProducts, deliveryVolume, deliveryWeight, fragile);
+//                    } else {
+//                        // верни меня сюда
+//                    }
 
-                    // проверка, хранится ли в кэше
-                    if (valueWrapper != null) {
-                        CachedProduct product = ((CachedProduct) valueWrapper.get());
-                        checkQuantityAndCalculateDeliveryParams(product, entry.getValue(),
-                                notEnoughFlag, notEnoughProducts, deliveryVolume, deliveryWeight, fragile);
-                    } else {
-                        //todo что если товар не существует?
-                        // пока сделаю проброс исключения, но может и не требуется
-                        Product product = productRepository.findById(entry.getKey()).orElseThrow(() -> {
-                            log.warn("{}: cannot find Product with id: {}", className, entry.getKey());
-                            String message = "Product with id: " + entry.getValue() + " cannot be found";
-                            String userMessage = "Product not found";
-                            HttpStatus status = HttpStatus.NOT_FOUND;
-                            return new NoSpecifiedProductInWarehouseException(message, userMessage, status);
-                        });
+                    // ^^^^^^^^^^
+                    //todo что если товар не существует?
+                    // пока сделаю проброс исключения, но может и не требуется
+                    Product product = productRepository.findById(entry.getKey()).orElseThrow(() -> {
+                        log.warn("{}: cannot find Product with id: {}", className, entry.getKey());
+                        String message = "Product with id: " + entry.getValue() + " cannot be found";
+                        String userMessage = "Product not found";
+                        HttpStatus status = HttpStatus.NOT_FOUND;
+                        return new NoSpecifiedProductInWarehouseException(message, userMessage, status);
+                    });
 
-                        checkQuantityAndCalculateDeliveryParams(product, entry.getValue(),
-                                notEnoughFlag, notEnoughProducts, deliveryVolume, deliveryWeight, fragile);
-                    }
+                    checkQuantityAndCalculateDeliveryParams(product, entry.getValue(),
+                            notEnoughFlag, notEnoughProducts, deliveryVolume, deliveryWeight, fragile);
                 });
 
         if (notEnoughFlag.get()) {
@@ -130,27 +130,30 @@ public class WarehouseServiceImpl implements WarehouseService {
     @Loggable
     @Transactional
     public void addSpecifiedProduct(AddProductToWarehouseRequest request) {
-        Cache.ValueWrapper valueWrapper = cacheManager.getCache("warehouse.products").get(request.getProductId());
+        // Cache.ValueWrapper valueWrapper = cacheManager.getCache("warehouse.products").get(request.getProductId());
         Product product;
-        boolean cachedProductFlag = false;
 
-        if (valueWrapper != null) {
-            CachedProduct cachedProduct = ((CachedProduct) valueWrapper.get());
-            product = productMapper.toEntity(cachedProduct);
-            cachedProductFlag = true;
-        } else {
-            product = productRepository.findById(request.getProductId())
-                    .orElseThrow(() -> {
-                        log.warn("{}: cannot find Product with id: {}", className, request.getProductId());
-                        String message = "Product with id: " + request.getProductId() + " cannot be found";
-                        String userMessage = "No product information found";
-                        HttpStatus status = HttpStatus.BAD_REQUEST;
-                        return new NoSpecifiedProductInWarehouseException(message, userMessage, status);
-                    });
-        }
+//        boolean cachedProductFlag = false;
+//        if (valueWrapper != null) {
+//            CachedProduct cachedProduct = ((CachedProduct) valueWrapper.get());
+//            product = productMapper.toEntity(cachedProduct);
+//            cachedProductFlag = true;
+//        } else {
+//
+//        }
+
+        // ^^^^^^^^^^^^
+        product = productRepository.findById(request.getProductId())
+                .orElseThrow(() -> {
+                    log.warn("{}: cannot find Product with id: {}", className, request.getProductId());
+                    String message = "Product with id: " + request.getProductId() + " cannot be found";
+                    String userMessage = "No product information found";
+                    HttpStatus status = HttpStatus.BAD_REQUEST;
+                    return new NoSpecifiedProductInWarehouseException(message, userMessage, status);
+                });
 
         product.setQuantity(product.getQuantity() + request.getQuantity());
-        if (cachedProductFlag) productRepository.save(product);
+        // if (cachedProductFlag) productRepository.save(product);
 
         // null присылает ShoppingStoreFeignFallback
         ProductDto feignUpdateRequestResult = sendUpdateQuantityRequestToShoppingStore(product.getProductId(), product.getQuantity());
