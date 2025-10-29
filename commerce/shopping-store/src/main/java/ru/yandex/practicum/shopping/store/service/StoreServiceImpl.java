@@ -30,8 +30,6 @@ public class StoreServiceImpl implements StoreService {
     @Override
     @Loggable
     public Page<ProductDto> getWithPagination(ProductCategory category, Pageable pageable) {
-        // лучше бы накинуть на главный класс , но тогда тест отваливается
-        //@EnableSpringDataWebSupport(pageSerializationMode = EnableSpringDataWebSupport.PageSerializationMode.VIA_DTO)
         Page<Product> page = productRepository.findAllByProductCategory(category, pageable);
         return page.map(productMapper::toDto);
     }
@@ -54,9 +52,8 @@ public class StoreServiceImpl implements StoreService {
     //@CachePut(value = "shopping-store.products", key = "#result.productId")
     @Transactional
     public ProductDto create(ProductDto productDto) {
-        //todo а что, если уже существует продукт? Такого быть не может?
         Product entity = productMapper.toEntity(productDto);
-        entity = productRepository.save(entity);
+        entity = productRepository.saveAndFlush(entity);
         return productMapper.toDto(entity);
     }
 

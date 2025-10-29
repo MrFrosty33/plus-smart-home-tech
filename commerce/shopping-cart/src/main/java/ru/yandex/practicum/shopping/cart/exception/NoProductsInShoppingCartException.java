@@ -7,7 +7,7 @@ import org.springframework.http.HttpStatus;
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class NoProductsInShoppingCartException extends RuntimeException {
-
+    // todo вынести в CustomException поля и наследовать их? Упростить проброс исключения в коде?
     private final String userMessage;
     private final HttpStatus httpStatus;
 
