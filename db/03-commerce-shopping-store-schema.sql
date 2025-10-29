@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS products (
-    product_id VARCHAR(36) PRIMARY KEY,
+    product_id UUID PRIMARY KEY,
     product_name VARCHAR(100) NOT NULL,
     description VARCHAR(1000) NOT NULL,
     image_src VARCHAR(1000),

@@ -1,7 +1,6 @@
 CREATE TABLE IF NOT EXISTS products(
-    product_id VARCHAR(36) PRIMARY KEY,
+    product_id UUID PRIMARY KEY,
     fragile boolean,
-    --сколько после запятой символов оставлять?
     width NUMERIC(15, 2),
     height NUMERIC(15, 2),
     depth NUMERIC(15, 2),

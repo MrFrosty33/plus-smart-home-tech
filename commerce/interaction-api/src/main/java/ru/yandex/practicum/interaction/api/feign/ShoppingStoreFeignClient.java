@@ -1,6 +1,5 @@
 package ru.yandex.practicum.interaction.api.feign;
 
-import jakarta.validation.Valid;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import ru.yandex.practicum.interaction.api.dto.ProductDto;
@@ -10,5 +9,5 @@ import ru.yandex.practicum.interaction.api.dto.SetProductQuantityStateRequest;
 public interface ShoppingStoreFeignClient {
     // пока только один маппинг используется, остальные буду добавлять по мере надобности
     @PostMapping("/api/v1/shopping-store/quantityState")
-    ProductDto updateQuantityState(@Valid SetProductQuantityStateRequest request);
+    ProductDto updateQuantityState(SetProductQuantityStateRequest request);
 }

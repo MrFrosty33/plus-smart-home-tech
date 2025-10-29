@@ -5,15 +5,16 @@ import ru.yandex.practicum.shopping.cart.model.ChangeProductQuantityRequest;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 public interface CartService {
     ShoppingCartDto get(String username);
 
-    ShoppingCartDto addProduct(String username, Map<String, Integer> products);
+    ShoppingCartDto addProduct(String username, Map<UUID, Integer> products);
 
     void deactivateCart(String username);
 
-    ShoppingCartDto removeProducts(String username, Set<String> productsId);
+    ShoppingCartDto removeProducts(String username, Set<UUID> productsId);
 
     ShoppingCartDto changeQuantity(String username, ChangeProductQuantityRequest request);
 }

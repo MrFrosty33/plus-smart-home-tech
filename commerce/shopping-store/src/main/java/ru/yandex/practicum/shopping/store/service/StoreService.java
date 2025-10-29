@@ -6,10 +6,12 @@ import ru.yandex.practicum.interaction.api.dto.ProductCategory;
 import ru.yandex.practicum.interaction.api.dto.ProductDto;
 import ru.yandex.practicum.interaction.api.dto.SetProductQuantityStateRequest;
 
+import java.util.UUID;
+
 public interface StoreService {
     Page<ProductDto> getWithPagination(ProductCategory category, Pageable pageable);
 
-    ProductDto getById(String productId);
+    ProductDto getById(UUID productId);
 
     ProductDto create(ProductDto productDto);
 
@@ -17,5 +19,5 @@ public interface StoreService {
 
     ProductDto updateQuantityState(SetProductQuantityStateRequest request);
 
-    ProductDto remove(String productId);
+    ProductDto remove(UUID productId);
 }

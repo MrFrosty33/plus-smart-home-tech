@@ -24,6 +24,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -53,7 +54,7 @@ public class CartServiceImpl implements CartService {
     @Loggable
     @Transactional
     //@CachePut(value = "shopping-cart.carts", key = "#username")
-    public ShoppingCartDto addProduct(String username, Map<String, Integer> products) {
+    public ShoppingCartDto addProduct(String username, Map<UUID, Integer> products) {
         //todo обратить внимание на входные параметры
         Cart cart = getShoppingCartFromDbOrCreate(username);
 
@@ -90,7 +91,7 @@ public class CartServiceImpl implements CartService {
     @Loggable
     @Transactional
     //@CachePut(value = "shopping-cart.carts", key = "#username")
-    public ShoppingCartDto removeProducts(String username, Set<String> productsId) {
+    public ShoppingCartDto removeProducts(String username, Set<UUID> productsId) {
         Cart cart = getShoppingCartFromDbOrCreate(username);
 
         productsId.forEach((id) -> {
@@ -168,7 +169,7 @@ public class CartServiceImpl implements CartService {
         throw new NotAuthorizedUserException(message, userMessage, status);
     }
 
-    private void addProductToCart(Cart cart, String productId, Integer quantity) {
+    private void addProductToCart(Cart cart, UUID productId, Integer quantity) {
         if (cart.getProducts() == null) cart.setProducts(new HashSet<>());
 
         CartProduct existstingCartProduct = cart.getProducts().stream()

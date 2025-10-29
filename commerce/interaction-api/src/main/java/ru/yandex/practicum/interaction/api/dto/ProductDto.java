@@ -8,13 +8,13 @@ import lombok.Data;
 import org.hibernate.validator.constraints.Length;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 @Data
 @AllArgsConstructor
 @Builder
 public class ProductDto {
-    @Length(max = 36)
-    private final String productId;
+    private final UUID productId;
 
     @Length(max = 100)
     @NotBlank

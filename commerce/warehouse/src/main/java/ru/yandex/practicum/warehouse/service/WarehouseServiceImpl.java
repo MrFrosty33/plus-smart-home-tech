@@ -30,6 +30,7 @@ import java.security.SecureRandom;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.DoubleAdder;
 
@@ -75,7 +76,7 @@ public class WarehouseServiceImpl implements WarehouseService {
         // если калькуляцию ещё и стоило вынести во избежания дублирования, хотя и не слишком это критично было
         // то BigDecimal будто вообще необязателен, можно и на double было остаться?
         AtomicBoolean notEnoughFlag = new AtomicBoolean(false);
-        Set<String> notEnoughProducts = new HashSet<>();
+        Set<UUID> notEnoughProducts = new HashSet<>();
 
         DoubleAdder deliveryVolume = new DoubleAdder();
         DoubleAdder deliveryWeight = new DoubleAdder();
@@ -157,17 +158,8 @@ public class WarehouseServiceImpl implements WarehouseService {
         // if (cachedProductFlag) productRepository.save(product);
 
         // null присылает ShoppingStoreFeignFallback
+        //todo почему-то здесь вылетает 500, мол, не передаю id. Странно, пока не разобрался
         ProductDto feignUpdateRequestResult = sendUpdateQuantityRequestToShoppingStore(product.getProductId(), product.getQuantity());
-
-        // при прохождении теста add Product to Warehouse тут будет облом:
-        // [404] during [POST] to
-        // [http://shopping-store/api/v1/shopping-store/quantityState?productId=c7335f1a-8ccf-4353-b7b7-95519fab2fcf&quantityState=MANY]
-        // и лог пишет
-        // StoreServiceImpl: quantity state update failure - cannot find Product with id: c7335f1a-8ccf-4353-b7b7-95519fab2fcf или другой рандомный id
-        // не понятно, как здесь быть. Возможно, при добавлении товара на склад нужно добавить его и в магазин?
-        // но на складе productId назначается тестом, а не программой
-        // в то время, как у магазина id назначается случайно. Случайно, ибо иначе отваливается тест по добавлению товара))
-        // Да и к тому же не все поля смогу составить из складского товара в магазинный образец
 
         if (feignUpdateRequestResult == null) {
             log.warn("{}: shoppingStoreFeignClient is unavailable — update quantity request did not reach its destination.", className);
@@ -195,7 +187,7 @@ public class WarehouseServiceImpl implements WarehouseService {
 
     @Loggable
     private void checkQuantityAndCalculateDeliveryParams(ProductInfo product, Integer requiredQuantity,
-                                                         AtomicBoolean notEnoughFlag, Set<String> notEnoughProducts,
+                                                         AtomicBoolean notEnoughFlag, Set<UUID> notEnoughProducts,
                                                          DoubleAdder deliveryVolume, DoubleAdder deliveryWeight,
                                                          AtomicBoolean fragile) {
         if (product.getQuantity() < requiredQuantity) {
@@ -210,7 +202,7 @@ public class WarehouseServiceImpl implements WarehouseService {
     }
 
     @Loggable
-    private ProductDto sendUpdateQuantityRequestToShoppingStore(String productId, int quantity) {
+    private ProductDto sendUpdateQuantityRequestToShoppingStore(UUID productId, int quantity) {
         if (quantity == 0) {
             return shoppingStoreFeignClient
                     .updateQuantityState(new SetProductQuantityStateRequest(productId, QuantityState.ENDED));

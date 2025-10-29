@@ -17,6 +17,8 @@ import ru.yandex.practicum.shopping.store.mapper.ProductMapper;
 import ru.yandex.practicum.shopping.store.model.Product;
 import ru.yandex.practicum.shopping.store.repository.ProductRepository;
 
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -37,7 +39,7 @@ public class StoreServiceImpl implements StoreService {
     @Override
     @Loggable
     //Cacheable(value = "shopping-store.products", key = "#productId")
-    public ProductDto getById(String productId) {
+    public ProductDto getById(UUID productId) {
         return productMapper.toDto(productRepository.findById(productId).orElseThrow(() -> {
             log.warn("{}: cannot find Product with id: {}", className, productId);
             String message = "Product with id: " + productId + " cannot be found";
@@ -130,10 +132,10 @@ public class StoreServiceImpl implements StoreService {
     @Loggable
     @Transactional
     //@CacheEvict(value = "shopping-store.products", key = "#result.productId")
-    public ProductDto remove(String productId) {
+    public ProductDto remove(UUID productId) {
         // судя по всему, в тесте сохраняется id с кавычками. Если обрезать, то всё получается
         // ох и намучался я из-за этого. Сперва не находило, потом, из-за этого из кэша не стирало
-        String correctProductId = productId.replace("\"", "");
+        //String correctProductId = productId.replace("\"", "");
 
         //Cache.ValueWrapper valueWrapper = cacheManager.getCache("shopping-store.products").get(correctProductId);
         Product product;
@@ -149,8 +151,8 @@ public class StoreServiceImpl implements StoreService {
 
         // ^^^^^^^^^^
         product = productRepository.findById(productId).orElseThrow(() -> {
-            log.warn("{}: remove product failure - cannot find Product with id: {}", className, correctProductId);
-            String message = "Product with id: " + correctProductId + " cannot be found";
+            log.warn("{}: remove product failure - cannot find Product with id: {}", className, productId);
+            String message = "Product with id: " + productId + " cannot be found";
             String userMessage = "Product not found";
             HttpStatus status = HttpStatus.NOT_FOUND;
             return new ProductNotFoundException(message, userMessage, status);

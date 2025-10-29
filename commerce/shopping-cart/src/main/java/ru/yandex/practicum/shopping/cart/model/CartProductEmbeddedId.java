@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.io.Serializable;
+import java.util.UUID;
 
 @Embeddable
 @EqualsAndHashCode
@@ -15,10 +16,9 @@ import java.io.Serializable;
 @Setter
 @Builder
 public class CartProductEmbeddedId implements Serializable {
+    @Column(name = "cart_id", nullable = false, updatable = false)
+    private UUID cartId;
 
-    @Column(name = "cart_id", nullable = false, length = 36)
-    private String cartId;
-
-    @Column(name = "product_id", nullable = false, length = 36)
-    private String productId;
+    @Column(name = "product_id", nullable = false, updatable = false)
+    private UUID productId;
 }

@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 @Entity
 @Table(name = "products")
@@ -21,8 +22,8 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class Product implements ProductInfo {
     @Id
-    @Column(name = "product_id", length = 36)
-    private String productId;
+    @Column(name = "product_id", updatable = false, nullable = false)
+    private UUID productId;
 
     @Column
     private boolean fragile;

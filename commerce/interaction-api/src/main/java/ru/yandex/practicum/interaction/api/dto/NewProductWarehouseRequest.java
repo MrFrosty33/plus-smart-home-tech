@@ -4,16 +4,15 @@ import jakarta.validation.constraints.Min;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import org.hibernate.validator.constraints.Length;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 @Data
 @AllArgsConstructor
 @Builder
 public class NewProductWarehouseRequest {
-    @Length(max = 36)
-    private final String productId;
+    private final UUID productId;
 
     private final boolean fragile;
 

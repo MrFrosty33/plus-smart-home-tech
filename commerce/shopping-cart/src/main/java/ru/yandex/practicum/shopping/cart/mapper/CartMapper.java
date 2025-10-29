@@ -8,6 +8,7 @@ import ru.yandex.practicum.shopping.cart.model.CartProduct;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring")
@@ -15,7 +16,7 @@ public interface CartMapper {
     @Mapping(source = "cartId", target = "shoppingCartId")
     public ShoppingCartDto toDto(Cart cart);
 
-    default Map<String, Integer> mapProducts(Set<CartProduct> products) {
+    default Map<UUID, Integer> mapProducts(Set<CartProduct> products) {
         if (products == null) return null;
         return products.stream()
                 .collect(Collectors.toMap(

@@ -17,6 +17,7 @@ import ru.yandex.practicum.interaction.api.dto.ProductState;
 import ru.yandex.practicum.interaction.api.dto.QuantityState;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 @Entity
 @Table(name = "products")
@@ -26,9 +27,9 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class Product {
     @Id
-    @Column(name = "product_id", length = 36)
+    @Column(name = "product_id", updatable = false, nullable = false)
     @GeneratedValue(strategy = GenerationType.UUID)
-    private String productId;
+    private UUID productId;
 
     @Column(name = "product_name", nullable = false, length = 1000)
     private String productName;

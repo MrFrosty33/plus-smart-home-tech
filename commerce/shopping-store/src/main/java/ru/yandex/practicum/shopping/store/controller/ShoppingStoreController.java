@@ -19,6 +19,8 @@ import ru.yandex.practicum.interaction.api.dto.SetProductQuantityStateRequest;
 import ru.yandex.practicum.interaction.api.feign.ShoppingStoreFeignClient;
 import ru.yandex.practicum.shopping.store.service.StoreService;
 
+import java.util.UUID;
+
 @RestController
 @RequestMapping("/api/v1/shopping-store")
 @RequiredArgsConstructor
@@ -32,7 +34,7 @@ public class ShoppingStoreController implements ShoppingStoreFeignClient {
     }
 
     @GetMapping("/{productId}")
-    public ProductDto getById(@PathVariable String productId) {
+    public ProductDto getById(@PathVariable UUID productId) {
         return storeService.getById(productId);
     }
 
@@ -47,16 +49,12 @@ public class ShoppingStoreController implements ShoppingStoreFeignClient {
     }
 
     @PostMapping("/quantityState")
-    public ProductDto updateQuantityState(@Valid SetProductQuantityStateRequest request) {
-        //todo пытаемся изменить просто на класс, без тела и без параметров
-
-        // тесты shopping-cart падают потому, что здесь ожидается, что будет получаться @RequestBody
-        // но если сделать @RequestBody, то будет падать тест set Product Quantity State в папке shopping-store
+    public ProductDto updateQuantityState(SetProductQuantityStateRequest request) {
         return storeService.updateQuantityState(request);
     }
 
     @PostMapping("/removeProductFromStore")
-    public ProductDto remove(@RequestBody String productId) {
+    public ProductDto remove(@RequestBody UUID productId) {
         return storeService.remove(productId);
     }
 }

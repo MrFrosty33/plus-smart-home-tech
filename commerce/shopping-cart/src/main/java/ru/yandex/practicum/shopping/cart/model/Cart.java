@@ -13,6 +13,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.Set;
+import java.util.UUID;
 
 @Entity
 @Table(name = "carts")
@@ -22,9 +23,9 @@ import java.util.Set;
 public class Cart {
     // todo попоробовать везде перевести на UUID вместо String
     @Id
-    @Column(name = "cart_id", length = 36)
+    @Column(name = "cart_id", updatable = false)
     @GeneratedValue(strategy = GenerationType.UUID)
-    private String cartId;
+    private UUID cartId;
 
     @Column(nullable = false, length = 100)
     private String username;

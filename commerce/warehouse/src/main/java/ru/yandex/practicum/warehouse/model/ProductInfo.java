@@ -1,9 +1,10 @@
 package ru.yandex.practicum.warehouse.model;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 public interface ProductInfo {
-    String getProductId();
+    UUID getProductId();
 
     boolean isFragile();
 

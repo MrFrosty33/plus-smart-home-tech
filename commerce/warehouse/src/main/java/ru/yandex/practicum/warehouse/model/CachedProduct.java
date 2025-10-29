@@ -4,11 +4,12 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 @Builder
 @Getter
 public class CachedProduct implements ProductInfo {
-    private String productId;
+    private UUID productId;
     private boolean fragile;
     private BigDecimal width;
     private BigDecimal height;
