@@ -14,15 +14,12 @@ import java.util.Arrays;
 @Component
 @Slf4j
 public class LoggingAspect {
-    //todo не работает, надо разбираться. Пакеты уже поправил, добавил уровень логгирования для этого модуля
-    // всё одно не работает
     @SuppressWarnings("unused")
     @Around("@annotation(ru.yandex.practicum.interaction.api.logging.Loggable)")
     public Object logWithExecutionTimeMeasure(ProceedingJoinPoint joinPoint) throws Throwable {
         String className = joinPoint.getTarget().getClass().getSimpleName();
         log.info("{}: Entering method: {}", className, joinPoint.getSignature());
 
-        //todo может как-то красивее выводить стоит
         log.info("{}: Request Parameters: {}", className, Arrays.toString(joinPoint.getArgs()));
 
         Instant beforeExecute = Instant.now();

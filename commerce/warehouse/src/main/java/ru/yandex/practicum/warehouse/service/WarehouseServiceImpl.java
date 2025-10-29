@@ -11,7 +11,6 @@ import ru.yandex.practicum.interaction.api.dto.BookedProductsDto;
 import ru.yandex.practicum.interaction.api.dto.NewProductWarehouseRequest;
 import ru.yandex.practicum.interaction.api.dto.ProductDto;
 import ru.yandex.practicum.interaction.api.dto.QuantityState;
-import ru.yandex.practicum.interaction.api.dto.SetProductQuantityStateRequest;
 import ru.yandex.practicum.interaction.api.dto.ShoppingCartDto;
 import ru.yandex.practicum.interaction.api.feign.ShoppingStoreFeignClient;
 import ru.yandex.practicum.interaction.api.logging.Loggable;
@@ -51,8 +50,6 @@ public class WarehouseServiceImpl implements WarehouseService {
     @Loggable
     @Transactional
     public void addNewProduct(NewProductWarehouseRequest request) {
-        // этот метод должен тоже возвращать дтошку, иначе валится тест add Product to Warehouse
-        // т.к. ожидает получения id, а получает null
         productRepository.findById(request.getProductId())
                 .ifPresent(product -> {
                     log.warn("{}: product with id: {} already exists in warehouse", className, request.getProductId());
@@ -65,6 +62,9 @@ public class WarehouseServiceImpl implements WarehouseService {
         Product product = productMapper.toEntity(request);
         productRepository.save(product);
 
+
+        //todo тут падают тесты корзины. Возможно надо добавлять и в магазин на этом этапе?
+
 //        CachedProduct cachedProduct = productMapper.toCachedProduct(product);
 //        cacheManager.getCache("warehouse.products").put(cachedProduct.getProductId(), cachedProduct);
     }
@@ -72,9 +72,6 @@ public class WarehouseServiceImpl implements WarehouseService {
     @Override
     @Loggable
     public BookedProductsDto checkProductsQuantity(ShoppingCartDto shoppingCartDto) {
-        // у меня есть ощущение, что я перемудрил
-        // если калькуляцию ещё и стоило вынести во избежания дублирования, хотя и не слишком это критично было
-        // то BigDecimal будто вообще необязателен, можно и на double было остаться?
         AtomicBoolean notEnoughFlag = new AtomicBoolean(false);
         Set<UUID> notEnoughProducts = new HashSet<>();
 
@@ -158,7 +155,6 @@ public class WarehouseServiceImpl implements WarehouseService {
         // if (cachedProductFlag) productRepository.save(product);
 
         // null присылает ShoppingStoreFeignFallback
-        //todo почему-то здесь вылетает 500, мол, не передаю id. Странно, пока не разобрался
         ProductDto feignUpdateRequestResult = sendUpdateQuantityRequestToShoppingStore(product.getProductId(), product.getQuantity());
 
         if (feignUpdateRequestResult == null) {
@@ -205,19 +201,19 @@ public class WarehouseServiceImpl implements WarehouseService {
     private ProductDto sendUpdateQuantityRequestToShoppingStore(UUID productId, int quantity) {
         if (quantity == 0) {
             return shoppingStoreFeignClient
-                    .updateQuantityState(new SetProductQuantityStateRequest(productId, QuantityState.ENDED));
+                    .updateQuantityState(productId, QuantityState.ENDED);
         }
         if (quantity > 0 && quantity < 10) {
             return shoppingStoreFeignClient
-                    .updateQuantityState(new SetProductQuantityStateRequest(productId, QuantityState.FEW));
+                    .updateQuantityState(productId, QuantityState.FEW);
         }
         if (quantity > 10 && quantity < 100) {
             return shoppingStoreFeignClient
-                    .updateQuantityState(new SetProductQuantityStateRequest(productId, QuantityState.ENOUGH));
+                    .updateQuantityState(productId, QuantityState.ENOUGH);
         }
         if (quantity > 100) {
             return shoppingStoreFeignClient
-                    .updateQuantityState(new SetProductQuantityStateRequest(productId, QuantityState.MANY));
+                    .updateQuantityState(productId, QuantityState.MANY);
         }
 
         log.warn("{}: in sendUpdateQuantityRequestToShoppingStore() " +

@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.interaction.api.dto.ProductCategory;
 import ru.yandex.practicum.interaction.api.dto.ProductDto;
+import ru.yandex.practicum.interaction.api.dto.QuantityState;
 import ru.yandex.practicum.interaction.api.dto.SetProductQuantityStateRequest;
 import ru.yandex.practicum.interaction.api.feign.ShoppingStoreFeignClient;
 import ru.yandex.practicum.shopping.store.service.StoreService;
@@ -49,8 +50,10 @@ public class ShoppingStoreController implements ShoppingStoreFeignClient {
     }
 
     @PostMapping("/quantityState")
-    public ProductDto updateQuantityState(SetProductQuantityStateRequest request) {
-        return storeService.updateQuantityState(request);
+    public ProductDto updateQuantityState(@RequestParam UUID productId, @RequestParam QuantityState quantityState) {
+        // если оставить просто SetProductQuantityStateRequest в параметрах метода, то при отправке запроса из warehouse
+        // productId передаётся каким-то образом как null, и падает запрос
+        return storeService.updateQuantityState(new SetProductQuantityStateRequest(productId, quantityState));
     }
 
     @PostMapping("/removeProductFromStore")

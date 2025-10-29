@@ -86,32 +86,6 @@ public class StoreServiceImpl implements StoreService {
     @Transactional
     //@CachePut(value = "shopping-store.products", key = "#request.productId")
     public ProductDto updateQuantityState(SetProductQuantityStateRequest request) {
-        //todo тут похоже корявый openApi/ тест, одно из двух)))
-        // ибо он требует openApi требует
-        /*
-        "requestBody": {
-          "description": "Запрос на изменение статуса товара в магазине, например: \"Закончился\", \"Мало\" и т.д.",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SetProductQuantityStateRequest"
-              }
-            }
-          }
-        }
-         */
-        // а в тесте
-        // {{baseUrl}}{{shopping-store-port}}/api/v1/shopping-store/quantityState?productId={{product_id}}&quantityState={{quantity_state}}
-
-        // даже изменив возвращаемый объект, тест не проходит полностью
-        // Проверка полей объекта product |
-        // JSONError: Unexpected token 'c' at 1:1 class ru.yandex.practicum.shopping.store.model.Product cannot be cast to class ^
-
-        // в тесте проверяется json непосредственно, а не как в других тестах, сперва его парсят в Product и уже потом поля проверяют
-        // поэтому он и отваливается. В моём методе проблем тут нет
-        // можно, конечно, ResponseEntity<ProductDto> возвращать, но будто это уже совсем странно
-
-        // и как понимаю, что из-за проблем с прохождением этого теста, отваливаются и другие, где ипользуется этот метод
 
         Product product = productRepository.findById(request.getProductId()).orElseThrow(() -> {
             log.warn("{}: quantity state update failure - cannot find Product with id: {}", className, request.getProductId());
@@ -133,9 +107,7 @@ public class StoreServiceImpl implements StoreService {
     @Transactional
     //@CacheEvict(value = "shopping-store.products", key = "#result.productId")
     public ProductDto remove(UUID productId) {
-        // судя по всему, в тесте сохраняется id с кавычками. Если обрезать, то всё получается
-        // ох и намучался я из-за этого. Сперва не находило, потом, из-за этого из кэша не стирало
-        //String correctProductId = productId.replace("\"", "");
+        // todo при работе с кэшем была проблема с кавычками в id. обратить внимание при возвращении кэша
 
         //Cache.ValueWrapper valueWrapper = cacheManager.getCache("shopping-store.products").get(correctProductId);
         Product product;

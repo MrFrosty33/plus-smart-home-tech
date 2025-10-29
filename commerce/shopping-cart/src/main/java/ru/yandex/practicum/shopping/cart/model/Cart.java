@@ -21,7 +21,6 @@ import java.util.UUID;
 @Setter
 @Builder
 public class Cart {
-    // todo попоробовать везде перевести на UUID вместо String
     @Id
     @Column(name = "cart_id", updatable = false)
     @GeneratedValue(strategy = GenerationType.UUID)
