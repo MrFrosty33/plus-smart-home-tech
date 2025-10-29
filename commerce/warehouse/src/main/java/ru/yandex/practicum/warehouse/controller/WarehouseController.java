@@ -1,5 +1,6 @@
 package ru.yandex.practicum.warehouse.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,17 +25,17 @@ public class WarehouseController implements WarehouseFeignClient {
     private final WarehouseService warehouseService;
 
     @PutMapping
-    public void addNewProduct(@RequestBody NewProductWarehouseRequest request) {
+    public void addNewProduct(@Valid @RequestBody NewProductWarehouseRequest request) {
         warehouseService.addNewProduct(request);
     }
 
     @PostMapping("/check")
-    public BookedProductsDto checkProductsQuantity(@RequestBody ShoppingCartDto shoppingCartDto) {
+    public BookedProductsDto checkProductsQuantity(@Valid @RequestBody ShoppingCartDto shoppingCartDto) {
         return warehouseService.checkProductsQuantity(shoppingCartDto);
     }
 
     @PostMapping("/add")
-    public void addSpecifiedProduct(@RequestBody AddProductToWarehouseRequest request) {
+    public void addSpecifiedProduct(@Valid @RequestBody AddProductToWarehouseRequest request) {
         warehouseService.addSpecifiedProduct(request);
     }
 

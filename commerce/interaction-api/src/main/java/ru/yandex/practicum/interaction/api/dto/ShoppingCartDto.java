@@ -1,9 +1,9 @@
 package ru.yandex.practicum.interaction.api.dto;
 
-import jakarta.validation.constraints.Max;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import org.hibernate.validator.constraints.Length;
 
 import java.util.Map;
 
@@ -11,7 +11,7 @@ import java.util.Map;
 @AllArgsConstructor
 @Builder
 public class ShoppingCartDto {
-    @Max(36)
+    @Length(max = 36)
     private final String shoppingCartId;
 
     private final Map<String, Integer> products;

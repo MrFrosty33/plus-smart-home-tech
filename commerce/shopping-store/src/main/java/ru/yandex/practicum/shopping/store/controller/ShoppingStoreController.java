@@ -1,5 +1,6 @@
 package ru.yandex.practicum.shopping.store.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -14,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.interaction.api.dto.ProductCategory;
 import ru.yandex.practicum.interaction.api.dto.ProductDto;
-import ru.yandex.practicum.interaction.api.dto.QuantityState;
 import ru.yandex.practicum.interaction.api.dto.SetProductQuantityStateRequest;
 import ru.yandex.practicum.interaction.api.feign.ShoppingStoreFeignClient;
 import ru.yandex.practicum.shopping.store.service.StoreService;
@@ -37,21 +37,22 @@ public class ShoppingStoreController implements ShoppingStoreFeignClient {
     }
 
     @PutMapping
-    public ProductDto create(@RequestBody ProductDto productDto) {
+    public ProductDto create(@Valid @RequestBody ProductDto productDto) {
         return storeService.create(productDto);
     }
 
     @PostMapping
-    public ProductDto update(@RequestBody ProductDto productDto) {
+    public ProductDto update(@Valid @RequestBody ProductDto productDto) {
         return storeService.update(productDto);
     }
 
     @PostMapping("/quantityState")
-    public ProductDto updateQuantityState(@RequestParam("productId") String productId,
-                                          @RequestParam("quantityState") QuantityState quantityState) {
+    public ProductDto updateQuantityState(@Valid SetProductQuantityStateRequest request) {
+        //todo пытаемся изменить просто на класс, без тела и без параметров
+
         // тесты shopping-cart падают потому, что здесь ожидается, что будет получаться @RequestBody
         // но если сделать @RequestBody, то будет падать тест set Product Quantity State в папке shopping-store
-        return storeService.updateQuantityState(new SetProductQuantityStateRequest(productId, quantityState));
+        return storeService.updateQuantityState(request);
     }
 
     @PostMapping("/removeProductFromStore")

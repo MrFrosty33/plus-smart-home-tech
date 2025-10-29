@@ -1,10 +1,10 @@
 package ru.yandex.practicum.interaction.api.dto;
 
-import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import org.hibernate.validator.constraints.Length;
 
 import java.math.BigDecimal;
 
@@ -12,7 +12,7 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @Builder
 public class NewProductWarehouseRequest {
-    @Max(36)
+    @Length(max = 36)
     private final String productId;
 
     private final boolean fragile;

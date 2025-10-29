@@ -1,11 +1,11 @@
 package ru.yandex.practicum.interaction.api.dto;
 
-import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import org.hibernate.validator.constraints.Length;
 
 import java.math.BigDecimal;
 
@@ -13,18 +13,18 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @Builder
 public class ProductDto {
-    @Max(36)
+    @Length(max = 36)
     private final String productId;
 
-    @Max(100)
+    @Length(max = 100)
     @NotBlank
     private final String productName;
 
-    @Max(1000)
+    @Length(max = 1000)
     @NotBlank
     private final String description;
 
-    @Max(1000)
+    @Length(max = 1000)
     private final String imageSrc;
 
     private final QuantityState quantityState;

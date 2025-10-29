@@ -1,5 +1,6 @@
 package ru.yandex.practicum.interaction.api.feign;
 
+import jakarta.validation.Valid;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -10,5 +11,5 @@ import ru.yandex.practicum.interaction.api.dto.ShoppingCartDto;
 public interface WarehouseFeignClient {
 
     @PostMapping("/api/v1/warehouse/check")
-    BookedProductsDto checkProductsQuantity(@RequestBody ShoppingCartDto shoppingCartDto);
+    BookedProductsDto checkProductsQuantity(@Valid @RequestBody ShoppingCartDto shoppingCartDto);
 }

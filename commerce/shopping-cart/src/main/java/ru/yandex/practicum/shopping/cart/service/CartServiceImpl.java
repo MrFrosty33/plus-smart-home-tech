@@ -55,7 +55,13 @@ public class CartServiceImpl implements CartService {
     //@CachePut(value = "shopping-cart.carts", key = "#username")
     public ShoppingCartDto addProduct(String username, Map<String, Integer> products) {
         //todo обратить внимание на входные параметры
-        Cart cart = getShoppingCartFromDB(username);
+        Cart cart = getShoppingCartFromDbOrCreate(username);
+
+        if (!cart.isActive()) {
+            // вопрос, надо ли проводить эту проверку на текущем этапе, или это будет сделано далее?
+            log.warn("{}: attempt to add products to a deactivated cart: {}", className, cart);
+            throw new InternalServerException("Cart is deactivated");
+        }
 
         products.forEach((id, quantity) -> addProductToCart(cart, id, quantity));
         ShoppingCartDto cartDto = cartMapper.toDto(cart);
@@ -76,7 +82,7 @@ public class CartServiceImpl implements CartService {
     @Transactional
     //@CacheEvict(value = "shopping-cart.carts", key = "#username")
     public void deactivateCart(String username) {
-        Cart cart = getShoppingCartFromDB(username);
+        Cart cart = getShoppingCartFromDbOrCreate(username);
         cart.setActive(false);
     }
 
@@ -85,13 +91,7 @@ public class CartServiceImpl implements CartService {
     @Transactional
     //@CachePut(value = "shopping-cart.carts", key = "#username")
     public ShoppingCartDto removeProducts(String username, Set<String> productsId) {
-        Cart cart = cartRepository.findByUsername(username).orElseThrow(() -> {
-            log.warn("{}: no Cart found for username: {}", className, username);
-            String message = "Cart for username: " + username + " cannot be found";
-            String userMessage = "Cart not found";
-            HttpStatus status = HttpStatus.UNAUTHORIZED;
-            return new NotAuthorizedUserException(message, userMessage, status);
-        });
+        Cart cart = getShoppingCartFromDbOrCreate(username);
 
         productsId.forEach((id) -> {
             CartProductEmbeddedId embeddedId = CartProductEmbeddedId.builder()
@@ -145,7 +145,7 @@ public class CartServiceImpl implements CartService {
         return cartMapper.toDto(cart);
     }
 
-    private Cart getShoppingCartFromDB(String username) throws NotAuthorizedUserException {
+    private Cart getShoppingCartFromDbOrCreate(String username) throws NotAuthorizedUserException {
         if (username != null && !username.isEmpty()) {
             Optional<Cart> shoppingCart = cartRepository.findByUsername(username);
             if (shoppingCart.isPresent()) {
