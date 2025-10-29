@@ -25,6 +25,7 @@ import ru.yandex.practicum.shopping.cart.repository.CartRepository;
 
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 @Service
@@ -56,17 +57,8 @@ public class CartServiceImpl implements CartService {
     @Transactional
     @CachePut(value = "shopping-cart.carts", key = "#username")
     public ShoppingCartDto addProduct(String username, Map<String, Integer> products) {
-        Cart cart = cartRepository.findByUsername(username).orElseThrow(() -> {
-            log.warn("{}: no Cart found for username: {}", className, username);
-            String message = "Cart for username: " + username + " cannot be found";
-            String userMessage = "Cart not found";
-            HttpStatus status = HttpStatus.UNAUTHORIZED;
-            return new NotAuthorizedUserException(message, userMessage, status);
-        });
-
-        if (cart.getProducts() == null) {
-            cart.setProducts(new HashSet<>());
-        }
+        //todo обратить внимание на входные параметры
+        Cart cart = getShoppingCartFromDB(username);
 
         products.forEach(cart::addProduct);
         ShoppingCartDto cartDto = cartMapper.toDto(cart);
@@ -164,4 +156,28 @@ public class CartServiceImpl implements CartService {
 
         return cartMapper.toDto(cart);
     }
+
+    private Cart getShoppingCartFromDB(String username) throws NotAuthorizedUserException {
+        if (username != null && !username.isEmpty()) {
+            Optional<Cart> shoppingCart = cartRepository.findByUsername(username);
+            if (shoppingCart.isPresent()) {
+                return shoppingCart.get();
+            } else {
+                Cart cart = Cart.builder()
+                        .username(username)
+                        .active(true)
+                        .products(new HashSet<>())
+                        .build();
+                cart = cartRepository.save(cart);
+                return cart;
+            }
+        }
+
+        log.warn("{}: not valid username provided: {}", className, username);
+        String message = "Username is not valid";
+        String userMessage = "Username is not valid";
+        HttpStatus status = HttpStatus.UNAUTHORIZED;
+        throw new NotAuthorizedUserException(message, userMessage, status);
+    }
+
 }
