@@ -60,7 +60,7 @@ public class CartServiceImpl implements CartService {
         //todo обратить внимание на входные параметры
         Cart cart = getShoppingCartFromDB(username);
 
-        products.forEach(cart::addProduct);
+        products.forEach((id, quantity) -> addProductToCart(cart, id, quantity));
         ShoppingCartDto cartDto = cartMapper.toDto(cart);
 
         BookedProductsDto bookedProductsDto = warehouseFeignClient.checkProductsQuantity(cartDto);
@@ -178,6 +178,33 @@ public class CartServiceImpl implements CartService {
         String userMessage = "Username is not valid";
         HttpStatus status = HttpStatus.UNAUTHORIZED;
         throw new NotAuthorizedUserException(message, userMessage, status);
+    }
+
+    private void addProductToCart(Cart cart, String productId, Integer quantity) {
+        if (cart.getProducts() == null) cart.setProducts(new HashSet<>());
+
+        CartProduct existstingCartProduct = cart.getProducts().stream()
+                .filter(p -> p.getEmbeddedId().getProductId().equals(productId))
+                .findFirst()
+                .orElse(null);
+
+        // если уже существует в корзине продукт, будет добавлено желаемое количество
+        if (existstingCartProduct != null) {
+            existstingCartProduct.setQuantity(existstingCartProduct.getQuantity() + quantity);
+        } else {
+            CartProductEmbeddedId embeddedId = CartProductEmbeddedId.builder()
+                    .productId(productId)
+                    .cartId(cart.getCartId())
+                    .build();
+
+            CartProduct cartProduct = CartProduct.builder()
+                    .embeddedId(embeddedId)
+                    .cart(cart)
+                    .quantity(quantity)
+                    .build();
+
+            cart.getProducts().add(cartProduct);
+        }
     }
 
 }
