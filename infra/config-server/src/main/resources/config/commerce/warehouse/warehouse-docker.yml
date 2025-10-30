@@ -1,0 +1,34 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://postgres-db:5432/commerce_warehouse
+    username: frosty
+    password: ytsorf
+    driver-class-name: org.postgresql.Driver
+  cache:
+    type: caffeine
+    cache-names:
+      - warehouse.products
+    caffeine:
+      spec: maximumSize=1000,expireAfterWrite=60m
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, mappings, httptrace, caches, threaddump
+
+resilience4j.circuitbreaker:
+  configs:
+    default:
+      slidingWindowSize: 50
+      slidingWindowType: COUNT_BASED
+      failureRateThreshold: 50
+      waitDurationInOpenState: 10s
+      permittedNumberOfCallsInHalfOpenState: 5
+      automaticTransitionFromOpenToHalfOpenEnabled: true
+
+logging:
+  level:
+    root: INFO
+    ru.yandex.practicum.warehouse: TRACE
+    ru.yandex.practicum.interaction.api.logging: TRACE

@@ -1,0 +1,55 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://postgres-db:5432/telemetry_analyzer
+    username: frosty
+    password: ytsorf
+    driver-class-name: org.postgresql.Driver
+
+logging:
+  level:
+    root: INFO
+    ru.yandex.practicum.analyzer: TRACE
+
+grpc:
+  client:
+    hub-router:
+      address: "static://localhost:59090"
+      enableKeepAlive: true
+      keepAliveWithoutCalls: true
+      negotiationType: plaintext
+
+topics:
+  sensors: "telemetry.sensors.v1"
+  snapshots: "telemetry.snapshots.v1"
+  hubs: "telemetry.hubs.v1"
+
+kafka-analyzer:
+  hub-event-consumer:
+    properties:
+      bootstrap.servers: "kafka:29092"
+      group.id: "telemetry-analyzer-hub-event-consumers-v1"
+      key.deserializer: "org.apache.kafka.common.serialization.VoidDeserializer"
+      value.deserializer: "ru.yandex.practicum.kafka.serializer.HubEventDeserializer"
+
+      max.poll.records: 100
+      fetch.max.bytes: 3072000
+      max.partition.fetch.bytes: 307200
+
+      auto.offset.reset: "latest"
+      isolation.level: "read_committed"
+      enable.auto.commit: false
+
+  sensor-snapshot-consumer:
+    properties:
+      bootstrap.servers: "kafka:29092"
+      group.id: "telemetry-analyzer-sensor-snapshot-consumers-v1"
+      key.deserializer: "org.apache.kafka.common.serialization.VoidDeserializer"
+      value.deserializer: "ru.yandex.practicum.kafka.serializer.SensorSnapshotDeserializer"
+
+      max.poll.records: 100
+      fetch.max.bytes: 3072000
+      max.partition.fetch.bytes: 307200
+
+      auto.offset.reset: "latest"
+      isolation.level: "read_committed"
+      enable.auto.commit: false

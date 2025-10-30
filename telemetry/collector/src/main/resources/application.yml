@@ -1,6 +1,7 @@
 spring:
-  config:
-    import: classpath:/application-general.yml
+  cloud:
+    config:
+      enabled: false
 
 logging:
   level:
@@ -9,7 +10,20 @@ logging:
 
 grpc:
   server:
-    port: 59091  # по заданию вроде такой
+    port: 59091
     enableKeepAlive: true
     keepAliveWithoutCalls: true
     negotiationType: plaintext
+
+topics:
+  sensors: "telemetry.sensors.v1"
+  snapshots: "telemetry.snapshots.v1"
+  hubs: "telemetry.hubs.v1"
+
+kafka-collector:
+  producer:
+    properties:
+      bootstrap.servers: "localhost:9092"
+      group.id: "telemetry-collector-producer-v1"
+      key.serializer: "org.apache.kafka.common.serialization.VoidSerializer"
+      value.serializer: "ru.yandex.practicum.kafka.serializer.GeneralAvroSerializer"

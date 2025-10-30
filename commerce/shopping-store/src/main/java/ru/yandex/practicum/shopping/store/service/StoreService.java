@@ -1,0 +1,23 @@
+package ru.yandex.practicum.shopping.store.service;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import ru.yandex.practicum.interaction.api.dto.ProductCategory;
+import ru.yandex.practicum.interaction.api.dto.ProductDto;
+import ru.yandex.practicum.interaction.api.dto.SetProductQuantityStateRequest;
+
+import java.util.UUID;
+
+public interface StoreService {
+    Page<ProductDto> getWithPagination(ProductCategory category, Pageable pageable);
+
+    ProductDto getById(UUID productId);
+
+    ProductDto create(ProductDto productDto);
+
+    ProductDto update(ProductDto productDto);
+
+    ProductDto updateQuantityState(SetProductQuantityStateRequest request);
+
+    ProductDto remove(UUID productId);
+}
