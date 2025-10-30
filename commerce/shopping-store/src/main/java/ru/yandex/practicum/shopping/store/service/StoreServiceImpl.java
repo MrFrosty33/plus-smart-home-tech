@@ -11,8 +11,8 @@ import ru.yandex.practicum.interaction.api.dto.ProductCategory;
 import ru.yandex.practicum.interaction.api.dto.ProductDto;
 import ru.yandex.practicum.interaction.api.dto.ProductState;
 import ru.yandex.practicum.interaction.api.dto.SetProductQuantityStateRequest;
+import ru.yandex.practicum.interaction.api.exception.StoreProductNotFoundException;
 import ru.yandex.practicum.interaction.api.logging.Loggable;
-import ru.yandex.practicum.shopping.store.exception.ProductNotFoundException;
 import ru.yandex.practicum.shopping.store.mapper.ProductMapper;
 import ru.yandex.practicum.shopping.store.model.Product;
 import ru.yandex.practicum.shopping.store.repository.ProductRepository;
@@ -45,7 +45,7 @@ public class StoreServiceImpl implements StoreService {
             String message = "Product with id: " + productId + " cannot be found";
             String userMessage = "Product not found";
             HttpStatus status = HttpStatus.NOT_FOUND;
-            return new ProductNotFoundException(message, userMessage, status);
+            return new StoreProductNotFoundException(message, userMessage, status);
         }));
     }
 
@@ -69,7 +69,7 @@ public class StoreServiceImpl implements StoreService {
             String message = "Product with id: " + productDto.getProductId() + " cannot be found";
             String userMessage = "Product not found";
             HttpStatus status = HttpStatus.NOT_FOUND;
-            return new ProductNotFoundException(message, userMessage, status);
+            return new StoreProductNotFoundException(message, userMessage, status);
         });
 
         Product fresh = productMapper.toEntity(productDto);
@@ -92,7 +92,7 @@ public class StoreServiceImpl implements StoreService {
             String message = "Product with id: " + request.getProductId() + " cannot be found";
             String userMessage = "Product not found";
             HttpStatus status = HttpStatus.NOT_FOUND;
-            return new ProductNotFoundException(message, userMessage, status);
+            return new StoreProductNotFoundException(message, userMessage, status);
         });
 
         product.setQuantityState(request.getQuantityState());
@@ -127,7 +127,7 @@ public class StoreServiceImpl implements StoreService {
             String message = "Product with id: " + productId + " cannot be found";
             String userMessage = "Product not found";
             HttpStatus status = HttpStatus.NOT_FOUND;
-            return new ProductNotFoundException(message, userMessage, status);
+            return new StoreProductNotFoundException(message, userMessage, status);
         });
 
 

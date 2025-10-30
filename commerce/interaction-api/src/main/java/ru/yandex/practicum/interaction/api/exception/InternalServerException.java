@@ -1,4 +1,4 @@
-package ru.yandex.practicum.warehouse.exception;
+package ru.yandex.practicum.interaction.api.exception;
 
 public class InternalServerException extends RuntimeException {
     public InternalServerException(String message) {
