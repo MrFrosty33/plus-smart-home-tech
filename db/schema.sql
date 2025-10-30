@@ -1,3 +1,10 @@
+CREATE DATABASE telemetry_analyzer;
+CREATE DATABASE commerce_shopping_store;
+CREATE DATABASE commerce_shopping_cart;
+CREATE DATABASE commerce_warehouse;
+
+\connect telemetry_analyzer;
+
 -- создаём таблицу scenarios
 CREATE TABLE IF NOT EXISTS scenarios (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -67,3 +74,62 @@ CREATE OR REPLACE TRIGGER tr_bi_scenario_actions_hub_id_check
 BEFORE INSERT ON scenario_actions
 FOR EACH ROW
 EXECUTE FUNCTION check_hub_id();
+
+\connect commerce_shopping_store;
+
+CREATE TABLE IF NOT EXISTS products (
+    product_id UUID PRIMARY KEY,
+    product_name VARCHAR(100) NOT NULL,
+    description VARCHAR(1000) NOT NULL,
+    image_src VARCHAR(1000),
+    quantity_state VARCHAR,
+    product_state VARCHAR,
+    product_category VARCHAR,
+    price NUMERIC(15, 2),
+    CONSTRAINT check_quantity_state
+        CHECK (quantity_state IN ('ENDED', 'FEW', 'ENOUGH', 'MANY')),
+    CONSTRAINT check_product_state
+        CHECK (product_state IN ('ACTIVE', 'DEACTIVATE')),
+    CONSTRAINT check_product_category
+        CHECK (product_category IN ('LIGHTING', 'CONTROL', 'SENSORS'))
+);
+
+\connect commerce_shopping_cart;
+
+CREATE TABLE IF NOT EXISTS carts (
+    cart_id UUID PRIMARY KEY,
+    username VARCHAR(100) NOT NULL,
+    active boolean
+);
+
+CREATE TABLE carts_products (
+    cart_id UUID REFERENCES carts(cart_id) ON DELETE CASCADE,
+    product_id UUID,
+    quantity INTEGER NOT NULL,
+    PRIMARY KEY (cart_id, product_id),
+    CONSTRAINT check_quantity
+         CHECK (quantity > 0)
+);
+
+\connect commerce_warehouse;
+
+CREATE TABLE IF NOT EXISTS products(
+    product_id UUID PRIMARY KEY,
+    fragile boolean,
+    width NUMERIC(15, 2),
+    height NUMERIC(15, 2),
+    depth NUMERIC(15, 2),
+    weight NUMERIC(15, 2),
+    quantity INTEGER,
+    CONSTRAINT check_width
+             CHECK (width > 1),
+    CONSTRAINT check_height
+             CHECK (height > 1),
+    CONSTRAINT check_depth
+             CHECK (depth > 1),
+    CONSTRAINT check_weight
+             CHECK (weight > 1),
+    CONSTRAINT check_quantity
+                 CHECK (quantity >= 0)
+);
+
