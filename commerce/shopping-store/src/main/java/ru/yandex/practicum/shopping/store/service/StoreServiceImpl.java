@@ -2,6 +2,11 @@ package ru.yandex.practicum.shopping.store.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -27,7 +32,7 @@ public class StoreServiceImpl implements StoreService {
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
 
-    //private final CacheManager cacheManager;
+    private final CacheManager cacheManager;
 
     @Override
     @Loggable
@@ -38,7 +43,7 @@ public class StoreServiceImpl implements StoreService {
 
     @Override
     @Loggable
-    //Cacheable(value = "shopping-store.products", key = "#productId")
+    @Cacheable(value = "shopping-store.products", key = "#productId")
     public ProductDto getById(UUID productId) {
         return productMapper.toDto(productRepository.findById(productId).orElseThrow(() -> {
             log.warn("{}: cannot find Product with id: {}", className, productId);
@@ -51,7 +56,7 @@ public class StoreServiceImpl implements StoreService {
 
     @Override
     @Loggable
-    //@CachePut(value = "shopping-store.products", key = "#result.productId")
+    @CachePut(value = "shopping-store.products", key = "#result.productId")
     @Transactional
     public ProductDto create(ProductDto productDto) {
         Product entity = productMapper.toEntity(productDto);
@@ -61,7 +66,7 @@ public class StoreServiceImpl implements StoreService {
 
     @Override
     @Loggable
-    //@CachePut(value = "shopping-store.products", key = "#result.productId")
+    @CachePut(value = "shopping-store.products", key = "#result.productId")
     @Transactional
     public ProductDto update(ProductDto productDto) {
         Product old = productRepository.findById(productDto.getProductId()).orElseThrow(() -> {
@@ -84,7 +89,7 @@ public class StoreServiceImpl implements StoreService {
     @Override
     @Loggable
     @Transactional
-    //@CachePut(value = "shopping-store.products", key = "#request.productId")
+    @CachePut(value = "shopping-store.products", key = "#request.productId")
     public ProductDto updateQuantityState(SetProductQuantityStateRequest request) {
 
         Product product = productRepository.findById(request.getProductId()).orElseThrow(() -> {
@@ -98,42 +103,38 @@ public class StoreServiceImpl implements StoreService {
         product.setQuantityState(request.getQuantityState());
 
         // метод не возвращает дто, не забываем обновить данные в кэше
-        //cacheManager.getCache("shopping-store.products").put(product.getProductId(), product);
+        cacheManager.getCache("shopping-store.products").put(product.getProductId(), product);
         return productMapper.toDto(product);
     }
 
     @Override
     @Loggable
     @Transactional
-    //@CacheEvict(value = "shopping-store.products", key = "#result.productId")
+    @CacheEvict(value = "shopping-store.products", key = "#result.productId")
     public ProductDto remove(UUID productId) {
         // todo при работе с кэшем была проблема с кавычками в id. обратить внимание при возвращении кэша
 
-        //Cache.ValueWrapper valueWrapper = cacheManager.getCache("shopping-store.products").get(correctProductId);
+        Cache.ValueWrapper valueWrapper = cacheManager.getCache("shopping-store.products").get(productId);
         Product product;
 
-//        boolean cachedProduct = false;
-//        if (valueWrapper != null) {
-//            ProductDto productDto = ((ProductDto) valueWrapper.get());
-//            product = productMapper.toEntity(productDto);
-//            cachedProduct = true;
-//        } else {
-//            // верни меня сюда
-//        }
-
-        // ^^^^^^^^^^
-        product = productRepository.findById(productId).orElseThrow(() -> {
-            log.warn("{}: remove product failure - cannot find Product with id: {}", className, productId);
-            String message = "Product with id: " + productId + " cannot be found";
-            String userMessage = "Product not found";
-            HttpStatus status = HttpStatus.NOT_FOUND;
-            return new StoreProductNotFoundException(message, userMessage, status);
-        });
-
+        boolean cachedProduct = false;
+        if (valueWrapper != null) {
+            ProductDto productDto = ((ProductDto) valueWrapper.get());
+            product = productMapper.toEntity(productDto);
+            cachedProduct = true;
+        } else {
+            product = productRepository.findById(productId).orElseThrow(() -> {
+                log.warn("{}: remove product failure - cannot find Product with id: {}", className, productId);
+                String message = "Product with id: " + productId + " cannot be found";
+                String userMessage = "Product not found";
+                HttpStatus status = HttpStatus.NOT_FOUND;
+                return new StoreProductNotFoundException(message, userMessage, status);
+            });
+        }
 
         product.setProductState(ProductState.DEACTIVATE);
 
-        //if (cachedProduct) productRepository.save(product);
+        if (cachedProduct) productRepository.save(product);
 
         return productMapper.toDto(product);
     }
