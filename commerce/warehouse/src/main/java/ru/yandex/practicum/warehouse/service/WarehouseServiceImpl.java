@@ -12,7 +12,6 @@ import ru.yandex.practicum.interaction.api.dto.NewProductWarehouseRequest;
 import ru.yandex.practicum.interaction.api.dto.ProductDto;
 import ru.yandex.practicum.interaction.api.dto.QuantityState;
 import ru.yandex.practicum.interaction.api.dto.ShoppingCartDto;
-import ru.yandex.practicum.interaction.api.exception.InternalServerException;
 import ru.yandex.practicum.interaction.api.exception.NoSpecifiedProductInWarehouseException;
 import ru.yandex.practicum.interaction.api.exception.ProductInShoppingCartLowQuantityInWarehouseException;
 import ru.yandex.practicum.interaction.api.exception.SpecifiedProductAlreadyInWarehouseException;
@@ -152,24 +151,17 @@ public class WarehouseServiceImpl implements WarehouseService {
         // if (cachedProductFlag) productRepository.save(product);
 
         // null присылает ShoppingStoreFeignFallback
-        //todo тут падает тест warehouse и все тесты корзины, т.к. не находит на стороне shopping-store продукта с таким id
-        // как быть - не понимаю. У магазина и у склада соврешенно разные сущности, их объединяет только количество, и то косвенно
-        // при добавлении нового продукта на склад должен добавляться этот же продукт и в магазин?
-        // но откуда я возьму необходимые параметры productName & description, которые не могут быть Blank?
-        // да и к тому же по тестам необходимо, чтобы id генерировался сам в shopping-store
-
-        //todo можно, наверное, сперва добавлять продукт в магазин, со сгенерированным айдишником уже работать в складском товаре
-        // но, опять таки, откуда взять поля? Сущности то разные совсем...
-
-        //todo а если и не надо добавлять товар на сторону магазина, то так и получается, что невозможно обновить количество того,
-        // чего не существует - всё верно)
-        ProductDto feignUpdateRequestResult = sendUpdateQuantityRequestToShoppingStore(product.getProductId(), product.getQuantity());
-
-        if (feignUpdateRequestResult == null) {
-            log.warn("{}: shoppingStoreFeignClient is unavailable — update quantity request did not reach its destination.", className);
-            String message = "Shopping-store feignClient not available";
-            throw new InternalServerException(message);
-        }
+        //todo я был уверен, что нужно обновлять количество параллельно ещё и в магазине
+        // оказывается, этого делать не нужно. На этом этапе или в принципе?
+        // хотя, будто бы напрашивается по-логике при добавлении на склад обновить информацию и в магазине.
+        // ну ладно. Убрал обновление - тесты проходят))))
+//        ProductDto feignUpdateRequestResult = sendUpdateQuantityRequestToShoppingStore(product.getProductId(), product.getQuantity());
+//
+//        if (feignUpdateRequestResult == null) {
+//            log.warn("{}: shoppingStoreFeignClient is unavailable — update quantity request did not reach its destination.", className);
+//            String message = "Shopping-store feignClient not available";
+//            throw new InternalServerException(message);
+//        }
     }
 
     @Override
