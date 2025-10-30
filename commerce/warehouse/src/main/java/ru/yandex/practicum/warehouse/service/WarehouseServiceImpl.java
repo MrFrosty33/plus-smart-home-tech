@@ -62,9 +62,6 @@ public class WarehouseServiceImpl implements WarehouseService {
         Product product = productMapper.toEntity(request);
         productRepository.save(product);
 
-
-        //todo тут падают тесты корзины. Возможно надо добавлять и в магазин на этом этапе?
-
 //        CachedProduct cachedProduct = productMapper.toCachedProduct(product);
 //        cacheManager.getCache("warehouse.products").put(cachedProduct.getProductId(), cachedProduct);
     }
@@ -155,6 +152,17 @@ public class WarehouseServiceImpl implements WarehouseService {
         // if (cachedProductFlag) productRepository.save(product);
 
         // null присылает ShoppingStoreFeignFallback
+        //todo тут падает тест warehouse и все тесты корзины, т.к. не находит на стороне shopping-store продукта с таким id
+        // как быть - не понимаю. У магазина и у склада соврешенно разные сущности, их объединяет только количество, и то косвенно
+        // при добавлении нового продукта на склад должен добавляться этот же продукт и в магазин?
+        // но откуда я возьму необходимые параметры productName & description, которые не могут быть Blank?
+        // да и к тому же по тестам необходимо, чтобы id генерировался сам в shopping-store
+
+        //todo можно, наверное, сперва добавлять продукт в магазин, со сгенерированным айдишником уже работать в складском товаре
+        // но, опять таки, откуда взять поля? Сущности то разные совсем...
+
+        //todo а если и не надо добавлять товар на сторону магазина, то так и получается, что невозможно обновить количество того,
+        // чего не существует - всё верно)
         ProductDto feignUpdateRequestResult = sendUpdateQuantityRequestToShoppingStore(product.getProductId(), product.getQuantity());
 
         if (feignUpdateRequestResult == null) {

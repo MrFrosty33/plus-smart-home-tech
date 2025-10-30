@@ -1,9 +1,12 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:6543/telemetry_analyzer
-    username: frosty
-    password: ytsorf
+    #url: jdbc:postgresql://localhost:6543/telemetry_analyzer
+    #username: frosty
+    #password: ytsorf
     driver-class-name: org.postgresql.Driver
+  sql:
+    init:
+      mode: always
 
 logging:
   level:

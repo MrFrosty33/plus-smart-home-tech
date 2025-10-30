@@ -44,8 +44,8 @@ services:
       POSTGRES_PASSWORD: ytsorf
     ports:
       - "6543:5432"
-    volumes:
-      - ./db:/docker-entrypoint-initdb.d
+      #volumes:
+      # - ./db:/docker-entrypoint-initdb.d
 
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
