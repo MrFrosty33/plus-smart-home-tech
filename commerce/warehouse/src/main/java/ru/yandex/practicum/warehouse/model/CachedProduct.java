@@ -1,13 +1,13 @@
 package ru.yandex.practicum.warehouse.model;
 
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Data;
 
 import java.math.BigDecimal;
 import java.util.UUID;
 
 @Builder
-@Getter
+@Data
 public class CachedProduct implements ProductInfo {
     private UUID productId;
     private boolean fragile;
