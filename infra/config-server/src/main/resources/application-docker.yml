@@ -18,6 +18,12 @@ server:
   # порт нужен статичный, иначе не могу сделать healthcheck
   port: 8888
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+
 eureka:
   client:
     serviceUrl:
