@@ -15,7 +15,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health, mappings, httptrace, caches, threaddump
+        include: health, info, mappings, httptrace, caches, threaddump
 
 resilience4j.circuitbreaker:
   instances:

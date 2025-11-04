@@ -28,7 +28,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health, mappings, httptrace, caches, threaddump
+        include: health, info, mappings, httptrace, caches, threaddump
 
 logging:
   level:
