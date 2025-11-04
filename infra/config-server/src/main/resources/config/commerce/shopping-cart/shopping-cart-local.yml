@@ -18,6 +18,16 @@ spring:
     caffeine:
       spec: maximumSize=1000,expireAfterWrite=60m
 
+resilience4j.circuitbreaker:
+  instances:
+    shoppingCartCircuitBreaker:
+      slidingWindowSize: 50
+      slidingWindowType: COUNT_BASED
+      failureRateThreshold: 50
+      waitDurationInOpenState: 10s
+      permittedNumberOfCallsInHalfOpenState: 10
+      automaticTransitionFromOpenToHalfOpenEnabled: true
+
 management:
   endpoints:
     web:
