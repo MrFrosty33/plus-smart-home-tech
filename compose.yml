@@ -82,9 +82,22 @@ services:
         condition: service_healthy
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8888/actuator/health" ]
-      # 15 секунд, иначе не факт, что config-server кэшируется в eureka
+      # 10 секунд, иначе не факт, что config-server кэшируется в eureka
       # зависит от eureka.client.registryFetchIntervalSeconds: X
       # в config-server/resources/config/infra/discovery-server/discovery-server-default.yml
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  gateway:
+    build:
+      context: .
+      dockerfile: infra/gateway/Dockerfile
+    depends_on:
+      discovery-server:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/actuator/health" ]
       interval: 10s
       timeout: 3s
       retries: 5
