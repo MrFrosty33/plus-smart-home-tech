@@ -1,0 +1,31 @@
+spring:
+  datasource:
+    #url: jdbc:postgresql://localhost:6543/commerce_payment
+    #username: frosty
+    #password: ytsorf
+    driver-class-name: org.postgresql.Driver
+  sql:
+    init:
+      mode: always
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, mappings, httptrace, caches, threaddump
+
+resilience4j.circuitbreaker:
+  instances:
+    warehouseCircuitBreaker:
+      slidingWindowSize: 50
+      slidingWindowType: COUNT_BASED
+      failureRateThreshold: 50
+      waitDurationInOpenState: 10s
+      permittedNumberOfCallsInHalfOpenState: 10
+      automaticTransitionFromOpenToHalfOpenEnabled: true
+
+logging:
+  level:
+    root: INFO
+    ru.yandex.practicum.payment: TRACE
+    ru.yandex.practicum.interaction.api.logging: TRACE
