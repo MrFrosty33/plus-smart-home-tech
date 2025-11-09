@@ -91,13 +91,11 @@ public class WarehouseServiceImpl implements WarehouseService {
         DoubleAdder deliveryWeight = new DoubleAdder();
         AtomicBoolean fragile = new AtomicBoolean(false);
 
-        products.entrySet()
-                .forEach((entry) -> {
-                            Product product = findInCacheOrDB(entry.getKey());
-                            checkQuantityAndCalculateDeliveryParams(product, entry.getValue(),
-                                    notEnoughFlag, notEnoughProducts, deliveryVolume, deliveryWeight, fragile);
-                        }
-                );
+        products.forEach((key, value) -> {
+            Product product = findInCacheOrDB(key);
+            checkQuantityAndCalculateDeliveryParams(product, value,
+                    notEnoughFlag, notEnoughProducts, deliveryVolume, deliveryWeight, fragile);
+        });
 
         if (notEnoughFlag.get()) {
             log.warn("{}: quantity of Products with ids: {} is less, than required", className, notEnoughProducts);
@@ -121,13 +119,12 @@ public class WarehouseServiceImpl implements WarehouseService {
     @Loggable
     @Transactional
     public void addSpecifiedProduct(AddProductToWarehouseRequest request) {
-        Cache.ValueWrapper valueWrapper = cacheManager.getCache("warehouse.products").get(request.getProductId());
         Product product = findInCacheOrDB(request.getProductId());
 
         product.setQuantity(product.getQuantity() + request.getQuantity());
         productRepository.save(product);
 
-        // раскомментировал, если будут тесты падать - обратно комментируем)
+        //todo раскомментировал, если будут тесты падать - убрать
         ProductDto feignUpdateRequestResult = sendUpdateQuantityRequestToShoppingStore(product.getProductId(), product.getQuantity());
 
         // null присылает ShoppingStoreFeignFallback
@@ -136,6 +133,9 @@ public class WarehouseServiceImpl implements WarehouseService {
             String message = "Shopping-store feignClient not available";
             throw new InternalServerException(message);
         }
+
+        CachedProduct cachedProduct = productMapper.toCachedProduct(product);
+        cacheManager.getCache("warehouse.products").put(cachedProduct.getProductId(), cachedProduct);
     }
 
     @Override
@@ -147,12 +147,11 @@ public class WarehouseServiceImpl implements WarehouseService {
         BookedProductsDto result = checkProductsQuantity(request.getProducts());
 
         List<Product> productsToSave = new ArrayList<>();
-        request.getProducts().entrySet().forEach((entry) -> {
-            Cache.ValueWrapper valueWrapper = cacheManager.getCache("warehouse.products").get(entry.getKey());
-            Product product = findInCacheOrDB(entry.getKey());
+        request.getProducts().forEach((key, value) -> {
+            Product product = findInCacheOrDB(key);
 
             // потом отнимаем
-            product.setQuantity(product.getQuantity() - entry.getValue());
+            product.setQuantity(product.getQuantity() - value);
             productsToSave.add(product);
         });
 
@@ -187,7 +186,22 @@ public class WarehouseServiceImpl implements WarehouseService {
     @Loggable
     @Transactional
     public void returnProducts(ReturnProductsRequest request) {
+        Cache cache = cacheManager.getCache("warehouse.products");
+        List<Product> productsToSave = new ArrayList<>();
 
+        request.getProducts().forEach((key, value) -> {
+            Product product = findInCacheOrDB(key);
+            product.setQuantity(product.getQuantity() + value);
+
+            productsToSave.add(product);
+
+            CachedProduct cachedProduct = productMapper.toCachedProduct(product);
+            cache.put(cachedProduct.getProductId(), cachedProduct);
+
+            sendUpdateQuantityRequestToShoppingStore(key, product.getQuantity());
+        });
+
+        productRepository.saveAll(productsToSave);
     }
 
     @Override
