@@ -3,12 +3,16 @@ CREATE TABLE IF NOT EXISTS orders (
     shopping_cart_id UUID NOT NULL,
     payment_id UUID NOT NULL,
     delivery_iud UUID NOT NULL,
+    state VARCHAR(100) NOT NULL,
     delivery_weight NUMERIC(15, 2),
     delivery_volume NUMERIC(15, 2),
     fragile boolean,
     total_price NUMERIC(15, 2),
     delivery_price NUMERIC(15, 2),
-    products_price NUMERIC(15, 2)
+    products_price NUMERIC(15, 2),
+    CONSTRAINT check_state
+        CHECK (state IN ('NEW', 'ON_PAYMENT', 'ON_DELIVERY', 'DONE', 'DELIVERED', 'ASSEMBLED', 'PAID', 'COMPLETED',
+                'DELIVERY_FAILED', 'ASSEMBLY_FAILED', 'PAYMENT_FAILED', 'PRODUCT_RETURNED', 'CANCELED'))
 );
 
 CREATE TABLE IF NOT EXISTS orders_products (

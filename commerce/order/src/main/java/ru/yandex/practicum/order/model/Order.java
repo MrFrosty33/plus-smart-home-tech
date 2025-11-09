@@ -16,6 +16,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import ru.yandex.practicum.interaction.api.dto.OrderState;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
@@ -43,10 +44,13 @@ public class Order {
     @Column(name = "quantity")
     private Map<UUID, Integer> products = new HashMap<>();
 
-    @Column(name = "payment_id", updatable = false, nullable = false)
+    @Column(name = "payment_id")
     private UUID paymentId;
-    @Column(name = "delivery_id", updatable = false, nullable = false)
+    @Column(name = "delivery_id")
     private UUID deliveryId;
+
+    @Column
+    private OrderState state;
 
     @Positive
     @Column(name = "delivery_weight")

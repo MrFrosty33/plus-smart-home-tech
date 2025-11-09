@@ -21,6 +21,8 @@ public class OrderDto {
     private final UUID paymentId;
     private final UUID deliveryId;
 
+    private final OrderState state;
+
     @Positive
     private final BigDecimal deliveryWeight;
     @Positive
