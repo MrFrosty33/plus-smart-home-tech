@@ -31,6 +31,9 @@ public class OrderBooking {
     @Column(name = "order_booking_id", updatable = false)
     private UUID orderBookingId;
 
+    @Column(name = "delivery_id")
+    private UUID deliveryId;
+
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "products_order_bookings",
             joinColumns = @JoinColumn(name = "order_booking_id"))

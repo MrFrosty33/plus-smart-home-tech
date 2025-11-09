@@ -5,6 +5,7 @@ import ru.yandex.practicum.interaction.api.dto.AddressDto;
 import ru.yandex.practicum.interaction.api.dto.AssemblyProductsForOrderRequest;
 import ru.yandex.practicum.interaction.api.dto.BookedProductsDto;
 import ru.yandex.practicum.interaction.api.dto.NewProductWarehouseRequest;
+import ru.yandex.practicum.interaction.api.dto.WarehouseOrderBookingAddDeliveryRequest;
 
 import java.util.Map;
 import java.util.UUID;
@@ -19,4 +20,6 @@ public interface WarehouseService {
     AddressDto getAddress();
 
     BookedProductsDto assembly(AssemblyProductsForOrderRequest request);
+
+    void addDelivery(WarehouseOrderBookingAddDeliveryRequest request);
 }

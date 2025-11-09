@@ -14,6 +14,8 @@ import ru.yandex.practicum.interaction.api.dto.BookedProductsDto;
 import ru.yandex.practicum.interaction.api.dto.NewProductWarehouseRequest;
 import ru.yandex.practicum.interaction.api.dto.ProductDto;
 import ru.yandex.practicum.interaction.api.dto.QuantityState;
+import ru.yandex.practicum.interaction.api.dto.WarehouseOrderBookingAddDeliveryRequest;
+import ru.yandex.practicum.interaction.api.exception.NoOrderBookingFoundException;
 import ru.yandex.practicum.interaction.api.exception.NoSpecifiedProductInWarehouseException;
 import ru.yandex.practicum.interaction.api.exception.ProductInShoppingCartLowQuantityInWarehouseException;
 import ru.yandex.practicum.interaction.api.exception.SpecifiedProductAlreadyInWarehouseException;
@@ -214,6 +216,20 @@ public class WarehouseServiceImpl implements WarehouseService {
         // и в конце бронируем
         orderBookingRepository.save(orderBooking);
         return result;
+    }
+
+    @Override
+    @Loggable
+    @Transactional
+    public void addDelivery(WarehouseOrderBookingAddDeliveryRequest request) {
+        OrderBooking orderBooking = orderBookingRepository.findById(request.getOrderId()).orElseThrow(() -> {
+            log.warn("{}: cannot find OrderBooking with id: {}", className, request.getOrderId());
+            String message = "OrderBooking with id: " + request.getOrderId() + " cannot be found";
+            String userMessage = "OrderBooking not found";
+            HttpStatus status = HttpStatus.NOT_FOUND;
+            return new NoOrderBookingFoundException(message, userMessage, status);
+        });
+        orderBooking.setDeliveryId(request.getDeliveryId());
     }
 
     @Override

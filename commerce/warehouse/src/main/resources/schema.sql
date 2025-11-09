@@ -19,7 +19,8 @@ CREATE TABLE IF NOT EXISTS products(
 );
 
 CREATE TABLE IF NOT EXISTS order_bookings(
-    order_booking_id UUID PRIMARY KEY
+    order_booking_id UUID PRIMARY KEY,
+    delivery_id UUID
 );
 
 CREATE TABLE IF NOT EXISTS products_order_bookings(

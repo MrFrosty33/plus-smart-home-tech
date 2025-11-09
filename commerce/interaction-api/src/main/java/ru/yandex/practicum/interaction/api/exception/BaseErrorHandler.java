@@ -79,9 +79,17 @@ public class BaseErrorHandler {
     }
 
     @ExceptionHandler(NoOrderFoundException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
     public NoOrderFoundException
     handleSpecifiedProductAlreadyInWarehouse(NoOrderFoundException e) {
+        logError(e);
+        return e;
+    }
+
+    @ExceptionHandler(NoOrderBookingFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public NoOrderBookingFoundException
+    handleSpecifiedProductAlreadyInWarehouse(NoOrderBookingFoundException e) {
         logError(e);
         return e;
     }
