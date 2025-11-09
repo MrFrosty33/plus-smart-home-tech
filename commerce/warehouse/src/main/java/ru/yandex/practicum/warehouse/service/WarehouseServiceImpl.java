@@ -9,11 +9,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.interaction.api.dto.AddProductToWarehouseRequest;
 import ru.yandex.practicum.interaction.api.dto.AddressDto;
+import ru.yandex.practicum.interaction.api.dto.AssemblyProductsForOrderRequest;
 import ru.yandex.practicum.interaction.api.dto.BookedProductsDto;
 import ru.yandex.practicum.interaction.api.dto.NewProductWarehouseRequest;
 import ru.yandex.practicum.interaction.api.dto.ProductDto;
 import ru.yandex.practicum.interaction.api.dto.QuantityState;
-import ru.yandex.practicum.interaction.api.dto.ShoppingCartDto;
 import ru.yandex.practicum.interaction.api.exception.NoSpecifiedProductInWarehouseException;
 import ru.yandex.practicum.interaction.api.exception.ProductInShoppingCartLowQuantityInWarehouseException;
 import ru.yandex.practicum.interaction.api.exception.SpecifiedProductAlreadyInWarehouseException;
@@ -21,25 +21,32 @@ import ru.yandex.practicum.interaction.api.feign.ShoppingStoreFeignClient;
 import ru.yandex.practicum.interaction.api.logging.Loggable;
 import ru.yandex.practicum.warehouse.mapper.ProductMapper;
 import ru.yandex.practicum.warehouse.model.CachedProduct;
+import ru.yandex.practicum.warehouse.model.OrderBooking;
 import ru.yandex.practicum.warehouse.model.Product;
 import ru.yandex.practicum.warehouse.model.ProductInfo;
+import ru.yandex.practicum.warehouse.repository.OrderBookingRepository;
 import ru.yandex.practicum.warehouse.repository.ProductRepository;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.security.SecureRandom;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.DoubleAdder;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class WarehouseServiceImpl implements WarehouseService {
     private final ProductRepository productRepository;
+    private final OrderBookingRepository orderBookingRepository;
     private final ProductMapper productMapper;
     private final ShoppingStoreFeignClient shoppingStoreFeignClient;
     private final String className = this.getClass().getSimpleName();
@@ -70,7 +77,9 @@ public class WarehouseServiceImpl implements WarehouseService {
 
     @Override
     @Loggable
-    public BookedProductsDto checkProductsQuantity(ShoppingCartDto shoppingCartDto) {
+    public BookedProductsDto checkProductsQuantity(Map<UUID, Integer> products) {
+        // переделал параметры метода, было ShoppingCartDto, стал чисто список продуктов
+        // во избежания дублирования кода, ибо в assembly используется тот же алгоритм проверки
         AtomicBoolean notEnoughFlag = new AtomicBoolean(false);
         Set<UUID> notEnoughProducts = new HashSet<>();
 
@@ -78,7 +87,7 @@ public class WarehouseServiceImpl implements WarehouseService {
         DoubleAdder deliveryWeight = new DoubleAdder();
         AtomicBoolean fragile = new AtomicBoolean(false);
 
-        shoppingCartDto.getProducts().entrySet()
+        products.entrySet()
                 .forEach((entry) -> {
                     Cache.ValueWrapper valueWrapper = cacheManager.getCache("warehouse.products").get(entry.getKey());
 
@@ -88,8 +97,6 @@ public class WarehouseServiceImpl implements WarehouseService {
                         checkQuantityAndCalculateDeliveryParams(product, entry.getValue(),
                                 notEnoughFlag, notEnoughProducts, deliveryVolume, deliveryWeight, fragile);
                     } else {
-                        //todo что если товар не существует?
-                        // пока сделаю проброс исключения, но может и не требуется
                         Product product = productRepository.findById(entry.getKey()).orElseThrow(() -> {
                             log.warn("{}: cannot find Product with id: {}", className, entry.getKey());
                             String message = "Product with id: " + entry.getValue() + " cannot be found";
@@ -162,6 +169,51 @@ public class WarehouseServiceImpl implements WarehouseService {
 //            String message = "Shopping-store feignClient not available";
 //            throw new InternalServerException(message);
 //        }
+    }
+
+    @Override
+    @Loggable
+    @Transactional
+    public BookedProductsDto assembly(AssemblyProductsForOrderRequest request) {
+        // этот метод делает всё то же, что и checkProductsQuantity, но ещё и уменьшает количество товаров
+        // так что сперва проверяем количество
+        BookedProductsDto result = checkProductsQuantity(request.getProducts());
+
+        List<Product> productsToSave = new ArrayList<>();
+        request.getProducts().entrySet().forEach((entry) -> {
+            Cache.ValueWrapper valueWrapper = cacheManager.getCache("warehouse.products").get(entry.getKey());
+            Product product;
+
+            // проверка, хранится ли в кэше
+            if (valueWrapper != null) {
+                CachedProduct cachedProduct = ((CachedProduct) valueWrapper.get());
+                product = productMapper.toEntity(cachedProduct);
+            } else {
+                product = productRepository.findById(entry.getKey()).orElseThrow(() -> {
+                    log.warn("{}: cannot find Product with id: {}", className, entry.getKey());
+                    String message = "Product with id: " + entry.getValue() + " cannot be found";
+                    String userMessage = "Product not found";
+                    HttpStatus status = HttpStatus.NOT_FOUND;
+                    return new NoSpecifiedProductInWarehouseException(message, userMessage, status);
+                });
+            }
+
+            // потом отнимаем
+            product.setQuantity(product.getQuantity() - entry.getValue());
+            productsToSave.add(product);
+        });
+
+        productRepository.saveAll(productsToSave);
+
+        OrderBooking orderBooking = OrderBooking.builder()
+                .orderBookingId(request.getOrderId())
+                .products(productsToSave.stream()
+                        .collect(Collectors.toMap(Product::getProductId, Product::getQuantity)))
+                .build();
+
+        // и в конце бронируем
+        orderBookingRepository.save(orderBooking);
+        return result;
     }
 
     @Override

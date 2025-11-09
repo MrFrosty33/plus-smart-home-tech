@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS orders_products (
     product_id UUID NOT NULL,
     quantity INTEGER,
     PRIMARY KEY (order_id, product_id),
-    FOREIGN KEY (order_id) REFERENCES orders(id),
+    FOREIGN KEY (order_id) REFERENCES orders(order_id),
     CONSTRAINT check_quantity
         CHECK (quantity > 0)
 );

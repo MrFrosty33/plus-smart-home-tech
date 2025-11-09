@@ -65,8 +65,7 @@ public class OrderServiceImpl implements OrderService {
     @Loggable
     @Transactional
     public OrderDto create(CreateNewOrderRequest request) {
-        // во время создания заказа создаётся практически пустой заказ
-        // дальше будет дополнятьс
+        // todo сюда вернёмся, когда будут готовы методы по сборке, подготовке к доставке и оплате
         return null;
     }
 
