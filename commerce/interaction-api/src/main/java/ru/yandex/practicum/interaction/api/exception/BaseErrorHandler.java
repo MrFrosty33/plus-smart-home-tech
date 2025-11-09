@@ -15,9 +15,11 @@ public class BaseErrorHandler {
     private final String className = this.getClass().getSimpleName();
 
     @ExceptionHandler(NotAuthorizedUserException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public NotAuthorizedUserException
     handleNotAuthorizedUser(NotAuthorizedUserException e) {
+        //todo поменял с BAD REQUEST
+        // если будут падать тесты прошлого ТЗ, дело в этом
         logError(e);
         return e;
     }
@@ -72,6 +74,14 @@ public class BaseErrorHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public SpecifiedProductAlreadyInWarehouseException
     handleSpecifiedProductAlreadyInWarehouse(SpecifiedProductAlreadyInWarehouseException e) {
+        logError(e);
+        return e;
+    }
+
+    @ExceptionHandler(NoOrderFoundException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public NoOrderFoundException
+    handleSpecifiedProductAlreadyInWarehouse(NoOrderFoundException e) {
         logError(e);
         return e;
     }

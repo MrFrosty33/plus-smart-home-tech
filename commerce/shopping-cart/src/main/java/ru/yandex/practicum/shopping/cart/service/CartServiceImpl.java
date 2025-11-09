@@ -24,6 +24,7 @@ import ru.yandex.practicum.shopping.cart.repository.CartProductRepository;
 import ru.yandex.practicum.shopping.cart.repository.CartRepository;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -43,14 +44,30 @@ public class CartServiceImpl implements CartService {
     @Override
     @Loggable
     @Cacheable(value = "shopping-cart.carts", key = "#username")
-    public ShoppingCartDto get(String username) {
-        return cartMapper.toDto(cartRepository.findByUsername(username).orElseThrow(() -> {
+    public ShoppingCartDto getByUsername(String username) {
+        // было отредактировано - теперь ищет только активную корзину
+        return cartMapper.toDto(cartRepository.findByUsernameAndActive(username, true).orElseThrow(() -> {
             log.warn("{}: no Cart found for username: {}", className, username);
             String message = "Cart for username: " + username + " cannot be found";
             String userMessage = "Cart not found";
             HttpStatus status = HttpStatus.UNAUTHORIZED;
             return new NotAuthorizedUserException(message, userMessage, status);
         }));
+    }
+
+    @Override
+    @Loggable
+    @Cacheable(value = "shopping-cart.carts", key = "#username")
+    public List<ShoppingCartDto> getAllPastByUsername(String username) {
+        List<Cart> carts = cartRepository.findAllByUsernameAndActive(username, false).orElseThrow(() -> {
+            log.warn("{}: no Carts found for username: {}", className, username);
+            String message = "Carts for username: " + username + " cannot be found";
+            String userMessage = "Carts not found";
+            HttpStatus status = HttpStatus.UNAUTHORIZED;
+            return new NotAuthorizedUserException(message, userMessage, status);
+        });
+
+        return carts.stream().map(cartMapper::toDto).toList();
     }
 
     @Override
@@ -123,7 +140,7 @@ public class CartServiceImpl implements CartService {
     @Transactional
     @CachePut(value = "shopping-cart.carts", key = "#username")
     public ShoppingCartDto changeQuantity(String username, ChangeProductQuantityRequest request) {
-        Cart cart = cartRepository.findByUsername(username).orElseThrow(() -> {
+        Cart cart = cartRepository.findByUsernameAndActive(username, true).orElseThrow(() -> {
             log.warn("{}: no Cart found for username: {}", className, username);
             String message = "Cart for username: " + username + " cannot be found";
             String userMessage = "Cart not found";
@@ -152,7 +169,7 @@ public class CartServiceImpl implements CartService {
 
     private Cart getShoppingCartFromDbOrCreate(String username) throws NotAuthorizedUserException {
         if (username != null && !username.isEmpty()) {
-            Optional<Cart> shoppingCart = cartRepository.findByUsername(username);
+            Optional<Cart> shoppingCart = cartRepository.findByUsernameAndActive(username, true);
             if (shoppingCart.isPresent()) {
                 return shoppingCart.get();
             } else {

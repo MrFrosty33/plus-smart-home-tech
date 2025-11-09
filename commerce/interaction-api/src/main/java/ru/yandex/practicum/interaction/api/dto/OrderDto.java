@@ -33,5 +33,5 @@ public class OrderDto {
     @Positive
     private final BigDecimal deliveryPrice;
     @Positive
-    private final BigDecimal productPrice;
+    private final BigDecimal productsPrice;
 }
