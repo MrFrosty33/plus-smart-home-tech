@@ -12,9 +12,11 @@ import ru.yandex.practicum.interaction.api.dto.AddressDto;
 import ru.yandex.practicum.interaction.api.dto.AssemblyProductsForOrderRequest;
 import ru.yandex.practicum.interaction.api.dto.BookedProductsDto;
 import ru.yandex.practicum.interaction.api.dto.NewProductWarehouseRequest;
+import ru.yandex.practicum.interaction.api.dto.OrderBookingAddDeliveryRequest;
 import ru.yandex.practicum.interaction.api.dto.ProductDto;
 import ru.yandex.practicum.interaction.api.dto.QuantityState;
-import ru.yandex.practicum.interaction.api.dto.WarehouseOrderBookingAddDeliveryRequest;
+import ru.yandex.practicum.interaction.api.dto.ReturnProductsRequest;
+import ru.yandex.practicum.interaction.api.exception.InternalServerException;
 import ru.yandex.practicum.interaction.api.exception.NoOrderBookingFoundException;
 import ru.yandex.practicum.interaction.api.exception.NoSpecifiedProductInWarehouseException;
 import ru.yandex.practicum.interaction.api.exception.ProductInShoppingCartLowQuantityInWarehouseException;
@@ -91,26 +93,11 @@ public class WarehouseServiceImpl implements WarehouseService {
 
         products.entrySet()
                 .forEach((entry) -> {
-                    Cache.ValueWrapper valueWrapper = cacheManager.getCache("warehouse.products").get(entry.getKey());
-
-                    // проверка, хранится ли в кэше
-                    if (valueWrapper != null) {
-                        CachedProduct product = ((CachedProduct) valueWrapper.get());
-                        checkQuantityAndCalculateDeliveryParams(product, entry.getValue(),
-                                notEnoughFlag, notEnoughProducts, deliveryVolume, deliveryWeight, fragile);
-                    } else {
-                        Product product = productRepository.findById(entry.getKey()).orElseThrow(() -> {
-                            log.warn("{}: cannot find Product with id: {}", className, entry.getKey());
-                            String message = "Product with id: " + entry.getValue() + " cannot be found";
-                            String userMessage = "Product not found";
-                            HttpStatus status = HttpStatus.NOT_FOUND;
-                            return new NoSpecifiedProductInWarehouseException(message, userMessage, status);
-                        });
-
-                        checkQuantityAndCalculateDeliveryParams(product, entry.getValue(),
-                                notEnoughFlag, notEnoughProducts, deliveryVolume, deliveryWeight, fragile);
-                    }
-                });
+                            Product product = findInCacheOrDB(entry.getKey());
+                            checkQuantityAndCalculateDeliveryParams(product, entry.getValue(),
+                                    notEnoughFlag, notEnoughProducts, deliveryVolume, deliveryWeight, fragile);
+                        }
+                );
 
         if (notEnoughFlag.get()) {
             log.warn("{}: quantity of Products with ids: {} is less, than required", className, notEnoughProducts);
@@ -135,42 +122,20 @@ public class WarehouseServiceImpl implements WarehouseService {
     @Transactional
     public void addSpecifiedProduct(AddProductToWarehouseRequest request) {
         Cache.ValueWrapper valueWrapper = cacheManager.getCache("warehouse.products").get(request.getProductId());
-        Product product;
-
-        boolean cachedProductFlag = false;
-        if (valueWrapper != null) {
-            CachedProduct cachedProduct = ((CachedProduct) valueWrapper.get());
-            product = productMapper.toEntity(cachedProduct);
-            cachedProductFlag = true;
-
-            cachedProduct.setQuantity(product.getQuantity() + request.getQuantity());
-            cacheManager.getCache("warehouse.products").put(request.getProductId(), cachedProduct);
-        } else {
-            product = productRepository.findById(request.getProductId())
-                    .orElseThrow(() -> {
-                        log.warn("{}: cannot find Product with id: {}", className, request.getProductId());
-                        String message = "Product with id: " + request.getProductId() + " cannot be found";
-                        String userMessage = "No product information found";
-                        HttpStatus status = HttpStatus.BAD_REQUEST;
-                        return new NoSpecifiedProductInWarehouseException(message, userMessage, status);
-                    });
-        }
+        Product product = findInCacheOrDB(request.getProductId());
 
         product.setQuantity(product.getQuantity() + request.getQuantity());
-        if (cachedProductFlag) productRepository.save(product);
+        productRepository.save(product);
 
-        //todo я был уверен, что нужно обновлять количество параллельно ещё и в магазине
-        // оказывается, этого делать не нужно. На этом этапе или в принципе?
-        // хотя, будто бы напрашивается по-логике при добавлении на склад обновить информацию и в магазине.
-        // ну ладно. Убрал обновление - тесты проходят))))
-//        ProductDto feignUpdateRequestResult = sendUpdateQuantityRequestToShoppingStore(product.getProductId(), product.getQuantity());
-//
-//        // null присылает ShoppingStoreFeignFallback
-//        if (feignUpdateRequestResult == null) {
-//            log.warn("{}: shoppingStoreFeignClient is unavailable — update quantity request did not reach its destination.", className);
-//            String message = "Shopping-store feignClient not available";
-//            throw new InternalServerException(message);
-//        }
+        // раскомментировал, если будут тесты падать - обратно комментируем)
+        ProductDto feignUpdateRequestResult = sendUpdateQuantityRequestToShoppingStore(product.getProductId(), product.getQuantity());
+
+        // null присылает ShoppingStoreFeignFallback
+        if (feignUpdateRequestResult == null) {
+            log.warn("{}: shoppingStoreFeignClient is unavailable — update quantity request did not reach its destination.", className);
+            String message = "Shopping-store feignClient not available";
+            throw new InternalServerException(message);
+        }
     }
 
     @Override
@@ -184,21 +149,7 @@ public class WarehouseServiceImpl implements WarehouseService {
         List<Product> productsToSave = new ArrayList<>();
         request.getProducts().entrySet().forEach((entry) -> {
             Cache.ValueWrapper valueWrapper = cacheManager.getCache("warehouse.products").get(entry.getKey());
-            Product product;
-
-            // проверка, хранится ли в кэше
-            if (valueWrapper != null) {
-                CachedProduct cachedProduct = ((CachedProduct) valueWrapper.get());
-                product = productMapper.toEntity(cachedProduct);
-            } else {
-                product = productRepository.findById(entry.getKey()).orElseThrow(() -> {
-                    log.warn("{}: cannot find Product with id: {}", className, entry.getKey());
-                    String message = "Product with id: " + entry.getValue() + " cannot be found";
-                    String userMessage = "Product not found";
-                    HttpStatus status = HttpStatus.NOT_FOUND;
-                    return new NoSpecifiedProductInWarehouseException(message, userMessage, status);
-                });
-            }
+            Product product = findInCacheOrDB(entry.getKey());
 
             // потом отнимаем
             product.setQuantity(product.getQuantity() - entry.getValue());
@@ -221,7 +172,7 @@ public class WarehouseServiceImpl implements WarehouseService {
     @Override
     @Loggable
     @Transactional
-    public void addDelivery(WarehouseOrderBookingAddDeliveryRequest request) {
+    public void addDelivery(OrderBookingAddDeliveryRequest request) {
         OrderBooking orderBooking = orderBookingRepository.findById(request.getOrderId()).orElseThrow(() -> {
             log.warn("{}: cannot find OrderBooking with id: {}", className, request.getOrderId());
             String message = "OrderBooking with id: " + request.getOrderId() + " cannot be found";
@@ -230,6 +181,13 @@ public class WarehouseServiceImpl implements WarehouseService {
             return new NoOrderBookingFoundException(message, userMessage, status);
         });
         orderBooking.setDeliveryId(request.getDeliveryId());
+    }
+
+    @Override
+    @Loggable
+    @Transactional
+    public void returnProducts(ReturnProductsRequest request) {
+
     }
 
     @Override
@@ -249,7 +207,27 @@ public class WarehouseServiceImpl implements WarehouseService {
                 .build();
     }
 
-    @Loggable
+    private Product findInCacheOrDB(UUID productId) {
+        Cache.ValueWrapper valueWrapper = cacheManager.getCache("warehouse.products").get(productId);
+        Product product;
+
+        // проверка, хранится ли в кэше
+        if (valueWrapper != null) {
+            CachedProduct cachedProduct = ((CachedProduct) valueWrapper.get());
+            product = productMapper.toEntity(cachedProduct);
+        } else {
+            product = productRepository.findById(productId).orElseThrow(() -> {
+                log.warn("{}: cannot find Product with id: {}", className, productId);
+                String message = "Product with id: " + productId + " cannot be found";
+                String userMessage = "Product not found";
+                HttpStatus status = HttpStatus.NOT_FOUND;
+                return new NoSpecifiedProductInWarehouseException(message, userMessage, status);
+            });
+        }
+
+        return product;
+    }
+
     private void checkQuantityAndCalculateDeliveryParams(ProductInfo product, Integer requiredQuantity,
                                                          AtomicBoolean notEnoughFlag, Set<UUID> notEnoughProducts,
                                                          DoubleAdder deliveryVolume, DoubleAdder deliveryWeight,

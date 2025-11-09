@@ -14,8 +14,9 @@ import ru.yandex.practicum.interaction.api.dto.AddressDto;
 import ru.yandex.practicum.interaction.api.dto.AssemblyProductsForOrderRequest;
 import ru.yandex.practicum.interaction.api.dto.BookedProductsDto;
 import ru.yandex.practicum.interaction.api.dto.NewProductWarehouseRequest;
+import ru.yandex.practicum.interaction.api.dto.OrderBookingAddDeliveryRequest;
+import ru.yandex.practicum.interaction.api.dto.ReturnProductsRequest;
 import ru.yandex.practicum.interaction.api.dto.ShoppingCartDto;
-import ru.yandex.practicum.interaction.api.dto.WarehouseOrderBookingAddDeliveryRequest;
 import ru.yandex.practicum.interaction.api.feign.WarehouseFeignClient;
 import ru.yandex.practicum.warehouse.service.WarehouseService;
 
@@ -52,8 +53,13 @@ public class WarehouseController implements WarehouseFeignClient {
     }
 
     @PostMapping("/shipped")
-    public void addDelivery(@Valid @RequestBody WarehouseOrderBookingAddDeliveryRequest request) {
+    public void addDelivery(@Valid @RequestBody OrderBookingAddDeliveryRequest request) {
+        warehouseService.addDelivery(request);
+    }
 
+    @PostMapping("/return")
+    public void returnProducts(@Valid @RequestBody ReturnProductsRequest request) {
+        warehouseService.returnProducts(request);
     }
 
 
