@@ -5,13 +5,18 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.yandex.practicum.interaction.api.dto.AssemblyProductsForOrderRequest;
+import ru.yandex.practicum.interaction.api.dto.BookedProductsDto;
 import ru.yandex.practicum.interaction.api.dto.CreateNewOrderRequest;
 import ru.yandex.practicum.interaction.api.dto.OrderDto;
+import ru.yandex.practicum.interaction.api.dto.OrderState;
 import ru.yandex.practicum.interaction.api.dto.ProductReturnRequest;
+import ru.yandex.practicum.interaction.api.dto.ReturnProductsRequest;
 import ru.yandex.practicum.interaction.api.dto.ShoppingCartDto;
 import ru.yandex.practicum.interaction.api.exception.InternalServerException;
 import ru.yandex.practicum.interaction.api.exception.NoOrderFoundException;
 import ru.yandex.practicum.interaction.api.feign.ShoppingCartFeignClient;
+import ru.yandex.practicum.interaction.api.feign.WarehouseFeignClient;
 import ru.yandex.practicum.interaction.api.logging.Loggable;
 import ru.yandex.practicum.order.mapper.OrderMapper;
 import ru.yandex.practicum.order.model.Order;
@@ -19,6 +24,7 @@ import ru.yandex.practicum.order.repository.OrderRepository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -31,6 +37,7 @@ public class OrderServiceImpl implements OrderService {
     private final String className = this.getClass().getSimpleName();
 
     private final ShoppingCartFeignClient cartFeignClient;
+    private final WarehouseFeignClient warehouseFeignClient;
 
     @Override
     @Loggable
@@ -65,15 +72,27 @@ public class OrderServiceImpl implements OrderService {
     @Loggable
     @Transactional
     public OrderDto create(CreateNewOrderRequest request) {
-        // todo сюда вернёмся, когда будут готовы методы по сборке, подготовке к доставке и оплате
+        //todo на момент создания заказа, он же ещё не собран, не оплачен и не отправлен? Эти поля пустуют же?
+        // известно только количество товаров
         return null;
     }
 
     @Override
     @Loggable
     @Transactional
-    public ProductReturnRequest returnRequest(ProductReturnRequest request) {
-        return null;
+    public OrderDto returnRequest(ProductReturnRequest request) {
+        Order order = findInCacheOrDB(request.getOrderId());
+
+        request.getProducts().forEach((key, value) -> {
+            Map<UUID, Integer> orderProducts = order.getProducts();
+            Integer oldValue = orderProducts.get(key);
+
+            orderProducts.put(key, oldValue - value);
+            if (orderProducts.get(key) <= 0) orderProducts.remove(key);
+        });
+
+        warehouseFeignClient.returnProducts(new ReturnProductsRequest(request.getProducts()));
+        return orderMapper.toDto(order);
     }
 
     @Override
@@ -96,6 +115,8 @@ public class OrderServiceImpl implements OrderService {
     @Loggable
     @Transactional
     public OrderDto delivery(UUID orderId) {
+        Order order = findInCacheOrDB(orderId);
+        //todo обращаемся в delivery
         return null;
     }
 
@@ -103,7 +124,10 @@ public class OrderServiceImpl implements OrderService {
     @Loggable
     @Transactional
     public OrderDto deliveryFailed(UUID orderId) {
-        return null;
+        //todo delivery вызывает этот метод, если что-то пошло не так?
+        Order order = findInCacheOrDB(orderId);
+        order.setState(OrderState.DELIVERY_FAILED);
+        return orderMapper.toDto(order);
     }
 
     @Override
@@ -131,7 +155,15 @@ public class OrderServiceImpl implements OrderService {
     @Loggable
     @Transactional
     public OrderDto assembly(UUID orderId) {
-        return null;
+        Order order = findInCacheOrDB(orderId);
+        BookedProductsDto bookedProducts = warehouseFeignClient.assembly(
+                new AssemblyProductsForOrderRequest(order.getProducts(), orderId));
+
+        order.setDeliveryWeight(bookedProducts.getDeliveryWeight());
+        order.setDeliveryVolume(bookedProducts.getDeliveryVolume());
+        order.setFragile(bookedProducts.isFragile());
+
+        return orderMapper.toDto(order);
     }
 
     @Override
@@ -139,5 +171,16 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public OrderDto assemblyFailed(UUID orderId) {
         return null;
+    }
+
+    private Order findInCacheOrDB(UUID orderId) {
+        //todo cache
+        return orderRepository.findById(orderId).orElseThrow(() -> {
+            log.warn("{}: no Order found with orderId: {}", className, orderId);
+            String message = "Order with orderId: " + orderId + " cannot be found";
+            String userMessage = "Order not found";
+            HttpStatus status = HttpStatus.NOT_FOUND;
+            return new NoOrderFoundException(message, userMessage, status);
+        });
     }
 }

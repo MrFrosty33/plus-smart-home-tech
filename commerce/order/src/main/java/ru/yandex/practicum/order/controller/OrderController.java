@@ -36,7 +36,7 @@ public class OrderController {
     }
 
     @PostMapping("/return")
-    public ProductReturnRequest returnRequest(ProductReturnRequest request) {
+    public OrderDto returnRequest(ProductReturnRequest request) {
         return orderService.returnRequest(request);
     }
 

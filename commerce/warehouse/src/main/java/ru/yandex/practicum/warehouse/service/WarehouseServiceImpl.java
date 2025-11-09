@@ -13,6 +13,7 @@ import ru.yandex.practicum.interaction.api.dto.AssemblyProductsForOrderRequest;
 import ru.yandex.practicum.interaction.api.dto.BookedProductsDto;
 import ru.yandex.practicum.interaction.api.dto.NewProductWarehouseRequest;
 import ru.yandex.practicum.interaction.api.dto.OrderBookingAddDeliveryRequest;
+import ru.yandex.practicum.interaction.api.dto.OrderDto;
 import ru.yandex.practicum.interaction.api.dto.ProductDto;
 import ru.yandex.practicum.interaction.api.dto.QuantityState;
 import ru.yandex.practicum.interaction.api.dto.ReturnProductsRequest;
@@ -21,6 +22,7 @@ import ru.yandex.practicum.interaction.api.exception.NoOrderBookingFoundExceptio
 import ru.yandex.practicum.interaction.api.exception.NoSpecifiedProductInWarehouseException;
 import ru.yandex.practicum.interaction.api.exception.ProductInShoppingCartLowQuantityInWarehouseException;
 import ru.yandex.practicum.interaction.api.exception.SpecifiedProductAlreadyInWarehouseException;
+import ru.yandex.practicum.interaction.api.feign.OrderFeignClient;
 import ru.yandex.practicum.interaction.api.feign.ShoppingStoreFeignClient;
 import ru.yandex.practicum.interaction.api.logging.Loggable;
 import ru.yandex.practicum.warehouse.mapper.ProductMapper;
@@ -52,12 +54,14 @@ public class WarehouseServiceImpl implements WarehouseService {
     private final ProductRepository productRepository;
     private final OrderBookingRepository orderBookingRepository;
     private final ProductMapper productMapper;
-    private final ShoppingStoreFeignClient shoppingStoreFeignClient;
     private final String className = this.getClass().getSimpleName();
 
     // тут с кэшем везде вручную, ибо кэш вставляется из возвращаемого значения
     // а возвращаемых значения у методов либо отсутствуют, либо разные
     private final CacheManager cacheManager;
+
+    private final ShoppingStoreFeignClient shoppingStoreFeignClient;
+    private final OrderFeignClient orderFeignClient;
 
     @Override
     @Loggable
@@ -144,28 +148,49 @@ public class WarehouseServiceImpl implements WarehouseService {
     public BookedProductsDto assembly(AssemblyProductsForOrderRequest request) {
         // этот метод делает всё то же, что и checkProductsQuantity, но ещё и уменьшает количество товаров
         // так что сперва проверяем количество
-        BookedProductsDto result = checkProductsQuantity(request.getProducts());
+        try {
+            BookedProductsDto result = checkProductsQuantity(request.getProducts());
 
-        List<Product> productsToSave = new ArrayList<>();
-        request.getProducts().forEach((key, value) -> {
-            Product product = findInCacheOrDB(key);
+            List<Product> productsToSave = new ArrayList<>();
+            request.getProducts().forEach((key, value) -> {
+                Product product = findInCacheOrDB(key);
 
-            // потом отнимаем
-            product.setQuantity(product.getQuantity() - value);
-            productsToSave.add(product);
-        });
+                // потом отнимаем
+                product.setQuantity(product.getQuantity() - value);
+                productsToSave.add(product);
+            });
 
-        productRepository.saveAll(productsToSave);
+            productRepository.saveAll(productsToSave);
 
-        OrderBooking orderBooking = OrderBooking.builder()
-                .orderBookingId(request.getOrderId())
-                .products(productsToSave.stream()
-                        .collect(Collectors.toMap(Product::getProductId, Product::getQuantity)))
-                .build();
+            OrderBooking orderBooking = OrderBooking.builder()
+                    .orderBookingId(request.getOrderId())
+                    .products(productsToSave.stream()
+                            .collect(Collectors.toMap(Product::getProductId, Product::getQuantity)))
+                    .build();
 
-        // и в конце бронируем
-        orderBookingRepository.save(orderBooking);
-        return result;
+            // и в конце бронируем
+            orderBookingRepository.save(orderBooking);
+            return result;
+        } catch (Exception e) {
+            //todo здесь и в других failure case
+            //todo вариант 1
+            OrderDto orderDto = orderFeignClient.assemblyFailed(request.getOrderId());
+            return BookedProductsDto.builder()
+                    .fragile(orderDto.isFragile())
+                    .deliveryVolume(orderDto.getDeliveryVolume())
+                    .deliveryWeight(orderDto.getDeliveryWeight())
+                    .build();
+
+            //todo вариант 2
+//            orderFeignClient.assemblyFailed(request.getOrderId());
+//            log.warn("{}: failure while processing assembly() with request: {}", className, request);
+//            String message = "Assembly failure";
+//            throw new InternalServerException(message);
+
+            //todo но будто бы первый вариант странный. Пытались собрать - не получилось.
+            // В Order проставился статус ASSEMBLY_FAILED , остальное так же и есть по нулям
+            // и здесь возвращаем просто BookedProductsDto с нулями
+        }
     }
 
     @Override
