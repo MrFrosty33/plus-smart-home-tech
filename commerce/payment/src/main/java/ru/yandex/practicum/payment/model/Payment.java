@@ -36,8 +36,8 @@ public class Payment {
     private BigDecimal totalPayment;
     @Column(name = "delivery_total")
     private BigDecimal deliveryTotal;
-    @Column(name = "fee_total")
-    private BigDecimal feeTotal;
+    @Column(name = "product_total")
+    private BigDecimal productTotal;
 
     @Column(name = "payment_state")
     private PaymentState paymentState;

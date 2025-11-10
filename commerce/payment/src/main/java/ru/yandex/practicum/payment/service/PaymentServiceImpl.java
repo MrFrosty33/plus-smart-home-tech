@@ -39,6 +39,9 @@ public class PaymentServiceImpl implements PaymentService {
     @Transactional
     @Loggable
     public PaymentDto createPayment(OrderDto orderDto) {
+        Payment payment = new Payment();
+        payment.setOrderId(orderDto.getOrderId());
+
         return null;
     }
 

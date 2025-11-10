@@ -20,7 +20,7 @@ public class PaymentDto {
     @Positive
     private final BigDecimal deliveryTotal;
     @Positive
-    private final BigDecimal feeTotal;
+    private final BigDecimal productTotal;
 
     private final PaymentState paymentState;
 }
