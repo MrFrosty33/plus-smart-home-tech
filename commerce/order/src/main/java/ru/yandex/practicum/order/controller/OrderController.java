@@ -76,6 +76,11 @@ public class OrderController implements OrderFeignClient {
         return orderService.calculateDelivery(orderId);
     }
 
+    @PostMapping("/calculate/product")
+    public OrderDto calculateProductPrice(@RequestBody UUID orderId) {
+        return orderService.calculateProduct(orderId);
+    }
+
     @PostMapping("/assembly")
     public OrderDto assemblyOrder(@RequestBody UUID orderId) {
         return orderService.assembly(orderId);

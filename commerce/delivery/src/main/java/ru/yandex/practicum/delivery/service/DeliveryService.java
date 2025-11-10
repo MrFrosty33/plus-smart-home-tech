@@ -9,11 +9,11 @@ import java.util.UUID;
 public interface DeliveryService {
     DeliveryDto create(DeliveryDto deliveryDto);
 
-    void successful(UUID orderId);
+    void deliverySuccessful(UUID orderId);
 
-    void picked(UUID orderId);
+    void deliveryPicked(UUID orderId);
 
-    void failed(UUID orderId);
+    void deliveryFailed(UUID orderId);
 
     BigDecimal calculateDeliveryCost(OrderDto orderDto);
 }

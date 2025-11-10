@@ -28,6 +28,8 @@ public interface OrderService {
 
     OrderDto calculateDelivery(UUID orderId);
 
+    OrderDto calculateProduct(UUID orderId);
+
     OrderDto assembly(UUID orderId);
 
     OrderDto assemblyFailed(UUID orderId);

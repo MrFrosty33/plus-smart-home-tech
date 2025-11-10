@@ -29,17 +29,17 @@ public class DeliveryController implements DeliveryFeignClient {
 
     @PostMapping("/successful")
     public void deliverySuccessful(@RequestBody UUID orderId) {
-        deliveryService.successful(orderId);
+        deliveryService.deliverySuccessful(orderId);
     }
 
     @PostMapping("/picked")
     public void deliveryPicked(@RequestBody UUID orderId) {
-        deliveryService.picked(orderId);
+        deliveryService.deliveryPicked(orderId);
     }
 
     @PostMapping("/failed")
     public void deliveryFailed(@RequestBody UUID orderId) {
-        deliveryService.failed(orderId);
+        deliveryService.deliveryFailed(orderId);
     }
 
     @PostMapping("/cost")

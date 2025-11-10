@@ -13,6 +13,7 @@ import jakarta.persistence.MapKeyColumn;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -29,6 +30,7 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Order {
     @Id
     @Column(name = "order_id", updatable = false, nullable = false)

@@ -40,13 +40,15 @@ public class PaymentServiceImpl implements PaymentService {
     @Transactional
     @Loggable
     public PaymentDto createPayment(OrderDto orderDto) {
-        Payment payment = new Payment();
+        Payment payment = Payment.builder()
+                .orderId(orderDto.getOrderId())
+                .productTotal(orderDto.getProductsPrice())
+                .deliveryTotal(orderDto.getDeliveryPrice())
+                .totalPayment(orderDto.getTotalPrice())
+                .paymentState(PaymentState.PENDING)
+                .build();
 
-        payment.setOrderId(orderDto.getOrderId());
-        payment.setProductTotal(orderDto.getProductsPrice());
-        payment.setDeliveryTotal(orderDto.getDeliveryPrice());
-        payment.setTotalPayment(orderDto.getTotalPrice());
-        payment.setPaymentState(PaymentState.PENDING);
+        paymentRepository.save(payment);
 
         return paymentMapper.toDto(payment);
     }
@@ -102,6 +104,8 @@ public class PaymentServiceImpl implements PaymentService {
 
         payment.setPaymentState(PaymentState.SUCCESS);
 
+        paymentRepository.save(payment);
+
         OrderDto payedOrder = orderFeignClient.paymentOrder(payment.getOrderId());
         if (payedOrder == null) {
             log.warn("{}: orderFeignClient is unavailable — payment success request did not reach its destination.", className);
@@ -117,6 +121,8 @@ public class PaymentServiceImpl implements PaymentService {
         Payment payment = findPaymentInCacheOrDb(paymentId);
 
         payment.setPaymentState(PaymentState.FAILED);
+
+        paymentRepository.save(payment);
 
         OrderDto payedOrder = orderFeignClient.paymentOrderFailed(payment.getOrderId());
         if (payedOrder == null) {

@@ -29,6 +29,6 @@ public class DeliveryFeignFallback implements DeliveryFeignClient {
 
     @Override
     public BigDecimal calculateDeliveryCost(OrderDto orderDto) {
-        return null;
+        return BigDecimal.ZERO;
     }
 }

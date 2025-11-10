@@ -2,10 +2,13 @@ package ru.yandex.practicum.interaction.api.feign;
 
 import jakarta.validation.Valid;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import ru.yandex.practicum.interaction.api.dto.AddressDto;
 import ru.yandex.practicum.interaction.api.dto.AssemblyProductsForOrderRequest;
 import ru.yandex.practicum.interaction.api.dto.BookedProductsDto;
+import ru.yandex.practicum.interaction.api.dto.OrderBookingAddDeliveryRequest;
 import ru.yandex.practicum.interaction.api.dto.ReturnProductsRequest;
 import ru.yandex.practicum.interaction.api.dto.ShoppingCartDto;
 
@@ -20,4 +23,10 @@ public interface WarehouseFeignClient {
 
     @PostMapping("/api/v1/warehouse/return")
     void returnProducts(@Valid @RequestBody ReturnProductsRequest request);
+
+    @PostMapping("/api/v1/warehouse/shipped")
+    void addDelivery(@Valid @RequestBody OrderBookingAddDeliveryRequest request);
+
+    @GetMapping("/api/v1/warehouse/address")
+    AddressDto getAddress();
 }
