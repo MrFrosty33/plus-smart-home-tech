@@ -81,7 +81,7 @@ public class BaseErrorHandler {
     @ExceptionHandler(NoOrderFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public NoOrderFoundException
-    handleSpecifiedProductAlreadyInWarehouse(NoOrderFoundException e) {
+    handleNoOrderFound(NoOrderFoundException e) {
         logError(e);
         return e;
     }
@@ -89,10 +89,19 @@ public class BaseErrorHandler {
     @ExceptionHandler(NoOrderBookingFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public NoOrderBookingFoundException
-    handleSpecifiedProductAlreadyInWarehouse(NoOrderBookingFoundException e) {
+    handleNoOrderBookingFound(NoOrderBookingFoundException e) {
         logError(e);
         return e;
     }
+
+    @ExceptionHandler(NoDeliveryFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public NoDeliveryFoundException
+    handleNoDeliveryFound(NoDeliveryFoundException e) {
+        logError(e);
+        return e;
+    }
+
 
     @ExceptionHandler(RetryableException.class)
     @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
