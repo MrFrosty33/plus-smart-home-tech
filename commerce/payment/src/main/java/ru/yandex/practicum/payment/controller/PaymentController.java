@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.interaction.api.dto.OrderDto;
 import ru.yandex.practicum.interaction.api.dto.PaymentDto;
+import ru.yandex.practicum.interaction.api.feign.PaymentFeignClient;
 import ru.yandex.practicum.payment.service.PaymentService;
 
 import java.math.BigDecimal;
@@ -18,7 +19,7 @@ import java.util.UUID;
 @RequestMapping("/api/v1/payment")
 @RequiredArgsConstructor
 @Validated
-public class PaymentController {
+public class PaymentController implements PaymentFeignClient {
     private final PaymentService paymentService;
 
     @PostMapping
