@@ -78,6 +78,14 @@ public class BaseErrorHandler {
         return e;
     }
 
+    @ExceptionHandler(NotEnoughInfoToCalculateException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public NotEnoughInfoToCalculateException
+    handleNotEnoughInfoToCalculate(NotEnoughInfoToCalculateException e) {
+        logError(e);
+        return e;
+    }
+
     @ExceptionHandler(NoOrderFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public NoOrderFoundException
