@@ -28,6 +28,11 @@ public class PaymentFeignFallback implements PaymentFeignClient {
     }
 
     @Override
+    public void paymentSuccess(UUID paymentId) {
+
+    }
+
+    @Override
     public void paymentFailed(UUID paymentId) {
 
     }

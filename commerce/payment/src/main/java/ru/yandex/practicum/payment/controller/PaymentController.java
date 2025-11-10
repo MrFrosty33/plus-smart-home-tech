@@ -42,6 +42,11 @@ public class PaymentController implements PaymentFeignClient {
         return paymentService.calculateProductCost(orderDto);
     }
 
+    @PostMapping("/success")
+    public void paymentSuccess(@RequestBody UUID paymentId) {
+        paymentService.paymentSuccess(paymentId);
+    }
+
     @PostMapping("/failed")
     public void paymentFailed(@RequestBody UUID paymentId) {
         paymentService.paymentFailed(paymentId);

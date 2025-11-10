@@ -24,6 +24,9 @@ public interface PaymentFeignClient {
     @PostMapping("/api/v1/payment/productCost")
     BigDecimal calculateProductCost(@RequestBody @Valid OrderDto orderDto);
 
+    @PostMapping("/api/v1/payment/success")
+    void paymentSuccess(@RequestBody UUID paymentId);
+
     @PostMapping("/api/v1/payment/failed")
     void paymentFailed(@RequestBody UUID paymentId);
 }
