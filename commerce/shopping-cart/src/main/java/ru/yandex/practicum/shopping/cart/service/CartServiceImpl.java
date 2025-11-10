@@ -93,7 +93,6 @@ public class CartServiceImpl implements CartService {
             String message = "warehouse feignClient not available";
             throw new InternalServerException(message);
         }
-        //todo дальше уже наверно будет оформление заказа?
         return cartDto;
     }
 

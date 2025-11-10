@@ -89,8 +89,6 @@ public class DeliveryServiceImpl implements DeliveryService {
         return deliveryMapper.toDto(delivery);
     }
 
-    //todo связи с feign
-
     @Override
     @Transactional
     @Loggable
@@ -146,7 +144,6 @@ public class DeliveryServiceImpl implements DeliveryService {
         result = result.setScale(2, RoundingMode.UP);
         Delivery delivery = findInCacheOrDbByOrderId(orderDto.getOrderId());
 
-        //todo буду пока в fromAddress везде вставлять значения, полученые со склада
         if (delivery.getFromAddress().getStreet().equals("ADDRESS_1")) {
             result = result.multiply(BigDecimal.valueOf(1));
         }

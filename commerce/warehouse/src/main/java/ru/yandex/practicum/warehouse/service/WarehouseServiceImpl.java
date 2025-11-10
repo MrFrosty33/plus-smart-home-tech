@@ -127,8 +127,6 @@ public class WarehouseServiceImpl implements WarehouseService {
 
         product.setQuantity(product.getQuantity() + request.getQuantity());
         productRepository.save(product);
-
-        //todo раскомментировал, если будут тесты падать - убрать
         ProductDto feignUpdateRequestResult = sendUpdateQuantityRequestToShoppingStore(product.getProductId(), product.getQuantity());
 
         // null присылает ShoppingStoreFeignFallback
@@ -172,24 +170,16 @@ public class WarehouseServiceImpl implements WarehouseService {
             orderBookingRepository.save(orderBooking);
             return result;
         } catch (Exception e) {
-            //todo здесь и в других failure case
-            //todo вариант 1
-            OrderDto orderDto = orderFeignClient.assemblyOrderFailed(request.getOrderId());
-            return BookedProductsDto.builder()
-                    .fragile(orderDto.isFragile())
-                    .deliveryVolume(orderDto.getDeliveryVolume())
-                    .deliveryWeight(orderDto.getDeliveryWeight())
-                    .build();
+            OrderDto order = orderFeignClient.assemblyOrderFailed(request.getOrderId());
+            if (order == null) {
+                log.warn("{}: orderFeignClient is unavailable — delivery failed request did not reach its destination.", className);
+                String message = "Order feignClient not available";
+                throw new InternalServerException(message);
+            }
 
-            //todo вариант 2
-//            orderFeignClient.assemblyFailed(request.getOrderId());
-//            log.warn("{}: failure while processing assembly() with request: {}", className, request);
-//            String message = "Assembly failure";
-//            throw new InternalServerException(message);
-
-            //todo но будто бы первый вариант странный. Пытались собрать - не получилось.
-            // В Order проставился статус ASSEMBLY_FAILED , остальное так же и есть по нулям
-            // и здесь возвращаем просто BookedProductsDto с нулями
+            log.warn("{}: failure while processing assembly() with request: {}", className, request);
+            String message = "Assembly failure";
+            throw new InternalServerException(message);
         }
     }
 

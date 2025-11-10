@@ -18,8 +18,6 @@ public class BaseErrorHandler {
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public NotAuthorizedUserException
     handleNotAuthorizedUser(NotAuthorizedUserException e) {
-        //todo поменял с BAD REQUEST
-        // если будут падать тесты прошлого ТЗ, дело в этом
         logError(e);
         return e;
     }

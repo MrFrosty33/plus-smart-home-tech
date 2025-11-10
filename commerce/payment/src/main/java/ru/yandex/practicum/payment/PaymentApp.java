@@ -9,12 +9,6 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 public class PaymentApp {
 
     //TODO
-    // в спецификациях есть неточности. В некоторых эндпоинтах можно запрашивать будет допольнительные параметры
-
-    //TODO
-    // не забыть добавить новые БД и таблицы в db/schema.sql
-
-    //TODO
     // опционально, после реализации всего:
     // cache
     // Spring Security - накинуть на gateway, чтобы каждый запрос аутентифицировался, см. QA
