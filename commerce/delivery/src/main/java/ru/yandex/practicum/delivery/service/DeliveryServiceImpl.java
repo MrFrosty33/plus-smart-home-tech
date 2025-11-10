@@ -1,4 +1,98 @@
 package ru.yandex.practicum.delivery.service;
 
-public class DeliveryServiceImpl {
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import ru.yandex.practicum.delivery.mapper.AddressMapper;
+import ru.yandex.practicum.delivery.mapper.DeliveryMapper;
+import ru.yandex.practicum.delivery.model.Address;
+import ru.yandex.practicum.delivery.model.Delivery;
+import ru.yandex.practicum.delivery.repository.AddressRepository;
+import ru.yandex.practicum.delivery.repository.DeliveryRepository;
+import ru.yandex.practicum.interaction.api.dto.AddressDto;
+import ru.yandex.practicum.interaction.api.dto.DeliveryDto;
+import ru.yandex.practicum.interaction.api.dto.DeliveryState;
+import ru.yandex.practicum.interaction.api.dto.OrderDto;
+
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.UUID;
+
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class DeliveryServiceImpl implements DeliveryService {
+    private final String className = this.getClass().getSimpleName();
+    private final AddressRepository addressRepository;
+    private final DeliveryRepository deliveryRepository;
+    private final AddressMapper addressMapper;
+    private final DeliveryMapper deliveryMapper;
+
+    @Override
+    public DeliveryDto create(DeliveryDto deliveryDto) {
+        AddressDto fromAddressDto = deliveryDto.getFromAddress();
+        Address fromAddressEntity = addressRepository
+                .findByCountryAndCityAndStreetAndHouseAndFlat(
+                        fromAddressDto.getCountry(),
+                        fromAddressDto.getCity(),
+                        fromAddressDto.getStreet(),
+                        fromAddressDto.getHouse(),
+                        fromAddressDto.getFlat())
+                .orElse(Address.builder()
+                        .country(fromAddressDto.getCountry())
+                        .city(fromAddressDto.getCity())
+                        .street(fromAddressDto.getStreet())
+                        .house(fromAddressDto.getHouse())
+                        .flat(fromAddressDto.getFlat())
+                        .build());
+
+        AddressDto toAddressDto = deliveryDto.getFromAddress();
+        Address toAddressEntity = addressRepository
+                .findByCountryAndCityAndStreetAndHouseAndFlat(
+                        toAddressDto.getCountry(),
+                        toAddressDto.getCity(),
+                        toAddressDto.getStreet(),
+                        toAddressDto.getHouse(),
+                        toAddressDto.getFlat())
+                .orElse(Address.builder()
+                        .country(toAddressDto.getCountry())
+                        .city(toAddressDto.getCity())
+                        .street(toAddressDto.getStreet())
+                        .house(toAddressDto.getHouse())
+                        .flat(toAddressDto.getFlat())
+                        .build());
+
+        Delivery delivery = Delivery.builder()
+                .deliveryState(DeliveryState.CREATED)
+                .orderId(deliveryDto.getOrderId())
+                .fromAddress(fromAddressEntity)
+                .toAddress(toAddressEntity)
+                .orderId(deliveryDto.getOrderId())
+                .build();
+
+        addressRepository.saveAll(List.of(fromAddressEntity, toAddressEntity));
+        deliveryRepository.save(delivery);
+
+        return deliveryMapper.toDto(delivery);
+    }
+
+    @Override
+    public void successful(UUID orderId) {
+
+    }
+
+    @Override
+    public void picked(UUID orderId) {
+
+    }
+
+    @Override
+    public void failed(UUID orderId) {
+
+    }
+
+    @Override
+    public BigDecimal calculateDeliveryCost(OrderDto orderDto) {
+        return null;
+    }
 }
