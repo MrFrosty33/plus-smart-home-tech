@@ -18,9 +18,6 @@ public interface PaymentFeignClient {
     @PostMapping("/api/v1/payment/totalCost")
     BigDecimal calculateTotalCost(@RequestBody @Valid OrderDto orderDto);
 
-    @PostMapping("/api/v1/payment/refund")
-    void refundPayment(@RequestBody UUID paymentId);
-
     @PostMapping("/api/v1/payment/productCost")
     BigDecimal calculateProductCost(@RequestBody @Valid OrderDto orderDto);
 

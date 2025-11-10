@@ -32,11 +32,6 @@ public class PaymentController implements PaymentFeignClient {
         return paymentService.calculateTotalCost(orderDto);
     }
 
-    @PostMapping("/refund")
-    public void refundPayment(@RequestBody UUID paymentId) {
-        paymentService.refundPayment(paymentId);
-    }
-
     @PostMapping("/productCost")
     public BigDecimal calculateProductCost(@RequestBody @Valid OrderDto orderDto) {
         return paymentService.calculateProductCost(orderDto);

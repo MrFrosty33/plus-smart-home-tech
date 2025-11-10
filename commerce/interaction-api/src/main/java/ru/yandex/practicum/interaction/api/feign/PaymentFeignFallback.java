@@ -18,11 +18,6 @@ public class PaymentFeignFallback implements PaymentFeignClient {
     }
 
     @Override
-    public void refundPayment(UUID paymentId) {
-
-    }
-
-    @Override
     public BigDecimal calculateProductCost(OrderDto orderDto) {
         return null;
     }

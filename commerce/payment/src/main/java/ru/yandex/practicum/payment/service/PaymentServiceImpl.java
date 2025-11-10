@@ -56,13 +56,6 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    @Transactional
-    @Loggable
-    public void refundPayment(UUID paymentId) {
-
-    }
-
-    @Override
     @Loggable
     public BigDecimal calculateProductCost(OrderDto orderDto) {
         AtomicReference<BigDecimal> result = new AtomicReference<>(BigDecimal.ZERO);
