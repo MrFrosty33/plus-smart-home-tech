@@ -2,6 +2,7 @@ package ru.yandex.practicum.delivery.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.delivery.mapper.AddressMapper;
 import ru.yandex.practicum.delivery.mapper.DeliveryMapper;
@@ -13,6 +14,7 @@ import ru.yandex.practicum.interaction.api.dto.AddressDto;
 import ru.yandex.practicum.interaction.api.dto.DeliveryDto;
 import ru.yandex.practicum.interaction.api.dto.DeliveryState;
 import ru.yandex.practicum.interaction.api.dto.OrderDto;
+import ru.yandex.practicum.interaction.api.exception.NoDeliveryFoundException;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -78,17 +80,38 @@ public class DeliveryServiceImpl implements DeliveryService {
 
     @Override
     public void successful(UUID orderId) {
-
+        Delivery delivery = deliveryRepository.findByOrderId(orderId).orElseThrow(() -> {
+            log.warn("{}: no Deliveries found for orderId: {}", className, orderId);
+            String message = "Deliveries for orderId: " + orderId + " cannot be found";
+            String userMessage = "Deliveries not found";
+            HttpStatus status = HttpStatus.NOT_FOUND;
+            return new NoDeliveryFoundException(message, userMessage, status);
+        });
+        delivery.setDeliveryState(DeliveryState.DELIVERED);
     }
 
     @Override
     public void picked(UUID orderId) {
-
+        Delivery delivery = deliveryRepository.findByOrderId(orderId).orElseThrow(() -> {
+            log.warn("{}: no Deliveries found for orderId: {}", className, orderId);
+            String message = "Deliveries for orderId: " + orderId + " cannot be found";
+            String userMessage = "Deliveries not found";
+            HttpStatus status = HttpStatus.NOT_FOUND;
+            return new NoDeliveryFoundException(message, userMessage, status);
+        });
+        delivery.setDeliveryState(DeliveryState.IN_PROGRESS);
     }
 
     @Override
     public void failed(UUID orderId) {
-
+        Delivery delivery = deliveryRepository.findByOrderId(orderId).orElseThrow(() -> {
+            log.warn("{}: no Deliveries found for orderId: {}", className, orderId);
+            String message = "Deliveries for orderId: " + orderId + " cannot be found";
+            String userMessage = "Deliveries not found";
+            HttpStatus status = HttpStatus.NOT_FOUND;
+            return new NoDeliveryFoundException(message, userMessage, status);
+        });
+        delivery.setDeliveryState(DeliveryState.FAILED);
     }
 
     @Override
