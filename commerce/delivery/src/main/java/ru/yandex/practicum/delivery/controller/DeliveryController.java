@@ -22,22 +22,22 @@ public class DeliveryController {
     private final DeliveryService deliveryService;
 
     @PutMapping
-    public DeliveryDto create(@RequestBody DeliveryDto deliveryDto) {
+    public DeliveryDto createDelivery(@RequestBody DeliveryDto deliveryDto) {
         return deliveryService.create(deliveryDto);
     }
 
     @PostMapping("/successful")
-    public void successful(@RequestBody UUID orderId) {
+    public void deliverySuccessful(@RequestBody UUID orderId) {
         deliveryService.successful(orderId);
     }
 
     @PostMapping("/picked")
-    public void picked(@RequestBody UUID orderId) {
+    public void deliveryPicked(@RequestBody UUID orderId) {
         deliveryService.picked(orderId);
     }
 
     @PostMapping("/failed")
-    public void failed(@RequestBody UUID orderId) {
+    public void deliveryFailed(@RequestBody UUID orderId) {
         deliveryService.failed(orderId);
     }
 

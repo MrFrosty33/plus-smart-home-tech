@@ -156,7 +156,7 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public OrderDto assembly(UUID orderId) {
         Order order = findInCacheOrDB(orderId);
-        BookedProductsDto bookedProducts = warehouseFeignClient.assembly(
+        BookedProductsDto bookedProducts = warehouseFeignClient.assemblyOrder(
                 new AssemblyProductsForOrderRequest(order.getProducts(), orderId));
 
         order.setDeliveryWeight(bookedProducts.getDeliveryWeight());

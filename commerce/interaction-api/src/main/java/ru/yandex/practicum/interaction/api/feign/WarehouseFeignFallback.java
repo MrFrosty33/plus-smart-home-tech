@@ -14,7 +14,7 @@ public class WarehouseFeignFallback implements WarehouseFeignClient {
     }
 
     @Override
-    public BookedProductsDto assembly(AssemblyProductsForOrderRequest request) {
+    public BookedProductsDto assemblyOrder(AssemblyProductsForOrderRequest request) {
         return null;
     }
 

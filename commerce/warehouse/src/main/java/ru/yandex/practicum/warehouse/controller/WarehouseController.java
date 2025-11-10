@@ -48,7 +48,7 @@ public class WarehouseController implements WarehouseFeignClient {
     }
 
     @PostMapping("/assembly")
-    public BookedProductsDto assembly(@Valid @RequestBody AssemblyProductsForOrderRequest request) {
+    public BookedProductsDto assemblyOrder(@Valid @RequestBody AssemblyProductsForOrderRequest request) {
         return warehouseService.assembly(request);
     }
 

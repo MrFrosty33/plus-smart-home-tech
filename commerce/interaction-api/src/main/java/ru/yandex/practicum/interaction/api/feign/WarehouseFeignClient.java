@@ -16,7 +16,7 @@ public interface WarehouseFeignClient {
     BookedProductsDto checkProductsQuantity(@Valid @RequestBody ShoppingCartDto shoppingCartDto);
 
     @PostMapping("/api/v1/warehouse/assembly")
-    BookedProductsDto assembly(@Valid @RequestBody AssemblyProductsForOrderRequest request);
+    BookedProductsDto assemblyOrder(@Valid @RequestBody AssemblyProductsForOrderRequest request);
 
     @PostMapping("/api/v1/warehouse/return")
     void returnProducts(@Valid @RequestBody ReturnProductsRequest request);
