@@ -174,7 +174,7 @@ public class WarehouseServiceImpl implements WarehouseService {
         } catch (Exception e) {
             //todo здесь и в других failure case
             //todo вариант 1
-            OrderDto orderDto = orderFeignClient.assemblyFailed(request.getOrderId());
+            OrderDto orderDto = orderFeignClient.assemblyOrderFailed(request.getOrderId());
             return BookedProductsDto.builder()
                     .fragile(orderDto.isFragile())
                     .deliveryVolume(orderDto.getDeliveryVolume())

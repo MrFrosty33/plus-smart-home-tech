@@ -19,6 +19,7 @@ import ru.yandex.practicum.interaction.api.exception.NoDeliveryFoundException;
 import ru.yandex.practicum.interaction.api.logging.Loggable;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.UUID;
 
@@ -82,6 +83,8 @@ public class DeliveryServiceImpl implements DeliveryService {
         return deliveryMapper.toDto(delivery);
     }
 
+    //todo связи с feign
+
     @Override
     @Transactional
     @Loggable
@@ -128,6 +131,7 @@ public class DeliveryServiceImpl implements DeliveryService {
     @Loggable
     public BigDecimal calculateDeliveryCost(OrderDto orderDto) {
         BigDecimal result = BigDecimal.valueOf(5);
+        result = result.setScale(2, RoundingMode.UP);
         Delivery delivery = deliveryRepository.findByOrderId(orderDto.getOrderId()).orElseThrow(() -> {
             log.warn("{}: no Deliveries found for orderId: {}", className, orderDto.getOrderId());
             String message = "Deliveries for orderId: " + orderDto.getOrderId() + " cannot be found";

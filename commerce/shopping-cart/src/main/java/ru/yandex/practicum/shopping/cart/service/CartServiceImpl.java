@@ -75,10 +75,8 @@ public class CartServiceImpl implements CartService {
     @Transactional
     @CachePut(value = "shopping-cart.carts", key = "#username")
     public ShoppingCartDto addProduct(String username, Map<UUID, Integer> products) {
-        //todo обратить внимание на входные параметры
         Cart cart = getShoppingCartFromDbOrCreate(username);
 
-        //todo так понимаю, пока что не нужна эта проверка, ибо она ломает прохождение тестов
 //        if (!cart.isActive()) {
 //            // вопрос, надо ли проводить эту проверку на текущем этапе, или это будет сделано далее?
 //            log.warn("{}: attempt to add products to a deactivated cart: {}", className, cart);

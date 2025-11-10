@@ -112,8 +112,6 @@ public class StoreServiceImpl implements StoreService {
     @Transactional
     @CacheEvict(value = "shopping-store.products", key = "#result.productId")
     public ProductDto remove(UUID productId) {
-        // todo при работе с кэшем была проблема с кавычками в id. обратить внимание при возвращении кэша
-
         Cache.ValueWrapper valueWrapper = cacheManager.getCache("shopping-store.products").get(productId);
         Product product;
 

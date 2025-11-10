@@ -12,4 +12,9 @@ public class ShoppingStoreFeignFallback implements ShoppingStoreFeignClient {
     public ProductDto updateQuantityState(UUID productId, QuantityState quantityState) {
         return null;
     }
+
+    @Override
+    public ProductDto getById(UUID productId) {
+        return null;
+    }
 }

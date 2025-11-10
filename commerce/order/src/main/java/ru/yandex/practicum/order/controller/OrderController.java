@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.interaction.api.dto.CreateNewOrderRequest;
 import ru.yandex.practicum.interaction.api.dto.OrderDto;
 import ru.yandex.practicum.interaction.api.dto.ProductReturnRequest;
+import ru.yandex.practicum.interaction.api.feign.OrderFeignClient;
 import ru.yandex.practicum.order.service.OrderService;
 
 import java.util.List;
@@ -22,7 +23,7 @@ import java.util.UUID;
 @RequestMapping("/api/v1/order")
 @RequiredArgsConstructor
 @Validated
-public class OrderController {
+public class OrderController implements OrderFeignClient {
     private final OrderService orderService;
 
     @GetMapping

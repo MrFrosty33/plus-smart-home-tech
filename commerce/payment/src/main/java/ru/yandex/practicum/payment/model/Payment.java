@@ -29,6 +29,9 @@ public class Payment {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID paymentId;
 
+    @Column(name = "order_id")
+    private UUID orderId;
+
     @Column(name = "total_payment")
     private BigDecimal totalPayment;
     @Column(name = "delivery_total")
