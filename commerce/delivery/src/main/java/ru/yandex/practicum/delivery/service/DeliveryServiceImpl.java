@@ -116,6 +116,36 @@ public class DeliveryServiceImpl implements DeliveryService {
 
     @Override
     public BigDecimal calculateDeliveryCost(OrderDto orderDto) {
-        return null;
+        BigDecimal result = BigDecimal.valueOf(5);
+        Delivery delivery = deliveryRepository.findByOrderId(orderDto.getOrderId()).orElseThrow(() -> {
+            log.warn("{}: no Deliveries found for orderId: {}", className, orderDto.getOrderId());
+            String message = "Deliveries for orderId: " + orderDto.getOrderId() + " cannot be found";
+            String userMessage = "Deliveries not found";
+            HttpStatus status = HttpStatus.NOT_FOUND;
+            return new NoDeliveryFoundException(message, userMessage, status);
+        });
+
+        //todo буду пока в fromAddress везде вставлять значения, полученые со склада
+        if (delivery.getFromAddress().getStreet().equals("ADDRESS_1")) {
+            result = result.multiply(BigDecimal.valueOf(1));
+        }
+
+        if (delivery.getFromAddress().getStreet().equals("ADDRESS_2")) {
+            result = result.multiply(BigDecimal.valueOf(2));
+        }
+
+        if (orderDto.isFragile()) {
+            result = result.multiply(BigDecimal.valueOf(1.2));
+        }
+
+        result = result.add(orderDto.getDeliveryWeight().multiply(BigDecimal.valueOf(0.3)));
+
+        result = result.add(orderDto.getDeliveryVolume().multiply(BigDecimal.valueOf(0.2)));
+
+        if (!delivery.getToAddress().getStreet().equals(delivery.getFromAddress().getStreet())) {
+            result = result.multiply(BigDecimal.valueOf(1.2));
+        }
+
+        return result;
     }
 }
