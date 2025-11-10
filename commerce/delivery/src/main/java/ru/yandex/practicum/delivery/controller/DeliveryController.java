@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.delivery.service.DeliveryService;
 import ru.yandex.practicum.interaction.api.dto.DeliveryDto;
 import ru.yandex.practicum.interaction.api.dto.OrderDto;
+import ru.yandex.practicum.interaction.api.feign.DeliveryFeignClient;
 
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -18,7 +19,7 @@ import java.util.UUID;
 @RequestMapping("/api/v1/delivery")
 @RequiredArgsConstructor
 @Validated
-public class DeliveryController {
+public class DeliveryController implements DeliveryFeignClient {
     private final DeliveryService deliveryService;
 
     @PutMapping

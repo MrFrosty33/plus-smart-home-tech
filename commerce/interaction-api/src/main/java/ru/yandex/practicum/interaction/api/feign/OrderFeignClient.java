@@ -10,12 +10,12 @@ import java.util.UUID;
 @FeignClient(name = "order", fallback = OrderFeignFallback.class)
 public interface OrderFeignClient {
 
-    @PostMapping("/api/v1/payment/failed")
+    @PostMapping("/api/v1/order/payment/failed")
     OrderDto paymentFailed(@RequestBody UUID orderId);
 
-    @PostMapping("/api/v1/delivery/failed")
+    @PostMapping("/api/v1/order/delivery/failed")
     OrderDto deliveryFailed(@RequestBody UUID orderId);
 
-    @PostMapping("/api/v1/assembly/failed")
+    @PostMapping("/api/v1/order/assembly/failed")
     OrderDto assemblyFailed(@RequestBody UUID orderId);
 }
