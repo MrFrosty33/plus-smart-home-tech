@@ -2,6 +2,9 @@ CREATE DATABASE telemetry_analyzer;
 CREATE DATABASE commerce_shopping_store;
 CREATE DATABASE commerce_shopping_cart;
 CREATE DATABASE commerce_warehouse;
+CREATE DATABASE commerce_delivery;
+CREATE DATABASE commerce_order;
+CREATE DATABASE commerce_payment;
 
 \connect telemetry_analyzer;
 
@@ -144,6 +147,54 @@ CREATE TABLE IF NOT EXISTS products_order_bookings(
     quantity INTEGER,
     PRIMARY KEY (product_id, order_booking_id),
     FOREIGN KEY (order_booking_id) REFERENCES order_bookings(order_booking_id),
+    CONSTRAINT check_quantity
+        CHECK (quantity > 0)
+);
+
+\connect commerce_delivery;
+
+CREATE TABLE IF NOT EXISTS deliveries (
+    delivery_id UUID PRIMARY KEY,
+    order_id UUID NOT NULL,
+    delivery_state VARCHAR(100) NOT NULL,
+    CONSTRAINT check_delivery_state
+        CHECK (delivery_state IN ('CREATED', 'IN_PROGRESS', 'DELIVERED', 'FAILED', 'CANCELLED'))
+);
+
+CREATE TABLE IF NOT EXISTS addresses (
+    address_id UUID PRIMARY KEY,
+    country VARCHAR(1000) NOT NULL,
+    city VARCHAR(1000) NOT NULL,
+    street VARCHAR(1000) NOT NULL,
+    house VARCHAR(100) NOT NULL,
+    flat VARCHAR(100)
+);
+
+\connect commerce_order;
+
+CREATE TABLE IF NOT EXISTS orders (
+    order_id UUID PRIMARY KEY,
+    shopping_cart_id UUID NOT NULL,
+    payment_id UUID NOT NULL,
+    delivery_iud UUID NOT NULL,
+    state VARCHAR(100) NOT NULL,
+    delivery_weight NUMERIC(15, 2),
+    delivery_volume NUMERIC(15, 2),
+    fragile boolean,
+    total_price NUMERIC(15, 2),
+    delivery_price NUMERIC(15, 2),
+    products_price NUMERIC(15, 2),
+    CONSTRAINT check_state
+        CHECK (state IN ('NEW', 'ON_PAYMENT', 'ON_DELIVERY', 'DONE', 'DELIVERED', 'ASSEMBLED', 'PAID', 'COMPLETED',
+                'DELIVERY_FAILED', 'ASSEMBLY_FAILED', 'PAYMENT_FAILED', 'PRODUCT_RETURNED', 'CANCELED'))
+);
+
+CREATE TABLE IF NOT EXISTS orders_products (
+    order_id UUID NOT NULL,
+    product_id UUID NOT NULL,
+    quantity INTEGER,
+    PRIMARY KEY (order_id, product_id),
+    FOREIGN KEY (order_id) REFERENCES orders(order_id),
     CONSTRAINT check_quantity
         CHECK (quantity > 0)
 );
