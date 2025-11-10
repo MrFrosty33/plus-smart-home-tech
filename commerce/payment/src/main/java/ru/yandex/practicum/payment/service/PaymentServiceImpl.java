@@ -11,6 +11,7 @@ import ru.yandex.practicum.interaction.api.dto.PaymentState;
 import ru.yandex.practicum.interaction.api.dto.ProductDto;
 import ru.yandex.practicum.interaction.api.exception.InternalServerException;
 import ru.yandex.practicum.interaction.api.exception.NoDeliveryFoundException;
+import ru.yandex.practicum.interaction.api.exception.NotEnoughInfoToCalculateException;
 import ru.yandex.practicum.interaction.api.feign.OrderFeignClient;
 import ru.yandex.practicum.interaction.api.feign.ShoppingStoreFeignClient;
 import ru.yandex.practicum.interaction.api.logging.Loggable;
@@ -40,36 +41,57 @@ public class PaymentServiceImpl implements PaymentService {
     @Loggable
     public PaymentDto createPayment(OrderDto orderDto) {
         Payment payment = new Payment();
-        payment.setOrderId(orderDto.getOrderId());
 
-        return null;
+        payment.setOrderId(orderDto.getOrderId());
+        payment.setProductTotal(orderDto.getProductsPrice());
+        payment.setDeliveryTotal(orderDto.getDeliveryPrice());
+        payment.setTotalPayment(orderDto.getTotalPrice());
+        payment.setPaymentState(PaymentState.PENDING);
+
+        return paymentMapper.toDto(payment);
     }
 
     @Override
     @Loggable
     public BigDecimal calculateTotalCost(OrderDto orderDto) {
-        BigDecimal result = BigDecimal.ZERO;
-        result = result.setScale(2, RoundingMode.UP);
+        try {
+            BigDecimal result = BigDecimal.ZERO;
+            result = result.setScale(2, RoundingMode.UP);
 
-        result = result.add(orderDto.getProductsPrice().multiply(BigDecimal.valueOf(1.1)));
+            result = result.add(orderDto.getProductsPrice().multiply(BigDecimal.valueOf(1.1)));
 
-        result = result.add(orderDto.getDeliveryPrice());
+            result = result.add(orderDto.getDeliveryPrice());
 
-        return result;
+            return result;
+        } catch (NullPointerException e) {
+            log.warn("{}: failure in calculateTotalCost(), not enough data to calculate, orderDto: {}", className, orderDto);
+            String message = "Not enough data to calculate total cost";
+            String userMessage = "Not enough data";
+            HttpStatus status = HttpStatus.BAD_REQUEST;
+            throw new NotEnoughInfoToCalculateException(message, userMessage, status);
+        }
     }
 
     @Override
     @Loggable
     public BigDecimal calculateProductCost(OrderDto orderDto) {
-        AtomicReference<BigDecimal> result = new AtomicReference<>(BigDecimal.ZERO);
-        result.set(result.get().setScale(2, RoundingMode.UP));
+        try {
+            AtomicReference<BigDecimal> result = new AtomicReference<>(BigDecimal.ZERO);
+            result.set(result.get().setScale(2, RoundingMode.UP));
 
-        orderDto.getProducts().forEach((key, value) -> {
-            ProductDto product = shoppingStoreFeignClient.getById(key);
-            result.set(result.get().add(product.getPrice().multiply(BigDecimal.valueOf(value))));
-        });
+            orderDto.getProducts().forEach((key, value) -> {
+                ProductDto product = shoppingStoreFeignClient.getById(key);
+                result.set(result.get().add(product.getPrice().multiply(BigDecimal.valueOf(value))));
+            });
 
-        return result.get();
+            return result.get();
+        } catch (NullPointerException e) {
+            log.warn("{}: failure in calculateProductCost(), not enough data to calculate, orderDto: {}", className, orderDto);
+            String message = "Not enough data to calculate product cost";
+            String userMessage = "Not enough data";
+            HttpStatus status = HttpStatus.BAD_REQUEST;
+            throw new NotEnoughInfoToCalculateException(message, userMessage, status);
+        }
     }
 
     @Override
