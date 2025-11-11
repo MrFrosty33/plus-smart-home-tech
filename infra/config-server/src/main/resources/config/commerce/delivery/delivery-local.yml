@@ -11,6 +11,12 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+  cache:
+    type: caffeine
+    cache-names:
+      - delivery.deliveries
+    caffeine:
+      spec: maximumSize=1000,expireAfterWrite=60m
 
 management:
   endpoints:

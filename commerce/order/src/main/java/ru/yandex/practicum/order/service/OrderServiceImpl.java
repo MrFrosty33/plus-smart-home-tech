@@ -2,6 +2,9 @@ package ru.yandex.practicum.order.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,6 +47,8 @@ public class OrderServiceImpl implements OrderService {
     private final DeliveryFeignClient deliveryFeignClient;
     private final PaymentFeignClient paymentFeignClient;
 
+    private final CacheManager cacheManager;
+
     @Override
     @Loggable
     public List<OrderDto> getByUsername(String username) {
@@ -80,6 +85,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Loggable
     @Transactional
+    @CachePut(cacheNames = "order.orders", key = "result.orderId")
     public OrderDto create(CreateNewOrderRequest request) {
         Order order = Order.builder()
                 .products(request.getShoppingCart().getProducts())
@@ -137,6 +143,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Loggable
     @Transactional
+    @CachePut(cacheNames = "order.orders", key = "result.orderId")
     public OrderDto returnRequest(ProductReturnRequest request) {
         Order order = findInCacheOrDB(request.getOrderId());
 
@@ -157,6 +164,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Loggable
     @Transactional
+    @CachePut(cacheNames = "order.orders", key = "result.orderId")
     public OrderDto payment(UUID orderId) {
         Order order = findInCacheOrDB(orderId);
 
@@ -174,6 +182,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Loggable
     @Transactional
+    @CachePut(cacheNames = "order.orders", key = "result.orderId")
     public OrderDto paymentFailed(UUID orderId) {
         Order order = findInCacheOrDB(orderId);
 
@@ -191,6 +200,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Loggable
     @Transactional
+    @CachePut(cacheNames = "order.orders", key = "result.orderId")
     public OrderDto delivery(UUID orderId) {
         Order order = findInCacheOrDB(orderId);
 
@@ -208,6 +218,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Loggable
     @Transactional
+    @CachePut(cacheNames = "order.orders", key = "result.orderId")
     public OrderDto deliveryFailed(UUID orderId) {
         Order order = findInCacheOrDB(orderId);
 
@@ -225,6 +236,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Loggable
     @Transactional
+    @CachePut(cacheNames = "order.orders", key = "result.orderId")
     public OrderDto completed(UUID orderId) {
         Order order = findInCacheOrDB(orderId);
         order.setState(OrderState.COMPLETED);
@@ -239,6 +251,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Loggable
     @Transactional
+    @CachePut(cacheNames = "order.orders", key = "result.orderId")
     public OrderDto calculateTotal(UUID orderId) {
         Order order = findInCacheOrDB(orderId);
 
@@ -262,6 +275,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Loggable
     @Transactional
+    @CachePut(cacheNames = "order.orders", key = "result.orderId")
     public OrderDto calculateDelivery(UUID orderId) {
         Order order = findInCacheOrDB(orderId);
 
@@ -285,6 +299,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Loggable
     @Transactional
+    @CachePut(cacheNames = "order.orders", key = "result.orderId")
     public OrderDto calculateProduct(UUID orderId) {
         Order order = findInCacheOrDB(orderId);
 
@@ -308,6 +323,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Loggable
     @Transactional
+    @CachePut(cacheNames = "order.orders", key = "result.orderId")
     public OrderDto assembly(UUID orderId) {
         Order order = findInCacheOrDB(orderId);
         BookedProductsDto bookedProducts = warehouseFeignClient.assemblyOrder(
@@ -329,6 +345,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Loggable
     @Transactional
+    @CachePut(cacheNames = "order.orders", key = "result.orderId")
     public OrderDto assemblyFailed(UUID orderId) {
         Order order = findInCacheOrDB(orderId);
 
@@ -342,13 +359,23 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private Order findInCacheOrDB(UUID orderId) {
-        //todo cache
-        return orderRepository.findById(orderId).orElseThrow(() -> {
-            log.warn("{}: no Order found with orderId: {}", className, orderId);
-            String message = "Order with orderId: " + orderId + " cannot be found";
-            String userMessage = "Order not found";
-            HttpStatus status = HttpStatus.NOT_FOUND;
-            return new NotFoundException(message, userMessage, status);
-        });
+        Cache.ValueWrapper valueWrapper = cacheManager.getCache("order.orders").get(orderId);
+        Order order;
+
+        if (valueWrapper != null) {
+            order = ((Order) valueWrapper.get());
+            log.info("{}: found Order in cache", className);
+        } else {
+            order = orderRepository.findById(orderId).orElseThrow(() -> {
+                log.warn("{}: no Order found with orderId: {}", className, orderId);
+                String message = "Order with orderId: " + orderId + " cannot be found";
+                String userMessage = "Order not found";
+                HttpStatus status = HttpStatus.NOT_FOUND;
+                return new NotFoundException(message, userMessage, status);
+            });
+            log.info("{}: found Order in DB", className);
+        }
+
+        return order;
     }
 }

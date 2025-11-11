@@ -4,6 +4,12 @@ spring:
     username: frosty
     password: ytsorf
     driver-class-name: org.postgresql.Driver
+  cache:
+    type: caffeine
+    cache-names:
+      - order.orders
+    caffeine:
+      spec: maximumSize=1000,expireAfterWrite=60m
 
 management:
   endpoints:
