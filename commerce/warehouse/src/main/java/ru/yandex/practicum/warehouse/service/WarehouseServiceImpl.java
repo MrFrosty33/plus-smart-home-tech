@@ -243,6 +243,7 @@ public class WarehouseServiceImpl implements WarehouseService {
         if (valueWrapper != null) {
             CachedProduct cachedProduct = ((CachedProduct) valueWrapper.get());
             product = productMapper.toEntity(cachedProduct);
+            log.info("{}: found Product in cache", className);
         } else {
             product = productRepository.findById(productId).orElseThrow(() -> {
                 log.warn("{}: cannot find Product with id: {}", className, productId);
@@ -251,6 +252,7 @@ public class WarehouseServiceImpl implements WarehouseService {
                 HttpStatus status = HttpStatus.NOT_FOUND;
                 return new NotFoundException(message, userMessage, status);
             });
+            log.info("{}: found Product in DB", className);
         }
 
         return product;

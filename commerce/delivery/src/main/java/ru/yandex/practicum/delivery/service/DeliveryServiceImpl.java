@@ -2,6 +2,9 @@ package ru.yandex.practicum.delivery.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,9 +43,12 @@ public class DeliveryServiceImpl implements DeliveryService {
     private final OrderFeignClient orderFeignClient;
     private final WarehouseFeignClient warehouseFeignClient;
 
+    private final CacheManager cacheManager;
+
     @Override
     @Transactional
     @Loggable
+    @CachePut(cacheNames = "delivery.deliveries", key = "#result.orderId")
     public DeliveryDto create(DeliveryDto deliveryDto) {
         AddressDto fromAddressDto = deliveryDto.getFromAddress();
         Address fromAddressEntity = addressRepository
@@ -184,12 +190,23 @@ public class DeliveryServiceImpl implements DeliveryService {
     }
 
     private Delivery findInCacheOrDbByOrderId(UUID orderId) {
-        return deliveryRepository.findByOrderId(orderId).orElseThrow(() -> {
-            log.warn("{}: no Deliveries found for orderId: {}", className, orderId);
-            String message = "Deliveries for orderId: " + orderId + " cannot be found";
-            String userMessage = "Deliveries not found";
-            HttpStatus status = HttpStatus.NOT_FOUND;
-            return new NotFoundException(message, userMessage, status);
-        });
+        Cache.ValueWrapper valueWrapper = cacheManager.getCache("delivery.deliveries").get(orderId);
+        Delivery delivery;
+
+        if (valueWrapper != null) {
+            delivery = ((Delivery) valueWrapper.get());
+            log.info("{}: found Delivery in cache", className);
+        } else {
+            delivery = deliveryRepository.findByOrderId(orderId).orElseThrow(() -> {
+                log.warn("{}: no Deliveries found for orderId: {}", className, orderId);
+                String message = "Deliveries for orderId: " + orderId + " cannot be found";
+                String userMessage = "Deliveries not found";
+                HttpStatus status = HttpStatus.NOT_FOUND;
+                return new NotFoundException(message, userMessage, status);
+            });
+            log.info("{}: found Delivery in DB", className);
+        }
+
+        return delivery;
     }
 }

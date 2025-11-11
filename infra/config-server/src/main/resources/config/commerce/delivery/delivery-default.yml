@@ -7,6 +7,12 @@ spring:
   sql:
     init:
       mode: always
+  cache:
+    type: caffeine
+    cache-names:
+      - delivery.deliveries
+    caffeine:
+      spec: maximumSize=1000,expireAfterWrite=60m
 
 management:
   endpoints:

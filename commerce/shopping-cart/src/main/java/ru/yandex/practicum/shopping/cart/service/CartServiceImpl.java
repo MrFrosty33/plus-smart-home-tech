@@ -2,6 +2,8 @@ package ru.yandex.practicum.shopping.cart.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
@@ -42,6 +44,8 @@ public class CartServiceImpl implements CartService {
 
     private final String className = this.getClass().getSimpleName();
 
+    private final CacheManager cacheManager;
+
     @Override
     @Loggable
     @Cacheable(value = "shopping-cart.carts", key = "#username")
@@ -76,7 +80,7 @@ public class CartServiceImpl implements CartService {
     @Transactional
     @CachePut(value = "shopping-cart.carts", key = "#username")
     public ShoppingCartDto addProduct(String username, Map<UUID, Integer> products) {
-        Cart cart = getShoppingCartFromDbOrCreate(username);
+        Cart cart = findInCacheOrDBOrCreate(username);
 
 //        if (!cart.isActive()) {
 //            // вопрос, надо ли проводить эту проверку на текущем этапе, или это будет сделано далее?
@@ -102,7 +106,7 @@ public class CartServiceImpl implements CartService {
     @Transactional
     @CacheEvict(value = "shopping-cart.carts", key = "#username")
     public void deactivateCart(String username) {
-        Cart cart = getShoppingCartFromDbOrCreate(username);
+        Cart cart = findInCacheOrDBOrCreate(username);
         cart.setActive(false);
     }
 
@@ -111,7 +115,7 @@ public class CartServiceImpl implements CartService {
     @Transactional
     @CachePut(value = "shopping-cart.carts", key = "#username")
     public ShoppingCartDto removeProducts(String username, Set<UUID> productsId) {
-        Cart cart = getShoppingCartFromDbOrCreate(username);
+        Cart cart = findInCacheOrDBOrCreate(username);
 
         productsId.forEach((id) -> {
             CartProductEmbeddedId embeddedId = CartProductEmbeddedId.builder()
@@ -165,9 +169,19 @@ public class CartServiceImpl implements CartService {
         return cartMapper.toDto(cart);
     }
 
-    private Cart getShoppingCartFromDbOrCreate(String username) throws NotAuthorizedUserException {
+    private Cart findInCacheOrDBOrCreate(String username) throws NotAuthorizedUserException {
         if (username != null && !username.isEmpty()) {
-            Optional<Cart> shoppingCart = cartRepository.findByUsernameAndActive(username, true);
+            Cache.ValueWrapper valueWrapper = cacheManager.getCache("shopping-cart.carts").get(username);
+            Optional<Cart> shoppingCart;
+
+            if (valueWrapper != null) {
+                shoppingCart = Optional.of((Cart) valueWrapper.get());
+                log.info("{}: found Cart in cache", className);
+            } else {
+                shoppingCart = cartRepository.findByUsernameAndActive(username, true);
+                log.info("{}: found Cart in DB", className);
+            }
+
             if (shoppingCart.isPresent()) {
                 return shoppingCart.get();
             } else {

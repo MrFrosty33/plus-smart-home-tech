@@ -128,6 +128,7 @@ public class StoreServiceImpl implements StoreService {
         // проверка, хранится ли в кэше
         if (valueWrapper != null) {
             product = ((Product) valueWrapper.get());
+            log.info("{}: found Product in cache", className);
         } else {
             product = productRepository.findById(productId).orElseThrow(() -> {
                 log.warn("{}: cannot find Product with id: {}", className, productId);
@@ -136,6 +137,7 @@ public class StoreServiceImpl implements StoreService {
                 HttpStatus status = HttpStatus.NOT_FOUND;
                 return new NotFoundException(message, userMessage, status);
             });
+            log.info("{}: found Product in DB", className);
         }
 
         return product;
