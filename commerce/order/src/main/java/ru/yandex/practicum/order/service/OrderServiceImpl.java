@@ -27,10 +27,8 @@ import ru.yandex.practicum.order.model.Order;
 import ru.yandex.practicum.order.repository.OrderRepository;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -58,11 +56,15 @@ public class OrderServiceImpl implements OrderService {
             throw new InternalServerException(message);
         }
 
-        List<OrderDto> result = new ArrayList<>();
-        cartDto.forEach((dto) -> {
-            Optional<Order> order = orderRepository.findByShoppingCartId(dto.getShoppingCartId());
-            order.ifPresent(value -> result.add(orderMapper.toDto(value)));
-        });
+        List<UUID> shoppingCartIds = cartDto.stream()
+                .map(ShoppingCartDto::getShoppingCartId)
+                .toList();
+
+
+        List<OrderDto> result = orderRepository.findAllByShoppingCartIdIn(shoppingCartIds)
+                .stream()
+                .map(orderMapper::toDto)
+                .toList();
 
         if (result.isEmpty()) {
             log.warn("{}: no Orders found for username: {}", className, username);
