@@ -6,11 +6,11 @@ import org.springframework.http.HttpStatus;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class NoOrderFoundException extends RuntimeException {
+public class NotFoundException extends RuntimeException {
     private final String userMessage;
     private final HttpStatus httpStatus;
 
-    public NoOrderFoundException(String message, String userMessage, HttpStatus httpStatus) {
+    public NotFoundException(String message, String userMessage, HttpStatus httpStatus) {
         super(message);
         this.userMessage = userMessage;
         this.httpStatus = httpStatus;

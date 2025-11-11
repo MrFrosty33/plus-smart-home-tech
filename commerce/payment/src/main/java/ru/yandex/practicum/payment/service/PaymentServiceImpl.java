@@ -10,8 +10,8 @@ import ru.yandex.practicum.interaction.api.dto.PaymentDto;
 import ru.yandex.practicum.interaction.api.dto.PaymentState;
 import ru.yandex.practicum.interaction.api.dto.ProductDto;
 import ru.yandex.practicum.interaction.api.exception.InternalServerException;
-import ru.yandex.practicum.interaction.api.exception.NoDeliveryFoundException;
 import ru.yandex.practicum.interaction.api.exception.NotEnoughInfoToCalculateException;
+import ru.yandex.practicum.interaction.api.exception.NotFoundException;
 import ru.yandex.practicum.interaction.api.feign.OrderFeignClient;
 import ru.yandex.practicum.interaction.api.feign.ShoppingStoreFeignClient;
 import ru.yandex.practicum.interaction.api.logging.Loggable;
@@ -139,7 +139,7 @@ public class PaymentServiceImpl implements PaymentService {
             String message = "Payment for paymentId: " + paymentId + " cannot be found";
             String userMessage = "Payment not found";
             HttpStatus status = HttpStatus.NOT_FOUND;
-            return new NoDeliveryFoundException(message, userMessage, status);
+            return new NotFoundException(message, userMessage, status);
         });
     }
 }

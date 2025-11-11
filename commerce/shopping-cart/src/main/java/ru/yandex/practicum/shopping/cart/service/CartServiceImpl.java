@@ -13,6 +13,7 @@ import ru.yandex.practicum.interaction.api.dto.ShoppingCartDto;
 import ru.yandex.practicum.interaction.api.exception.InternalServerException;
 import ru.yandex.practicum.interaction.api.exception.NoProductsInShoppingCartException;
 import ru.yandex.practicum.interaction.api.exception.NotAuthorizedUserException;
+import ru.yandex.practicum.interaction.api.exception.NotFoundException;
 import ru.yandex.practicum.interaction.api.feign.WarehouseFeignClient;
 import ru.yandex.practicum.interaction.api.logging.Loggable;
 import ru.yandex.practicum.shopping.cart.mapper.CartMapper;
@@ -50,8 +51,8 @@ public class CartServiceImpl implements CartService {
             log.warn("{}: no Cart found for username: {}", className, username);
             String message = "Cart for username: " + username + " cannot be found";
             String userMessage = "Cart not found";
-            HttpStatus status = HttpStatus.UNAUTHORIZED;
-            return new NotAuthorizedUserException(message, userMessage, status);
+            HttpStatus status = HttpStatus.NOT_FOUND;
+            return new NotFoundException(message, userMessage, status);
         }));
     }
 
@@ -63,8 +64,8 @@ public class CartServiceImpl implements CartService {
             log.warn("{}: no Carts found for username: {}", className, username);
             String message = "Carts for username: " + username + " cannot be found";
             String userMessage = "Carts not found";
-            HttpStatus status = HttpStatus.UNAUTHORIZED;
-            return new NotAuthorizedUserException(message, userMessage, status);
+            HttpStatus status = HttpStatus.NOT_FOUND;
+            return new NotFoundException(message, userMessage, status);
         });
 
         return carts.stream().map(cartMapper::toDto).toList();
@@ -141,8 +142,8 @@ public class CartServiceImpl implements CartService {
             log.warn("{}: no Cart found for username: {}", className, username);
             String message = "Cart for username: " + username + " cannot be found";
             String userMessage = "Cart not found";
-            HttpStatus status = HttpStatus.UNAUTHORIZED;
-            return new NotAuthorizedUserException(message, userMessage, status);
+            HttpStatus status = HttpStatus.NOT_FOUND;
+            return new NotFoundException(message, userMessage, status);
         });
 
         CartProductEmbeddedId embeddedId = CartProductEmbeddedId.builder()
@@ -155,7 +156,7 @@ public class CartServiceImpl implements CartService {
             String message = "CartProduct for cartId: " + embeddedId.getCartId()
                     + " and productId:" + embeddedId.getProductId() + " cannot be found";
             String userMessage = "There is no Product in Cart";
-            HttpStatus status = HttpStatus.UNAUTHORIZED;
+            HttpStatus status = HttpStatus.NOT_FOUND;
             return new NoProductsInShoppingCartException(message, userMessage, status);
         });
 

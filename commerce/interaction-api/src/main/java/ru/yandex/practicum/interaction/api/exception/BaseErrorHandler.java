@@ -44,21 +44,6 @@ public class BaseErrorHandler {
         return e.getMessage();
     }
 
-    @ExceptionHandler(StoreProductNotFoundException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public StoreProductNotFoundException handleNotFound(StoreProductNotFoundException e) {
-        logError(e);
-        return e;
-    }
-
-    @ExceptionHandler(NoSpecifiedProductInWarehouseException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public NoSpecifiedProductInWarehouseException
-    handleNoSpecifiedProductInWarehouse(NoSpecifiedProductInWarehouseException e) {
-        logError(e);
-        return e;
-    }
-
 
     @ExceptionHandler(ProductInShoppingCartLowQuantityInWarehouseException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
@@ -84,26 +69,10 @@ public class BaseErrorHandler {
         return e;
     }
 
-    @ExceptionHandler(NoOrderFoundException.class)
+    @ExceptionHandler(NotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public NoOrderFoundException
-    handleNoOrderFound(NoOrderFoundException e) {
-        logError(e);
-        return e;
-    }
-
-    @ExceptionHandler(NoOrderBookingFoundException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public NoOrderBookingFoundException
-    handleNoOrderBookingFound(NoOrderBookingFoundException e) {
-        logError(e);
-        return e;
-    }
-
-    @ExceptionHandler(NoDeliveryFoundException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public NoDeliveryFoundException
-    handleNoDeliveryFound(NoDeliveryFoundException e) {
+    public NotFoundException
+    handleNoDeliveryFound(NotFoundException e) {
         logError(e);
         return e;
     }

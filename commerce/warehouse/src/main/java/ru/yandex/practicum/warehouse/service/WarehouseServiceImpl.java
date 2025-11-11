@@ -18,8 +18,7 @@ import ru.yandex.practicum.interaction.api.dto.ProductDto;
 import ru.yandex.practicum.interaction.api.dto.QuantityState;
 import ru.yandex.practicum.interaction.api.dto.ReturnProductsRequest;
 import ru.yandex.practicum.interaction.api.exception.InternalServerException;
-import ru.yandex.practicum.interaction.api.exception.NoOrderBookingFoundException;
-import ru.yandex.practicum.interaction.api.exception.NoSpecifiedProductInWarehouseException;
+import ru.yandex.practicum.interaction.api.exception.NotFoundException;
 import ru.yandex.practicum.interaction.api.exception.ProductInShoppingCartLowQuantityInWarehouseException;
 import ru.yandex.practicum.interaction.api.exception.SpecifiedProductAlreadyInWarehouseException;
 import ru.yandex.practicum.interaction.api.feign.OrderFeignClient;
@@ -192,7 +191,7 @@ public class WarehouseServiceImpl implements WarehouseService {
             String message = "OrderBooking with id: " + request.getOrderId() + " cannot be found";
             String userMessage = "OrderBooking not found";
             HttpStatus status = HttpStatus.NOT_FOUND;
-            return new NoOrderBookingFoundException(message, userMessage, status);
+            return new NotFoundException(message, userMessage, status);
         });
         orderBooking.setDeliveryId(request.getDeliveryId());
     }
@@ -250,7 +249,7 @@ public class WarehouseServiceImpl implements WarehouseService {
                 String message = "Product with id: " + productId + " cannot be found";
                 String userMessage = "Product not found";
                 HttpStatus status = HttpStatus.NOT_FOUND;
-                return new NoSpecifiedProductInWarehouseException(message, userMessage, status);
+                return new NotFoundException(message, userMessage, status);
             });
         }
 

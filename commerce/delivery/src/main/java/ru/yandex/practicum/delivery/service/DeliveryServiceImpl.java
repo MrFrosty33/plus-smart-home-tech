@@ -17,7 +17,7 @@ import ru.yandex.practicum.interaction.api.dto.DeliveryState;
 import ru.yandex.practicum.interaction.api.dto.OrderBookingAddDeliveryRequest;
 import ru.yandex.practicum.interaction.api.dto.OrderDto;
 import ru.yandex.practicum.interaction.api.exception.InternalServerException;
-import ru.yandex.practicum.interaction.api.exception.NoDeliveryFoundException;
+import ru.yandex.practicum.interaction.api.exception.NotFoundException;
 import ru.yandex.practicum.interaction.api.feign.OrderFeignClient;
 import ru.yandex.practicum.interaction.api.feign.WarehouseFeignClient;
 import ru.yandex.practicum.interaction.api.logging.Loggable;
@@ -173,7 +173,7 @@ public class DeliveryServiceImpl implements DeliveryService {
             String message = "Deliveries for orderId: " + orderId + " cannot be found";
             String userMessage = "Deliveries not found";
             HttpStatus status = HttpStatus.NOT_FOUND;
-            return new NoDeliveryFoundException(message, userMessage, status);
+            return new NotFoundException(message, userMessage, status);
         });
     }
 }

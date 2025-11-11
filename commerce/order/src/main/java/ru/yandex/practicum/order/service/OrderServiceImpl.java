@@ -16,7 +16,7 @@ import ru.yandex.practicum.interaction.api.dto.ProductReturnRequest;
 import ru.yandex.practicum.interaction.api.dto.ReturnProductsRequest;
 import ru.yandex.practicum.interaction.api.dto.ShoppingCartDto;
 import ru.yandex.practicum.interaction.api.exception.InternalServerException;
-import ru.yandex.practicum.interaction.api.exception.NoOrderFoundException;
+import ru.yandex.practicum.interaction.api.exception.NotFoundException;
 import ru.yandex.practicum.interaction.api.feign.DeliveryFeignClient;
 import ru.yandex.practicum.interaction.api.feign.PaymentFeignClient;
 import ru.yandex.practicum.interaction.api.feign.ShoppingCartFeignClient;
@@ -69,7 +69,7 @@ public class OrderServiceImpl implements OrderService {
             String message = "Orders for username: " + username + " cannot be found";
             String userMessage = "Orders not found";
             HttpStatus status = HttpStatus.NOT_FOUND;
-            throw new NoOrderFoundException(message, userMessage, status);
+            throw new NotFoundException(message, userMessage, status);
         }
 
         return result;
@@ -316,7 +316,7 @@ public class OrderServiceImpl implements OrderService {
             String message = "Order with orderId: " + orderId + " cannot be found";
             String userMessage = "Order not found";
             HttpStatus status = HttpStatus.NOT_FOUND;
-            return new NoOrderFoundException(message, userMessage, status);
+            return new NotFoundException(message, userMessage, status);
         });
     }
 }
