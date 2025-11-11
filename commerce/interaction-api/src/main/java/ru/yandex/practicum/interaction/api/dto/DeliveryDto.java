@@ -1,5 +1,6 @@
 package ru.yandex.practicum.interaction.api.dto;
 
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,7 +13,9 @@ import java.util.UUID;
 public class DeliveryDto {
     private final UUID deliveryId;
 
+    @Valid
     private final AddressDto fromAddress;
+    @Valid
     private final AddressDto toAddress;
 
     private final UUID orderId;
