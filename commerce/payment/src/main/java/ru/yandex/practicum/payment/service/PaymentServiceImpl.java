@@ -78,15 +78,18 @@ public class PaymentServiceImpl implements PaymentService {
     @Loggable
     public BigDecimal calculateProductCost(OrderDto orderDto) {
         try {
-            AtomicReference<BigDecimal> result = new AtomicReference<>(BigDecimal.ZERO);
-            result.set(result.get().setScale(2, RoundingMode.UP));
+            AtomicReference<BigDecimal> productCostResult = new AtomicReference<>(BigDecimal.ZERO);
+            productCostResult.set(productCostResult.get().setScale(2, RoundingMode.UP));
+
+            log.info("{}: initial productCost value: {}", className, productCostResult.get());
 
             orderDto.getProducts().forEach((key, value) -> {
                 ProductDto product = shoppingStoreFeignClient.getById(key);
-                result.set(result.get().add(product.getPrice().multiply(BigDecimal.valueOf(value))));
+                productCostResult.set(productCostResult.get().add(product.getPrice().multiply(BigDecimal.valueOf(value))));
             });
+            log.info("{}: productCost value after calculating products price: {}", className, productCostResult.get());
 
-            return result.get();
+            return productCostResult.get();
         } catch (NullPointerException e) {
             log.warn("{}: failure in calculateProductCost(), not enough data to calculate, orderDto: {}", className, orderDto);
             String message = "Not enough data to calculate product cost";
@@ -105,6 +108,8 @@ public class PaymentServiceImpl implements PaymentService {
         payment.setPaymentState(PaymentState.SUCCESS);
 
         paymentRepository.save(payment);
+        log.info("{}: update payment with id: {}, new status: {}",
+                className, paymentId, payment.getPaymentState());
 
         OrderDto payedOrder = orderFeignClient.paymentOrder(payment.getOrderId());
         if (payedOrder == null) {
@@ -123,6 +128,8 @@ public class PaymentServiceImpl implements PaymentService {
         payment.setPaymentState(PaymentState.FAILED);
 
         paymentRepository.save(payment);
+        log.info("{}: update payment with id: {}, new status: {}",
+                className, paymentId, payment.getPaymentState());
 
         OrderDto payedOrder = orderFeignClient.paymentOrderFailed(payment.getOrderId());
         if (payedOrder == null) {

@@ -147,40 +147,40 @@ public class DeliveryServiceImpl implements DeliveryService {
     @Override
     @Loggable
     public BigDecimal calculateDeliveryCost(OrderDto orderDto) {
-        BigDecimal result = BigDecimal.valueOf(5);
-        result = result.setScale(2, RoundingMode.UP);
+        BigDecimal deliveryCostResult = BigDecimal.valueOf(5);
+        deliveryCostResult = deliveryCostResult.setScale(2, RoundingMode.UP);
 
-        log.info("{}: initial deliveryCost value: {}", className, result);
+        log.info("{}: initial deliveryCost value: {}", className, deliveryCostResult);
 
         Delivery delivery = findInCacheOrDbByOrderId(orderDto.getOrderId());
 
         if (delivery.getFromAddress().getStreet().equals("ADDRESS_1")) {
-            result = result.multiply(BigDecimal.valueOf(1));
+            deliveryCostResult = deliveryCostResult.multiply(BigDecimal.valueOf(1));
         }
 
         if (delivery.getFromAddress().getStreet().equals("ADDRESS_2")) {
-            result = result.multiply(BigDecimal.valueOf(2));
+            deliveryCostResult = deliveryCostResult.multiply(BigDecimal.valueOf(2));
         }
 
-        log.info("{}: deliveryCost value after initial address check: {}", className, result);
+        log.info("{}: deliveryCost value after initial address check: {}", className, deliveryCostResult);
 
         if (orderDto.isFragile()) {
-            result = result.multiply(BigDecimal.valueOf(1.2));
-            log.info("{}: deliveryCost value after fragile check: {}", className, result);
+            deliveryCostResult = deliveryCostResult.multiply(BigDecimal.valueOf(1.2));
+            log.info("{}: deliveryCost value after fragile check: {}", className, deliveryCostResult);
         }
 
-        result = result.add(orderDto.getDeliveryWeight().multiply(BigDecimal.valueOf(0.3)));
-        log.info("{}: deliveryCost value after weight check: {}", className, result);
+        deliveryCostResult = deliveryCostResult.add(orderDto.getDeliveryWeight().multiply(BigDecimal.valueOf(0.3)));
+        log.info("{}: deliveryCost value after weight check: {}", className, deliveryCostResult);
 
-        result = result.add(orderDto.getDeliveryVolume().multiply(BigDecimal.valueOf(0.2)));
-        log.info("{}: deliveryCost value after volume check: {}", className, result);
+        deliveryCostResult = deliveryCostResult.add(orderDto.getDeliveryVolume().multiply(BigDecimal.valueOf(0.2)));
+        log.info("{}: deliveryCost value after volume check: {}", className, deliveryCostResult);
 
         if (!delivery.getToAddress().getStreet().equals(delivery.getFromAddress().getStreet())) {
-            result = result.multiply(BigDecimal.valueOf(1.2));
-            log.info("{}: deliveryCost value after destination address check: {}", className, result);
+            deliveryCostResult = deliveryCostResult.multiply(BigDecimal.valueOf(1.2));
+            log.info("{}: deliveryCost value after destination address check: {}", className, deliveryCostResult);
         }
 
-        return result;
+        return deliveryCostResult;
     }
 
     private Delivery findInCacheOrDbByOrderId(UUID orderId) {
