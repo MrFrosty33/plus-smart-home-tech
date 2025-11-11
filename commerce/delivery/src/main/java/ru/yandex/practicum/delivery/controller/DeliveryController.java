@@ -1,5 +1,6 @@
 package ru.yandex.practicum.delivery.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,7 +24,7 @@ public class DeliveryController implements DeliveryFeignClient {
     private final DeliveryService deliveryService;
 
     @PutMapping
-    public DeliveryDto createDelivery(@RequestBody DeliveryDto deliveryDto) {
+    public DeliveryDto createDelivery(@RequestBody @Valid DeliveryDto deliveryDto) {
         return deliveryService.create(deliveryDto);
     }
 
