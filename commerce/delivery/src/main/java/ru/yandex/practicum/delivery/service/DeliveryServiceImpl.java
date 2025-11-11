@@ -98,6 +98,8 @@ public class DeliveryServiceImpl implements DeliveryService {
         delivery.setDeliveryState(DeliveryState.DELIVERED);
 
         deliveryRepository.save(delivery);
+        log.info("{}: update delivery with id: {}, new status: {}",
+                className, delivery.getDeliveryId(), delivery.getDeliveryState());
 
         OrderDto order = orderFeignClient.deliveryOrder(orderId);
         if (order == null) {
@@ -116,6 +118,9 @@ public class DeliveryServiceImpl implements DeliveryService {
         delivery.setDeliveryState(DeliveryState.IN_PROGRESS);
 
         delivery = deliveryRepository.save(delivery);
+        log.info("{}: update delivery with id: {}, new status: {}",
+                className, delivery.getDeliveryId(), delivery.getDeliveryState());
+
         warehouseFeignClient.addDelivery(new OrderBookingAddDeliveryRequest(orderId, delivery.getDeliveryId()));
     }
 
@@ -128,6 +133,8 @@ public class DeliveryServiceImpl implements DeliveryService {
         delivery.setDeliveryState(DeliveryState.FAILED);
 
         deliveryRepository.save(delivery);
+        log.info("{}: update delivery with id: {}, new status: {}",
+                className, delivery.getDeliveryId(), delivery.getDeliveryState());
 
         OrderDto order = orderFeignClient.deliveryOrderFailed(orderId);
         if (order == null) {
@@ -142,6 +149,9 @@ public class DeliveryServiceImpl implements DeliveryService {
     public BigDecimal calculateDeliveryCost(OrderDto orderDto) {
         BigDecimal result = BigDecimal.valueOf(5);
         result = result.setScale(2, RoundingMode.UP);
+
+        log.info("{}: initial deliveryCost value: {}", className, result);
+
         Delivery delivery = findInCacheOrDbByOrderId(orderDto.getOrderId());
 
         if (delivery.getFromAddress().getStreet().equals("ADDRESS_1")) {
@@ -152,16 +162,22 @@ public class DeliveryServiceImpl implements DeliveryService {
             result = result.multiply(BigDecimal.valueOf(2));
         }
 
+        log.info("{}: deliveryCost value after initial address check: {}", className, result);
+
         if (orderDto.isFragile()) {
             result = result.multiply(BigDecimal.valueOf(1.2));
+            log.info("{}: deliveryCost value after fragile check: {}", className, result);
         }
 
         result = result.add(orderDto.getDeliveryWeight().multiply(BigDecimal.valueOf(0.3)));
+        log.info("{}: deliveryCost value after weight check: {}", className, result);
 
         result = result.add(orderDto.getDeliveryVolume().multiply(BigDecimal.valueOf(0.2)));
+        log.info("{}: deliveryCost value after volume check: {}", className, result);
 
         if (!delivery.getToAddress().getStreet().equals(delivery.getFromAddress().getStreet())) {
             result = result.multiply(BigDecimal.valueOf(1.2));
+            log.info("{}: deliveryCost value after destination address check: {}", className, result);
         }
 
         return result;
