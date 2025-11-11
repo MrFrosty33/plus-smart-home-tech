@@ -2,6 +2,9 @@ package ru.yandex.practicum.payment.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,10 +38,13 @@ public class PaymentServiceImpl implements PaymentService {
     private final ShoppingStoreFeignClient shoppingStoreFeignClient;
     private final OrderFeignClient orderFeignClient;
 
+    private final CacheManager cacheManager;
+
 
     @Override
     @Transactional
     @Loggable
+    @CachePut(cacheNames = "payment.payments", key = "result.paymentId")
     public PaymentDto createPayment(OrderDto orderDto) {
         Payment payment = Payment.builder()
                 .orderId(orderDto.getOrderId())
@@ -108,6 +114,8 @@ public class PaymentServiceImpl implements PaymentService {
         payment.setPaymentState(PaymentState.SUCCESS);
 
         paymentRepository.save(payment);
+        cacheManager.getCache("payment.payments").put(paymentId, paymentMapper.toDto(payment));
+
         log.info("{}: update payment with id: {}, new status: {}",
                 className, paymentId, payment.getPaymentState());
 
@@ -128,6 +136,8 @@ public class PaymentServiceImpl implements PaymentService {
         payment.setPaymentState(PaymentState.FAILED);
 
         paymentRepository.save(payment);
+        cacheManager.getCache("payment.payments").put(paymentId, paymentMapper.toDto(payment));
+
         log.info("{}: update payment with id: {}, new status: {}",
                 className, paymentId, payment.getPaymentState());
 
@@ -140,13 +150,23 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     private Payment findPaymentInCacheOrDb(UUID paymentId) {
-        //todo cache
-        return paymentRepository.findById(paymentId).orElseThrow(() -> {
-            log.warn("{}: no Payment found for paymentId: {}", className, paymentId);
-            String message = "Payment for paymentId: " + paymentId + " cannot be found";
-            String userMessage = "Payment not found";
-            HttpStatus status = HttpStatus.NOT_FOUND;
-            return new NotFoundException(message, userMessage, status);
-        });
+        Cache.ValueWrapper valueWrapper = cacheManager.getCache("payment.payments").get(paymentId);
+        Payment payment;
+
+        if (valueWrapper != null) {
+            payment = paymentMapper.toEntity((PaymentDto) valueWrapper.get());
+            log.info("{}: found Payment in cache", className);
+        } else {
+            payment = paymentRepository.findById(paymentId).orElseThrow(() -> {
+                log.warn("{}: no Payment found for paymentId: {}", className, paymentId);
+                String message = "Payment for paymentId: " + paymentId + " cannot be found";
+                String userMessage = "Payment not found";
+                HttpStatus status = HttpStatus.NOT_FOUND;
+                return new NotFoundException(message, userMessage, status);
+            });
+            log.info("{}: found Payment in DB", className);
+        }
+
+        return payment;
     }
 }

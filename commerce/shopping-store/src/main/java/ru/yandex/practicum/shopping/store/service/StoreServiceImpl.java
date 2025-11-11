@@ -127,7 +127,7 @@ public class StoreServiceImpl implements StoreService {
 
         // проверка, хранится ли в кэше
         if (valueWrapper != null) {
-            product = ((Product) valueWrapper.get());
+            product = productMapper.toEntity((ProductDto) valueWrapper.get());
             log.info("{}: found Product in cache", className);
         } else {
             product = productRepository.findById(productId).orElseThrow(() -> {

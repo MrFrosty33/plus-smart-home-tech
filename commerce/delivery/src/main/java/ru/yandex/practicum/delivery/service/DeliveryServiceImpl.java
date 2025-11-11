@@ -104,6 +104,8 @@ public class DeliveryServiceImpl implements DeliveryService {
         delivery.setDeliveryState(DeliveryState.DELIVERED);
 
         deliveryRepository.save(delivery);
+        cacheManager.getCache("delivery.deliveries").put(orderId, deliveryMapper.toDto(delivery));
+
         log.info("{}: update delivery with id: {}, new status: {}",
                 className, delivery.getDeliveryId(), delivery.getDeliveryState());
 
@@ -124,6 +126,8 @@ public class DeliveryServiceImpl implements DeliveryService {
         delivery.setDeliveryState(DeliveryState.IN_PROGRESS);
 
         delivery = deliveryRepository.save(delivery);
+        cacheManager.getCache("delivery.deliveries").put(orderId, deliveryMapper.toDto(delivery));
+
         log.info("{}: update delivery with id: {}, new status: {}",
                 className, delivery.getDeliveryId(), delivery.getDeliveryState());
 
@@ -139,6 +143,8 @@ public class DeliveryServiceImpl implements DeliveryService {
         delivery.setDeliveryState(DeliveryState.FAILED);
 
         deliveryRepository.save(delivery);
+        cacheManager.getCache("delivery.deliveries").put(orderId, deliveryMapper.toDto(delivery));
+
         log.info("{}: update delivery with id: {}, new status: {}",
                 className, delivery.getDeliveryId(), delivery.getDeliveryState());
 
@@ -194,7 +200,7 @@ public class DeliveryServiceImpl implements DeliveryService {
         Delivery delivery;
 
         if (valueWrapper != null) {
-            delivery = ((Delivery) valueWrapper.get());
+            delivery = deliveryMapper.toEntity((DeliveryDto) valueWrapper.get());
             log.info("{}: found Delivery in cache", className);
         } else {
             delivery = deliveryRepository.findByOrderId(orderId).orElseThrow(() -> {

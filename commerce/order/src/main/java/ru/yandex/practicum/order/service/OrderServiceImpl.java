@@ -363,7 +363,7 @@ public class OrderServiceImpl implements OrderService {
         Order order;
 
         if (valueWrapper != null) {
-            order = ((Order) valueWrapper.get());
+            order = orderMapper.toEntity((OrderDto) valueWrapper.get());
             log.info("{}: found Order in cache", className);
         } else {
             order = orderRepository.findById(orderId).orElseThrow(() -> {
