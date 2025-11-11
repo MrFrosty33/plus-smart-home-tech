@@ -165,6 +165,9 @@ public class OrderServiceImpl implements OrderService {
         order.setState(OrderState.PAID);
         orderRepository.save(order);
 
+        log.info("{}: update order with id: {}, new status: {}",
+                className, orderId, order.getState());
+
         return orderMapper.toDto(order);
     }
 
@@ -178,6 +181,9 @@ public class OrderServiceImpl implements OrderService {
 
         order.setState(OrderState.PAYMENT_FAILED);
         orderRepository.save(order);
+
+        log.info("{}: update order with id: {}, new status: {}",
+                className, orderId, order.getState());
 
         return orderMapper.toDto(order);
     }
@@ -193,6 +199,9 @@ public class OrderServiceImpl implements OrderService {
         order.setState(OrderState.DELIVERED);
         orderRepository.save(order);
 
+        log.info("{}: update order with id: {}, new status: {}",
+                className, orderId, order.getState());
+
         return orderMapper.toDto(order);
     }
 
@@ -207,6 +216,9 @@ public class OrderServiceImpl implements OrderService {
         order.setState(OrderState.DELIVERY_FAILED);
         orderRepository.save(order);
 
+        log.info("{}: update order with id: {}, new status: {}",
+                className, orderId, order.getState());
+
         return orderMapper.toDto(order);
     }
 
@@ -217,6 +229,9 @@ public class OrderServiceImpl implements OrderService {
         Order order = findInCacheOrDB(orderId);
         order.setState(OrderState.COMPLETED);
         orderRepository.save(order);
+
+        log.info("{}: update order with id: {}, new status: {}",
+                className, orderId, order.getState());
 
         return orderMapper.toDto(order);
     }
@@ -238,6 +253,9 @@ public class OrderServiceImpl implements OrderService {
         order.setTotalPrice(totalPrice);
         orderRepository.save(order);
 
+        log.info("{}: update order with id: {}, new totalPrice: {}",
+                className, orderId, order.getTotalPrice());
+
         return orderMapper.toDto(order);
     }
 
@@ -257,6 +275,9 @@ public class OrderServiceImpl implements OrderService {
 
         order.setDeliveryPrice(deliveryPrice);
         orderRepository.save(order);
+
+        log.info("{}: update order with id: {}, new deliveryPrice: {}",
+                className, orderId, order.getDeliveryPrice());
 
         return orderMapper.toDto(order);
     }
@@ -278,6 +299,9 @@ public class OrderServiceImpl implements OrderService {
         order.setProductsPrice(productPrice);
         orderRepository.save(order);
 
+        log.info("{}: update order with id: {}, new productPrice: {}",
+                className, orderId, order.getProductsPrice());
+
         return orderMapper.toDto(order);
     }
 
@@ -296,6 +320,9 @@ public class OrderServiceImpl implements OrderService {
         order.setState(OrderState.ASSEMBLED);
         orderRepository.save(order);
 
+        log.info("{}: update order with id: {}, new status: {}",
+                className, orderId, order.getState());
+
         return orderMapper.toDto(order);
     }
 
@@ -307,6 +334,9 @@ public class OrderServiceImpl implements OrderService {
 
         order.setState(OrderState.ASSEMBLY_FAILED);
         orderRepository.save(order);
+
+        log.info("{}: update order with id: {}, new status: {}",
+                className, orderId, order.getState());
 
         return orderMapper.toDto(order);
     }
