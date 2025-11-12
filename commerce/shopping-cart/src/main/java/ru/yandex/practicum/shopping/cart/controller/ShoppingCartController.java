@@ -14,9 +14,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.interaction.api.dto.ShoppingCartDto;
 import ru.yandex.practicum.interaction.api.exception.NotAuthorizedUserException;
+import ru.yandex.practicum.interaction.api.feign.ShoppingCartFeignClient;
 import ru.yandex.practicum.shopping.cart.model.ChangeProductQuantityRequest;
 import ru.yandex.practicum.shopping.cart.service.CartService;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -25,13 +27,19 @@ import java.util.UUID;
 @RequestMapping("/api/v1/shopping-cart")
 @RequiredArgsConstructor
 @Validated
-public class ShoppingCartController {
+public class ShoppingCartController implements ShoppingCartFeignClient {
     private final CartService cartService;
 
     @GetMapping
-    public ShoppingCartDto get(@RequestParam String username) {
+    public ShoppingCartDto getByUsername(@RequestParam String username) {
         checkUsername(username);
-        return cartService.get(username);
+        return cartService.getByUsername(username);
+    }
+
+    @GetMapping("/allPast")
+    public List<ShoppingCartDto> getAllPastByUsername(@RequestParam String username) {
+        checkUsername(username);
+        return cartService.getAllPastByUsername(username);
     }
 
     @PutMapping

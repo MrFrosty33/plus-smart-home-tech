@@ -3,12 +3,15 @@ package ru.yandex.practicum.shopping.cart.service;
 import ru.yandex.practicum.interaction.api.dto.ShoppingCartDto;
 import ru.yandex.practicum.shopping.cart.model.ChangeProductQuantityRequest;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
 public interface CartService {
-    ShoppingCartDto get(String username);
+    ShoppingCartDto getByUsername(String username);
+
+    List<ShoppingCartDto> getAllPastByUsername(String username);
 
     ShoppingCartDto addProduct(String username, Map<UUID, Integer> products);
 

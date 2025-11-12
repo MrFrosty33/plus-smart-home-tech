@@ -18,11 +18,11 @@ management:
   endpoints:
     web:
       exposure:
-        include: health, mappings, httptrace, caches, threaddump
+        include: health, info, mappings, httptrace, caches, threaddump
 
 resilience4j.circuitbreaker:
-  configs:
-    default:
+  instances:
+    shoppingStoreCircuitBreaker:
       slidingWindowSize: 50
       slidingWindowType: COUNT_BASED
       failureRateThreshold: 50

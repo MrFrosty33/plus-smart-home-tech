@@ -2,6 +2,8 @@ package ru.yandex.practicum.shopping.cart.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
@@ -13,6 +15,7 @@ import ru.yandex.practicum.interaction.api.dto.ShoppingCartDto;
 import ru.yandex.practicum.interaction.api.exception.InternalServerException;
 import ru.yandex.practicum.interaction.api.exception.NoProductsInShoppingCartException;
 import ru.yandex.practicum.interaction.api.exception.NotAuthorizedUserException;
+import ru.yandex.practicum.interaction.api.exception.NotFoundException;
 import ru.yandex.practicum.interaction.api.feign.WarehouseFeignClient;
 import ru.yandex.practicum.interaction.api.logging.Loggable;
 import ru.yandex.practicum.shopping.cart.mapper.CartMapper;
@@ -24,6 +27,7 @@ import ru.yandex.practicum.shopping.cart.repository.CartProductRepository;
 import ru.yandex.practicum.shopping.cart.repository.CartRepository;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -40,17 +44,35 @@ public class CartServiceImpl implements CartService {
 
     private final String className = this.getClass().getSimpleName();
 
+    private final CacheManager cacheManager;
+
     @Override
     @Loggable
     @Cacheable(value = "shopping-cart.carts", key = "#username")
-    public ShoppingCartDto get(String username) {
-        return cartMapper.toDto(cartRepository.findByUsername(username).orElseThrow(() -> {
+    public ShoppingCartDto getByUsername(String username) {
+        // было отредактировано - теперь ищет только активную корзину
+        return cartMapper.toDto(cartRepository.findByUsernameAndActive(username, true).orElseThrow(() -> {
             log.warn("{}: no Cart found for username: {}", className, username);
             String message = "Cart for username: " + username + " cannot be found";
             String userMessage = "Cart not found";
-            HttpStatus status = HttpStatus.UNAUTHORIZED;
-            return new NotAuthorizedUserException(message, userMessage, status);
+            HttpStatus status = HttpStatus.NOT_FOUND;
+            return new NotFoundException(message, userMessage, status);
         }));
+    }
+
+    @Override
+    @Loggable
+    @Cacheable(value = "shopping-cart.carts", key = "#username")
+    public List<ShoppingCartDto> getAllPastByUsername(String username) {
+        List<Cart> carts = cartRepository.findAllByUsernameAndActive(username, false).orElseThrow(() -> {
+            log.warn("{}: no Carts found for username: {}", className, username);
+            String message = "Carts for username: " + username + " cannot be found";
+            String userMessage = "Carts not found";
+            HttpStatus status = HttpStatus.NOT_FOUND;
+            return new NotFoundException(message, userMessage, status);
+        });
+
+        return carts.stream().map(cartMapper::toDto).toList();
     }
 
     @Override
@@ -58,10 +80,8 @@ public class CartServiceImpl implements CartService {
     @Transactional
     @CachePut(value = "shopping-cart.carts", key = "#username")
     public ShoppingCartDto addProduct(String username, Map<UUID, Integer> products) {
-        //todo обратить внимание на входные параметры
-        Cart cart = getShoppingCartFromDbOrCreate(username);
+        Cart cart = findInCacheOrDBOrCreate(username);
 
-        //todo так понимаю, пока что не нужна эта проверка, ибо она ломает прохождение тестов
 //        if (!cart.isActive()) {
 //            // вопрос, надо ли проводить эту проверку на текущем этапе, или это будет сделано далее?
 //            log.warn("{}: attempt to add products to a deactivated cart: {}", className, cart);
@@ -78,7 +98,6 @@ public class CartServiceImpl implements CartService {
             String message = "warehouse feignClient not available";
             throw new InternalServerException(message);
         }
-        //todo дальше уже наверно будет оформление заказа?
         return cartDto;
     }
 
@@ -87,7 +106,7 @@ public class CartServiceImpl implements CartService {
     @Transactional
     @CacheEvict(value = "shopping-cart.carts", key = "#username")
     public void deactivateCart(String username) {
-        Cart cart = getShoppingCartFromDbOrCreate(username);
+        Cart cart = findInCacheOrDBOrCreate(username);
         cart.setActive(false);
     }
 
@@ -96,7 +115,7 @@ public class CartServiceImpl implements CartService {
     @Transactional
     @CachePut(value = "shopping-cart.carts", key = "#username")
     public ShoppingCartDto removeProducts(String username, Set<UUID> productsId) {
-        Cart cart = getShoppingCartFromDbOrCreate(username);
+        Cart cart = findInCacheOrDBOrCreate(username);
 
         productsId.forEach((id) -> {
             CartProductEmbeddedId embeddedId = CartProductEmbeddedId.builder()
@@ -123,12 +142,12 @@ public class CartServiceImpl implements CartService {
     @Transactional
     @CachePut(value = "shopping-cart.carts", key = "#username")
     public ShoppingCartDto changeQuantity(String username, ChangeProductQuantityRequest request) {
-        Cart cart = cartRepository.findByUsername(username).orElseThrow(() -> {
+        Cart cart = cartRepository.findByUsernameAndActive(username, true).orElseThrow(() -> {
             log.warn("{}: no Cart found for username: {}", className, username);
             String message = "Cart for username: " + username + " cannot be found";
             String userMessage = "Cart not found";
-            HttpStatus status = HttpStatus.UNAUTHORIZED;
-            return new NotAuthorizedUserException(message, userMessage, status);
+            HttpStatus status = HttpStatus.NOT_FOUND;
+            return new NotFoundException(message, userMessage, status);
         });
 
         CartProductEmbeddedId embeddedId = CartProductEmbeddedId.builder()
@@ -141,7 +160,7 @@ public class CartServiceImpl implements CartService {
             String message = "CartProduct for cartId: " + embeddedId.getCartId()
                     + " and productId:" + embeddedId.getProductId() + " cannot be found";
             String userMessage = "There is no Product in Cart";
-            HttpStatus status = HttpStatus.UNAUTHORIZED;
+            HttpStatus status = HttpStatus.NOT_FOUND;
             return new NoProductsInShoppingCartException(message, userMessage, status);
         });
 
@@ -150,9 +169,19 @@ public class CartServiceImpl implements CartService {
         return cartMapper.toDto(cart);
     }
 
-    private Cart getShoppingCartFromDbOrCreate(String username) throws NotAuthorizedUserException {
+    private Cart findInCacheOrDBOrCreate(String username) throws NotAuthorizedUserException {
         if (username != null && !username.isEmpty()) {
-            Optional<Cart> shoppingCart = cartRepository.findByUsername(username);
+            Cache.ValueWrapper valueWrapper = cacheManager.getCache("shopping-cart.carts").get(username);
+            Optional<Cart> shoppingCart;
+
+            if (valueWrapper != null) {
+                shoppingCart = Optional.of((Cart) valueWrapper.get());
+                log.info("{}: found Cart in cache", className);
+            } else {
+                shoppingCart = cartRepository.findByUsernameAndActive(username, true);
+                log.info("{}: found Cart in DB", className);
+            }
+
             if (shoppingCart.isPresent()) {
                 return shoppingCart.get();
             } else {

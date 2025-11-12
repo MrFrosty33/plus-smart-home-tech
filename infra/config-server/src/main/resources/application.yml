@@ -11,7 +11,7 @@ spring:
           searchLocations:
             - classpath:config/telemetry/{application}/
             - classpath:config/infra/{application}/
-            - classpath:config/commerce/{application}
+            - classpath:config/commerce/{application}/
 
 server:
   port: 0
@@ -20,7 +20,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health
+        include: health, info
 
 eureka:
   client:

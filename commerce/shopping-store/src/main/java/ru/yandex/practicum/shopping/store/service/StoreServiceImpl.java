@@ -16,7 +16,7 @@ import ru.yandex.practicum.interaction.api.dto.ProductCategory;
 import ru.yandex.practicum.interaction.api.dto.ProductDto;
 import ru.yandex.practicum.interaction.api.dto.ProductState;
 import ru.yandex.practicum.interaction.api.dto.SetProductQuantityStateRequest;
-import ru.yandex.practicum.interaction.api.exception.StoreProductNotFoundException;
+import ru.yandex.practicum.interaction.api.exception.NotFoundException;
 import ru.yandex.practicum.interaction.api.logging.Loggable;
 import ru.yandex.practicum.shopping.store.mapper.ProductMapper;
 import ru.yandex.practicum.shopping.store.model.Product;
@@ -45,13 +45,7 @@ public class StoreServiceImpl implements StoreService {
     @Loggable
     @Cacheable(value = "shopping-store.products", key = "#productId")
     public ProductDto getById(UUID productId) {
-        return productMapper.toDto(productRepository.findById(productId).orElseThrow(() -> {
-            log.warn("{}: cannot find Product with id: {}", className, productId);
-            String message = "Product with id: " + productId + " cannot be found";
-            String userMessage = "Product not found";
-            HttpStatus status = HttpStatus.NOT_FOUND;
-            return new StoreProductNotFoundException(message, userMessage, status);
-        }));
+        return productMapper.toDto(findInCacheOrDB(productId));
     }
 
     @Override
@@ -69,13 +63,7 @@ public class StoreServiceImpl implements StoreService {
     @CachePut(value = "shopping-store.products", key = "#result.productId")
     @Transactional
     public ProductDto update(ProductDto productDto) {
-        Product old = productRepository.findById(productDto.getProductId()).orElseThrow(() -> {
-            log.warn("{}: update failure - cannot find Product with id: {}", className, productDto.getProductId());
-            String message = "Product with id: " + productDto.getProductId() + " cannot be found";
-            String userMessage = "Product not found";
-            HttpStatus status = HttpStatus.NOT_FOUND;
-            return new StoreProductNotFoundException(message, userMessage, status);
-        });
+        Product old = findInCacheOrDB(productDto.getProductId());
 
         Product fresh = productMapper.toEntity(productDto);
         if (old.equals(fresh)) {
@@ -92,18 +80,14 @@ public class StoreServiceImpl implements StoreService {
     @CachePut(value = "shopping-store.products", key = "#request.productId")
     public ProductDto updateQuantityState(SetProductQuantityStateRequest request) {
 
-        Product product = productRepository.findById(request.getProductId()).orElseThrow(() -> {
-            log.warn("{}: quantity state update failure - cannot find Product with id: {}", className, request.getProductId());
-            String message = "Product with id: " + request.getProductId() + " cannot be found";
-            String userMessage = "Product not found";
-            HttpStatus status = HttpStatus.NOT_FOUND;
-            return new StoreProductNotFoundException(message, userMessage, status);
-        });
+        Product product = findInCacheOrDB(request.getProductId());
 
         product.setQuantityState(request.getQuantityState());
 
         // метод не возвращает дто, не забываем обновить данные в кэше
         cacheManager.getCache("shopping-store.products").put(product.getProductId(), product);
+
+        productRepository.save(product);
         return productMapper.toDto(product);
     }
 
@@ -112,8 +96,6 @@ public class StoreServiceImpl implements StoreService {
     @Transactional
     @CacheEvict(value = "shopping-store.products", key = "#result.productId")
     public ProductDto remove(UUID productId) {
-        // todo при работе с кэшем была проблема с кавычками в id. обратить внимание при возвращении кэша
-
         Cache.ValueWrapper valueWrapper = cacheManager.getCache("shopping-store.products").get(productId);
         Product product;
 
@@ -128,7 +110,7 @@ public class StoreServiceImpl implements StoreService {
                 String message = "Product with id: " + productId + " cannot be found";
                 String userMessage = "Product not found";
                 HttpStatus status = HttpStatus.NOT_FOUND;
-                return new StoreProductNotFoundException(message, userMessage, status);
+                return new NotFoundException(message, userMessage, status);
             });
         }
 
@@ -137,5 +119,27 @@ public class StoreServiceImpl implements StoreService {
         if (cachedProduct) productRepository.save(product);
 
         return productMapper.toDto(product);
+    }
+
+    private Product findInCacheOrDB(UUID productId) {
+        Cache.ValueWrapper valueWrapper = cacheManager.getCache("shopping-store.products").get(productId);
+        Product product;
+
+        // проверка, хранится ли в кэше
+        if (valueWrapper != null) {
+            product = productMapper.toEntity((ProductDto) valueWrapper.get());
+            log.info("{}: found Product in cache", className);
+        } else {
+            product = productRepository.findById(productId).orElseThrow(() -> {
+                log.warn("{}: cannot find Product with id: {}", className, productId);
+                String message = "Product with id: " + productId + " cannot be found";
+                String userMessage = "Product not found";
+                HttpStatus status = HttpStatus.NOT_FOUND;
+                return new NotFoundException(message, userMessage, status);
+            });
+            log.info("{}: found Product in DB", className);
+        }
+
+        return product;
     }
 }

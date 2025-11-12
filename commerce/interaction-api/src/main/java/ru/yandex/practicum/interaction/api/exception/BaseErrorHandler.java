@@ -15,7 +15,7 @@ public class BaseErrorHandler {
     private final String className = this.getClass().getSimpleName();
 
     @ExceptionHandler(NotAuthorizedUserException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public NotAuthorizedUserException
     handleNotAuthorizedUser(NotAuthorizedUserException e) {
         logError(e);
@@ -44,21 +44,6 @@ public class BaseErrorHandler {
         return e.getMessage();
     }
 
-    @ExceptionHandler(StoreProductNotFoundException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public StoreProductNotFoundException handleNotFound(StoreProductNotFoundException e) {
-        logError(e);
-        return e;
-    }
-
-    @ExceptionHandler(NoSpecifiedProductInWarehouseException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public NoSpecifiedProductInWarehouseException
-    handleNoSpecifiedProductInWarehouse(NoSpecifiedProductInWarehouseException e) {
-        logError(e);
-        return e;
-    }
-
 
     @ExceptionHandler(ProductInShoppingCartLowQuantityInWarehouseException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
@@ -75,6 +60,23 @@ public class BaseErrorHandler {
         logError(e);
         return e;
     }
+
+    @ExceptionHandler(NotEnoughInfoToCalculateException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public NotEnoughInfoToCalculateException
+    handleNotEnoughInfoToCalculate(NotEnoughInfoToCalculateException e) {
+        logError(e);
+        return e;
+    }
+
+    @ExceptionHandler(NotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public NotFoundException
+    handleNoDeliveryFound(NotFoundException e) {
+        logError(e);
+        return e;
+    }
+
 
     @ExceptionHandler(RetryableException.class)
     @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)

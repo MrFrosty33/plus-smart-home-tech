@@ -15,16 +15,16 @@ management:
   endpoints:
     web:
       exposure:
-        include: health, mappings, httptrace, caches, threaddump
+        include: health, info, mappings, httptrace, caches, threaddump
 
 resilience4j.circuitbreaker:
-  configs:
-    default:
+  instances:
+    warehouseCircuitBreaker:
       slidingWindowSize: 50
       slidingWindowType: COUNT_BASED
       failureRateThreshold: 50
       waitDurationInOpenState: 10s
-      permittedNumberOfCallsInHalfOpenState: 5
+      permittedNumberOfCallsInHalfOpenState: 10
       automaticTransitionFromOpenToHalfOpenEnabled: true
 
 logging:
